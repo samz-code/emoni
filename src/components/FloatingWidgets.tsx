@@ -54,7 +54,7 @@ const FloatingWidgets = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: dimmed && !hovering ? 0.25 : 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 md:bottom-6 md:right-6 bottom-4 right-4"
+      className="fixed bottom-4 right-4 z-[100] flex flex-col gap-3 md:bottom-6 md:right-6"
     >
       {buttons.map((btn) => (
         <div
@@ -80,7 +80,7 @@ const FloatingWidgets = () => {
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.08 }}
-            className={`${btn.bg} w-12 h-12 md:w-12 md:h-12 w-10 h-10 rounded-full flex items-center justify-center text-snow`}
+            className={`${btn.bg} w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-snow`}
             aria-label={btn.tooltip}
           >
             <btn.icon size={20} />
