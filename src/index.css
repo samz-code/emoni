@@ -1,0 +1,70 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Serif+Display&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --forest: 103 16% 27%;
+    --olive: 97 33% 38%;
+    --cream: 40 42% 81%;
+    --ember: 28 80% 52%;
+    --ink: 0 0% 10%;
+    --paper: 38 38% 95%;
+    --snow: 0 0% 100%;
+
+    --background: 38 38% 95%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 103 16% 27%;
+    --primary-foreground: 40 42% 81%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 28 80% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 35 18% 86%;
+    --input: 35 18% 86%;
+    --ring: 103 16% 27%;
+    --radius: 4px;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper text-ink font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ember));
+    outline-offset: 2px;
+  }
+}
