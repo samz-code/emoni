@@ -88,7 +88,7 @@ const Index = () => {
               <div className="bg-snow border border-[#E0DAD0] rounded-[4px] p-6">
                 <div className="flex justify-center">
                   <div className="w-20 h-20 rounded-full border-2 border-olive overflow-hidden bg-olive/20">
-                    <img src="/images/avatar.jpg" alt="Samuel Emoni" className="w-full h-full object-cover" />
+                    <img src="/images/profile-image.jpg" alt="Samuel Emoni" className="w-full h-full object-cover" />
                   </div>
                 </div>
                 <h2 className="font-display text-xl text-ink text-center mt-3">Samuel A. Emoni</h2>

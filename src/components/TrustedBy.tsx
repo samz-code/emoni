@@ -14,7 +14,7 @@ const clients: Client[] = [
   { name: "Reigns Clinic" },
   { name: "Aruba Arabian Restaurant" },
   { name: "Urban Beer Kenya" },
-  { name: "Kaira Consult" },
+  { name: "Kawira Consult" },
   { name: "Armand Air" },
   { name: "Rav Africa Safaris" },
   { name: "Sopa Lodges" },
