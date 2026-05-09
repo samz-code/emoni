@@ -47,7 +47,7 @@ const Terms = () => {
           <section>
             <h2 className="font-heading text-2xl text-forest mb-3">4. Payment Terms</h2>
             <ul className="list-disc pl-5 space-y-2">
-              <li>Project engagements: 50% deposit on signing, balance on delivery (or per milestone schedule).</li>
+              <li>Project engagements: 70% deposit on signing, balance on delivery (or per milestone schedule).</li>
               <li>Retainers: invoiced monthly in advance.</li>
               <li>Rescue & advisory: invoiced weekly or per agreed cadence.</li>
               <li>Accepted methods: M-Pesa, bank transfer, Stripe, or Wise.</li>
