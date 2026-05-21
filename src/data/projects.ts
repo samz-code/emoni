@@ -5,6 +5,7 @@ export interface Project {
   tags: string[];
   liveUrl: string | null;
   year?: string;
+  image?: string; // path relative to /public
 }
 
 export interface Product {
@@ -26,6 +27,7 @@ export const projects: Project[] = [
     tags: ["React", "Next.js", "PostgreSQL", "M-Pesa"],
     liveUrl: "https://www.capepcyhardware.co.ke/",
     year: "2025",
+    image: "/capepcy-hardware.jpg",
   },
   {
     name: "Turkana County Website",
@@ -35,6 +37,7 @@ export const projects: Project[] = [
     tags: ["Next.js", "Node.js", "PostgreSQL"],
     liveUrl: "https://www.turkanacounty.go.ke/",
     year: "2024",
+    image: "/turkana-county.jpg",
   },
   {
     name: "Axis Africa Safaris",
@@ -44,6 +47,7 @@ export const projects: Project[] = [
     tags: ["React", "Tailwind", "Node.js"],
     liveUrl: "https://www.axisafricasafaris.com/",
     year: "2023",
+    image: "/axis-africa-safaris.jpg",
   },
   {
     name: "Hyrax Safaris",
@@ -53,6 +57,7 @@ export const projects: Project[] = [
     tags: ["React", "Next.js", "Tailwind"],
     liveUrl: "https://hyraxsafaris.com/",
     year: "2024",
+    image: "/hyrax-safaris.jpg",
   },
   {
     name: "Fred's Ranch & Resort",
@@ -62,6 +67,7 @@ export const projects: Project[] = [
     tags: ["React", "Tailwind", "Node.js"],
     liveUrl: "https://fredsranch.co.ke/",
     year: "2023",
+    image: "/freds-ranch.jpg",
   },
   {
     name: "NeuroUni",
@@ -72,7 +78,6 @@ export const projects: Project[] = [
     liveUrl: null,
     year: "2024",
   },
- 
   {
     name: "Click2Skill",
     sector: "Branding",
@@ -90,6 +95,7 @@ export const projects: Project[] = [
     tags: ["Next.js", "React", "Tailwind"],
     liveUrl: "https://www.emonisamuel.co.ke",
     year: "2025",
+    image: "/emoni-samuel-portfolio.jpg",
   },
   {
     name: "County Health Records System",
@@ -153,6 +159,7 @@ export const projects: Project[] = [
     tags: ["Next.js", "i18n", "CMS"],
     liveUrl: "#",
     year: "2025",
+    image: "/kilifi-tourism.jpg",
   },
   {
     name: "BrewWorks Café POS",
