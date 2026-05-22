@@ -1,21 +1,28 @@
+export type ServiceIcon =
+  | "Zap"
+  | "Layers"
+  | "Monitor"
+  | "Palette"
+  | "CreditCard"
+  | "Workflow"
+  | "Link"
+  | "Wrench";
+
 export interface Service {
   id: string;
-  icon: string;
+  icon: ServiceIcon;
   name: string;
   problem: string;
   solution: string;
   outcome: string;
   deliverables: string[];
-  tools: string[];
-  timeline: string;
   idealFor: string;
-  startingFrom?: string;
 }
 
 export const services: Service[] = [
   {
     id: "digital-consultancy",
-    icon: "Lightbulb",
+    icon: "Zap",
     name: "Digital Consultancy",
     problem:
       "Organizations invest in technology without a clear strategy, resulting in wasted budgets, duplicated tools, and systems nobody actually uses.",
@@ -29,10 +36,7 @@ export const services: Service[] = [
       "Vendor & build-vs-buy analysis",
       "Executive briefing & team workshop",
     ],
-    tools: ["Notion", "Miro", "Lucidchart", "Excel", "Linear"],
-    timeline: "2–6 weeks",
     idealFor: "SMEs, NGOs, county governments, growth-stage startups",
-    startingFrom: "KSH 80,000",
   },
   {
     id: "system-design",
@@ -51,10 +55,7 @@ export const services: Service[] = [
       "Security threat model",
       "Technical decision log",
     ],
-    tools: ["PostgreSQL", "Node.js", "Docker", "AWS", "Supabase", "Redis"],
-    timeline: "3–8 weeks",
     idealFor: "Companies scaling beyond MVP, replacing legacy systems",
-    startingFrom: "KSH 150,000",
   },
   {
     id: "web-development",
@@ -73,10 +74,7 @@ export const services: Service[] = [
       "Hosting & deployment configuration",
       "30-day post-launch support",
     ],
-    tools: ["React", "Next.js", "TypeScript", "Tailwind", "Node.js", "Vercel"],
-    timeline: "4–12 weeks",
     idealFor: "Businesses, institutions, e-commerce, SaaS, portfolios",
-    startingFrom: "KSH 60,000",
   },
   {
     id: "graphic-design",
@@ -95,10 +93,7 @@ export const services: Service[] = [
       "Pitch deck or company profile",
       "Source files (AI, PSD, Figma)",
     ],
-    tools: ["Illustrator", "Photoshop", "InDesign", "Figma", "Canva Pro"],
-    timeline: "2–6 weeks",
     idealFor: "Startups, rebrands, professional services, restaurants",
-    startingFrom: "KSH 25,000",
   },
   {
     id: "payment-integrations",
@@ -117,10 +112,7 @@ export const services: Service[] = [
       "Transaction logging & monitoring",
       "Go-live checklist & runbook",
     ],
-    tools: ["M-Pesa Daraja", "Stripe", "Flutterwave", "Pesapal", "PayPal"],
-    timeline: "2–5 weeks",
     idealFor: "E-commerce, SaaS, marketplaces, donation platforms",
-    startingFrom: "KSH 45,000",
   },
   {
     id: "process-automation",
@@ -139,14 +131,11 @@ export const services: Service[] = [
       "Reporting dashboards",
       "Team training & SOP documentation",
     ],
-    tools: ["n8n", "Zapier", "Make", "Python", "Google Apps Script"],
-    timeline: "3–6 weeks",
     idealFor: "Operations teams, HR, finance, customer support",
-    startingFrom: "KSH 50,000",
   },
   {
     id: "api-integration",
-    icon: "Plug",
+    icon: "Link",
     name: "API & System Integration",
     problem:
       "Disconnected enterprise systems force staff to duplicate data entry across CRM, accounting, inventory, and payroll — creating dangerous information silos and reporting gaps.",
@@ -161,10 +150,7 @@ export const services: Service[] = [
       "Integration test suite",
       "Maintenance handover docs",
     ],
-    tools: ["Postman", "Node.js", "Python", "Sentry", "AWS Lambda"],
-    timeline: "2–8 weeks",
     idealFor: "Multi-system businesses, ERP migrations, SaaS connectors",
-    startingFrom: "KSH 40,000",
   },
   {
     id: "it-support",
@@ -183,9 +169,6 @@ export const services: Service[] = [
       "Cybersecurity baseline hardening",
       "Monthly retainer support option",
     ],
-    tools: ["Windows Server", "Ubuntu", "pfSense", "Veeam", "Bitdefender"],
-    timeline: "Same-day to 2 weeks",
     idealFor: "Offices, schools, SMEs, hotels, retail outlets",
-    startingFrom: "KSH 5,000 / visit",
   },
 ];

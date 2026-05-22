@@ -17,75 +17,71 @@ import { insights } from "@/data/insights";
 const serviceIcons: Record<string, typeof Lightbulb> = {
   Lightbulb, Layers, Monitor, Palette, CreditCard, Workflow, Plug, Wrench,
 };
-
+ 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.5 },
 };
-
+ 
 const capabilities = [
   "Digital Consultancy", "System Design", "Web Development",
   "Graphic Design", "Payment Integrations", "Process Automation",
   "API Integration", "GovTech", "Cloud & DevOps", "IT Support",
 ];
-
+ 
 const stats = [
   { number: 1000, suffix: "+", label: "Projects Delivered" },
   { number: 500,  suffix: "+", label: "Clients Served" },
   { number: 6,    suffix: "+", label: "Years Design" },
   { number: 5,    suffix: "+", label: "Years Dev" },
 ];
-
-const PHRASES = [
-  "Building Systems That Drive Performance and Accountability.",
-  "Delivering Digital Infrastructure at Scale.",
-  "Powering Accountability Through Technology.",
+ 
+const PAIRS = [
+  { problem: "Slow manual work.", solution: "We automate systems." },
+  { problem: "Scattered data.", solution: "We centralise everything." },
+  { problem: "Low conversions.", solution: "We design to convert." },
+  { problem: "Old systems.", solution: "We build scalable tech." },
 ];
-
 /* ─────────────────────────────────────────
    Hooks
 ───────────────────────────────────────── */
-function useTypewriter(
-  phrases: string[],
-  typingSpeed = 48,
-  deletingSpeed = 28,
-  pauseMs = 1900,
-) {
-  const [displayed, setDisplayed] = useState("");
-  const [phraseIdx, setPhraseIdx] = useState(0);
-  const [charIdx, setCharIdx] = useState(0);
-  const [deleting, setDeleting] = useState(false);
-
+ 
+/**
+ * Cycles through problem/solution pairs.
+ * Phase: "problem" → hold → "solution" → hold → next pair
+ */
+function useProblemSolution(pairs: typeof PAIRS, holdMs = 2200, switchMs = 600) {
+  const [index, setIndex] = useState(0);
+  const [phase, setPhase] = useState<"problem" | "solution">("problem");
+  const [visible, setVisible] = useState(true);
+ 
   useEffect(() => {
-    const current = phrases[phraseIdx];
-    let timeout: ReturnType<typeof setTimeout>;
-
-    if (!deleting) {
-      if (charIdx < current.length) {
-        timeout = setTimeout(() => setCharIdx((c) => c + 1), typingSpeed);
-      } else {
-        timeout = setTimeout(() => setDeleting(true), pauseMs);
-      }
-    } else {
-      if (charIdx > 0) {
-        timeout = setTimeout(() => setCharIdx((c) => c - 1), deletingSpeed);
-      } else {
-        setDeleting(false);
-        setPhraseIdx((i) => (i + 1) % phrases.length);
-      }
-    }
-
-    setDisplayed(current.slice(0, charIdx));
-    return () => clearTimeout(timeout);
-  }, [charIdx, deleting, phraseIdx, phrases, typingSpeed, deletingSpeed, pauseMs]);
-
-  return displayed;
+    // How long to show before fading out
+    const hold = setTimeout(() => {
+      setVisible(false); // fade out
+ 
+      setTimeout(() => {
+        if (phase === "problem") {
+          setPhase("solution");
+        } else {
+          setPhase("problem");
+          setIndex((i) => (i + 1) % pairs.length);
+        }
+        setVisible(true); // fade in
+      }, switchMs);
+ 
+    }, holdMs);
+ 
+    return () => clearTimeout(hold);
+  }, [index, phase, holdMs, switchMs, pairs.length]);
+ 
+  return { pair: pairs[index], phase, visible };
 }
-
+ 
 function useCountUp(target: number, duration = 1200, delay = 300) {
   const [count, setCount] = useState(0);
-
+ 
   useEffect(() => {
     let raf: number;
     const delayTimer = setTimeout(() => {
@@ -99,16 +95,16 @@ function useCountUp(target: number, duration = 1200, delay = 300) {
       };
       raf = requestAnimationFrame(step);
     }, delay);
-
+ 
     return () => {
       clearTimeout(delayTimer);
       cancelAnimationFrame(raf);
     };
   }, [target, duration, delay]);
-
+ 
   return count;
 }
-
+ 
 /* ─────────────────────────────────────────
    Sub-components
 ───────────────────────────────────────── */
@@ -125,56 +121,68 @@ function AnimatedStat({
     </div>
   );
 }
-
+ 
 /* ─────────────────────────────────────────
    Page
 ───────────────────────────────────────── */
 const Index = () => {
-  const headline = useTypewriter(PHRASES);
-
+  const { pair, phase, visible } = useProblemSolution(PAIRS);
+ 
   return (
     <main>
-
+ 
       {/* ── Hero ── */}
       <section className="relative bg-paper py-16 md:py-24 overflow-hidden">
-
+ 
         {/* Background image at 10% opacity */}
         <div
           className="absolute inset-0 bg-center bg-cover pointer-events-none"
           style={{
-            backgroundImage: "url('/images/hero-bg.jpg')",
-            opacity: 0.10,
+            backgroundImage: "url('/images/hero-bg.png')",
+            opacity: 0.5,
             zIndex: 0,
           }}
         />
-
+ 
         <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-
+ 
             {/* Left */}
             <motion.div {...fadeIn} className="lg:col-span-7">
               <span className="inline-block border border-olive text-olive text-xs uppercase tracking-widest px-3 py-1 rounded-[4px] mb-6 font-body">
                 Consulting · Public &amp; Private Sector
               </span>
-
-              {/* Typewriter headline */}
-              <h1 className="font-display text-4xl md:text-[56px] text-ink leading-tight max-w-xl min-h-[120px] md:min-h-[140px]">
-                {headline}
-                <span
-                  className="inline-block w-[3px] h-[0.85em] bg-forest align-middle ml-1"
-                  style={{ animation: "blink 0.75s step-end infinite" }}
-                />
-              </h1>
-
-              {/* Blink keyframe (tiny, inlined) */}
-              <style>{`@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}`}</style>
-
+ 
+              {/* Problem / Solution headline */}
+              <div className="min-h-[120px] md:min-h-[140px] flex flex-col justify-center">
+                <motion.p
+                  key={`label-${phase}`}
+                  className={`font-body text-[11px] uppercase tracking-widest mb-2 ${
+                    phase === "problem" ? "text-ember" : "text-forest"
+                  }`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {phase === "problem" ? "The Problem" : "The Solution"}
+                </motion.p>
+ 
+                <motion.h1
+                  key={`${phase}-${pair.problem}`}
+                  className={`font-display text-4xl md:text-[48px] text-ink leading-tight max-w-xl ${
+                    phase === "solution" ? "text-forest" : "text-ink"
+                  }`}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : -10 }}
+                  transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+                >
+                  {phase === "problem" ? pair.problem : pair.solution}
+                </motion.h1>
+              </div>
+ 
               <p className="font-body text-lg text-[#4A4A4A] max-w-lg mt-4 leading-relaxed">
-                I partner with businesses and government institutions to design, develop, and improve
-                digital systems that work — reliably, securely, and at scale. 1000+ projects delivered
-                across East Africa.
-              </p>
-
+I solve business problems through smart design, technology, and creative thinking. As a software engineer and creative designer, I build reliable digital systems and impactful brand experiences for businesses, NGOs, and government institutions across East Africa.              </p>
+ 
               <div className="flex flex-wrap gap-4 mt-8">
                 <Link
                   to="/what-i-do"
@@ -189,8 +197,8 @@ const Index = () => {
                   View My Work →
                 </Link>
               </div>
-
-              {/* Badge icons — static, no animation */}
+ 
+              {/* Badge icons */}
               <div className="flex flex-wrap gap-8 mt-8">
                 {[
                   { icon: Shield,     text: "Secure by Design"  },
@@ -207,7 +215,7 @@ const Index = () => {
                 ))}
               </div>
             </motion.div>
-
+ 
             {/* Right — Profile Card */}
             <motion.div
               {...fadeIn}
@@ -224,12 +232,12 @@ const Index = () => {
                     />
                   </div>
                 </div>
-
+ 
                 <h2 className="font-display text-xl text-ink text-center mt-3">Samuel A. Emoni</h2>
                 <p className="font-body text-[13px] text-olive text-center">
                   Software Solutions Architect | Digital Systems Consultant
                 </p>
-
+ 
                 {/* Pulsing availability dot */}
                 <div className="flex items-center justify-center gap-2 mt-2">
                   <motion.span
@@ -239,9 +247,9 @@ const Index = () => {
                   />
                   <span className="font-body text-[12px] text-olive">Available for projects</span>
                 </div>
-
+ 
                 <div className="border-t border-[#E0DAD0] my-4" />
-
+ 
                 {/* Count-up stats */}
                 <div className="grid grid-cols-2 gap-4 text-center">
                   {stats.map((stat, i) => (
@@ -254,13 +262,13 @@ const Index = () => {
                     />
                   ))}
                 </div>
-
+ 
                 <div className="border-t border-[#E0DAD0] my-4" />
-
+ 
                 <p className="font-body text-[11px] uppercase tracking-widest text-[#9A9A9A] mb-3">
                   CAPABILITIES
                 </p>
-
+ 
                 {/* Staggered capability tags */}
                 <div className="flex flex-wrap gap-1">
                   {capabilities.map((cap, i) => (
@@ -275,7 +283,7 @@ const Index = () => {
                     </motion.span>
                   ))}
                 </div>
-
+ 
                 <Link
                   to="/contact"
                   className="block mt-4 bg-ember text-snow text-sm text-center rounded-[4px] py-3 font-body font-medium hover:opacity-90 transition-opacity"
@@ -284,7 +292,7 @@ const Index = () => {
                 </Link>
               </div>
             </motion.div>
-
+ 
           </div>
         </div>
       </section>
@@ -356,12 +364,26 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* ── Approach ── */}
+{/* ── Approach ── */}
       <section className="bg-forest py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            <div className="lg:col-span-5">
+            <div
+              className="lg:col-span-5 opacity-0 -translate-x-8 transition-all duration-700 ease-out"
+              ref={(el) => {
+                if (!el) return;
+                const io = new IntersectionObserver(
+                  ([entry]) => {
+                    if (entry.isIntersecting) {
+                      el.classList.remove("opacity-0", "-translate-x-8");
+                      io.disconnect();
+                    }
+                  },
+                  { threshold: 0.15 }
+                );
+                io.observe(el);
+              }}
+            >
               <span className="inline-block border border-cream/30 text-cream/80 text-xs uppercase tracking-widest px-3 py-1 rounded-[4px] font-body">
                 The Approach
               </span>
@@ -394,8 +416,25 @@ const Index = () => {
                   { n: "04", t: "Security Review", d: "Test against real-world failure modes." },
                   { n: "05", t: "Handover",        d: "Full documentation. No vendor lock-in." },
                   { n: "06", t: "Iteration",       d: "Available for scaling and review post-launch." },
-                ].map((s) => (
-                  <div key={s.n} className="bg-forest p-6">
+                ].map((s, i) => (
+                  <div
+                    key={s.n}
+                    className="bg-forest p-6 opacity-0 translate-y-6 transition-all duration-500 ease-out"
+                    style={{ transitionDelay: `${i * 100}ms` }}
+                    ref={(el) => {
+                      if (!el) return;
+                      const io = new IntersectionObserver(
+                        ([entry]) => {
+                          if (entry.isIntersecting) {
+                            el.classList.remove("opacity-0", "translate-y-6");
+                            io.disconnect();
+                          }
+                        },
+                        { threshold: 0.1 }
+                      );
+                      io.observe(el);
+                    }}
+                  >
                     <p className="font-display text-[36px] text-olive/50 leading-none">{s.n}</p>
                     <h3 className="font-display text-[20px] text-cream mt-2">{s.t}</h3>
                     <p className="font-body text-[13px] text-cream/60 mt-2 leading-relaxed">{s.d}</p>

@@ -2,9 +2,7 @@ export interface Project {
   name: string;
   sector: string;
   description: string;
-  tags: string[];
   liveUrl: string | null;
-  year?: string;
   image?: string; // path relative to /public
 }
 
@@ -24,178 +22,49 @@ export const projects: Project[] = [
     sector: "E-commerce",
     description:
       "Full e-commerce website with inventory management, M-Pesa checkout, order tracking, and admin dashboard for a Nairobi hardware store.",
-    tags: ["React", "Next.js", "PostgreSQL", "M-Pesa"],
     liveUrl: "https://www.capepcyhardware.co.ke/",
-    year: "2025",
-    image: "/capepcy-hardware.jpg",
+    image: "/capepcy-hardware.png",
   },
   {
     name: "Turkana County Website",
     sector: "GovTech",
     description:
       "Government portal with service delivery features, news publishing, downloadable documents, and a citizen feedback module.",
-    tags: ["Next.js", "Node.js", "PostgreSQL"],
-    liveUrl: "https://www.turkanacounty.go.ke/",
-    year: "2024",
-    image: "/turkana-county.jpg",
+    liveUrl: "https://turkana.go.ke/",
+    image: "/Turkana.png",
   },
-  {
-    name: "Axis Africa Safaris",
-    sector: "Web Development",
-    description:
-      "Safari booking platform with tour packages, itinerary builder, and inquiry-to-booking flow integrated with WhatsApp.",
-    tags: ["React", "Tailwind", "Node.js"],
-    liveUrl: "https://www.axisafricasafaris.com/",
-    year: "2023",
-    image: "/axis-africa-safaris.jpg",
-  },
+ 
   {
     name: "Hyrax Safaris",
     sector: "Web Development",
     description:
       "Premium safari experience website with rich media galleries, lodge profiles, and lead capture for a high-end clientele.",
-    tags: ["React", "Next.js", "Tailwind"],
     liveUrl: "https://hyraxsafaris.com/",
-    year: "2024",
-    image: "/hyrax-safaris.jpg",
+    image: "/hyrax.png",
   },
   {
     name: "Fred's Ranch & Resort",
     sector: "Web Development",
     description:
       "Restaurant and resort website with menu integration, room availability calendar, and event-booking inquiries.",
-    tags: ["React", "Tailwind", "Node.js"],
     liveUrl: "https://fredsranch.co.ke/",
-    year: "2023",
-    image: "/freds-ranch.jpg",
-  },
-  {
-    name: "NeuroUni",
-    sector: "Branding",
-    description:
-      "Full brand identity for an AI-focused learning platform — logo system, guidelines, marketing collateral, and pitch deck.",
-    tags: ["Logo Design", "Brand Identity", "Illustrator"],
-    liveUrl: null,
-    year: "2024",
-  },
-  {
-    name: "Click2Skill",
-    sector: "Branding",
-    description:
-      "Complete logo and brand identity design for an upskilling marketplace targeting East African learners.",
-    tags: ["Logo Design", "Illustrator"],
-    liveUrl: null,
-    year: "2024",
+    image: "/fredsranch.png",
   },
   {
     name: "Emoni Samuel Portfolio",
     sector: "Web Development",
     description:
       "Professional portfolio showcasing full-stack consulting skills, services, courses, and insights — built editorial-first.",
-    tags: ["Next.js", "React", "Tailwind"],
     liveUrl: "https://www.emonisamuel.co.ke",
-    year: "2025",
-    image: "/emoni-samuel-portfolio.jpg",
+    image: "/sam.png",
   },
   {
-    name: "County Health Records System",
-    sector: "GovTech",
-    description:
-      "Internal records dashboard for a sub-county health office — patient intake, referral tracking, and monthly reporting exports.",
-    tags: ["Next.js", "PostgreSQL", "Auth"],
-    liveUrl: null,
-    year: "2024",
-  },
-  {
-    name: "Mombasa Logistics Portal",
-    sector: "Enterprise",
-    description:
-      "Driver dispatch, vehicle tracking, and consignment status portal for a coastal freight operator.",
-    tags: ["React", "Node.js", "MongoDB", "Maps API"],
-    liveUrl: null,
-    year: "2024",
-  },
-  {
-    name: "Karibu Schools ERP",
-    sector: "Education",
-    description:
-      "School management platform: fees, grading, attendance, parent portal, and SMS notifications for primary schools.",
-    tags: ["Next.js", "Supabase", "M-Pesa", "SMS"],
-    liveUrl: null,
-    year: "2025",
-  },
-  {
-    name: "AgriLink Marketplace",
-    sector: "E-commerce",
-    description:
-      "Farmer-to-buyer marketplace connecting smallholder produce with restaurants and retailers, featuring escrow payments.",
-    tags: ["React", "Node.js", "M-Pesa", "Escrow"],
-    liveUrl: null,
-    year: "2025",
-  },
-  {
-    name: "Sahara Realty CRM",
-    sector: "Enterprise",
-    description:
-      "Custom CRM for a property firm — listings, viewing scheduler, client pipeline, and commission tracking.",
-    tags: ["Next.js", "PostgreSQL", "Calendar"],
-    liveUrl: null,
-    year: "2024",
-  },
-  {
-    name: "Ujamaa Microfinance Loan App",
-    sector: "FinTech",
-    description:
-      "Loan origination and repayment tracking system with M-Pesa disbursement, scoring rules, and auditor-friendly reports.",
-    tags: ["Next.js", "PostgreSQL", "Daraja", "Reports"],
-    liveUrl: null,
-    year: "2024",
-  },
-  {
-    name: "Kilifi Tourism Board",
-    sector: "GovTech",
-    description:
-      "Destination marketing site with operator directory, events calendar, and multilingual support (EN/SW).",
-    tags: ["Next.js", "i18n", "CMS"],
-    liveUrl: "#",
-    year: "2025",
-    image: "/kilifi-tourism.jpg",
-  },
-  {
-    name: "BrewWorks Café POS",
-    sector: "E-commerce",
-    description:
-      "Tablet-first point-of-sale and inventory system for a multi-branch café chain — offline-tolerant with daily sync.",
-    tags: ["React", "PWA", "IndexedDB", "Node.js"],
-    liveUrl: null,
-    year: "2024",
-  },
-  {
-    name: "Mama Mboga Delivery",
-    sector: "E-commerce",
-    description:
-      "Hyperlocal grocery delivery web app — vendor onboarding, dispatcher console, and rider WhatsApp routing.",
-    tags: ["Next.js", "Twilio", "Maps API"],
-    liveUrl: null,
-    year: "2025",
-  },
-  {
-    name: "Tuko Pamoja Donation Platform",
-    sector: "NGO",
-    description:
-      "Recurring donations platform for a faith-based NGO with M-Pesa, Stripe, automated receipts, and donor segmentation.",
-    tags: ["Next.js", "Stripe", "M-Pesa", "Email"],
-    liveUrl: null,
-    year: "2024",
-  },
-  {
-    name: "Savannah Lodge Booking Engine",
+    name: "Doma's Little Voices Speech Therapy Hub",
     sector: "Web Development",
     description:
-      "Direct-booking engine with rate management, channel-manager sync, and on-site card + M-Pesa deposits.",
-    tags: ["Next.js", "Channel Manager", "Payments"],
-    liveUrl: null,
-    year: "2024",
+      "Professional website for a speech therapy practice — service listings, booking inquiries, and resources for clients and families.",
+    liveUrl: "https://domaslittlevoicesspeechtherapyhub.org/",
+    image: "/little.png",
   },
 ];
 

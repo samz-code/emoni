@@ -1,37 +1,27 @@
-import {
-  Coffee, Hammer, Compass, Mountain, TreePine, Landmark,
-  Brain, GraduationCap, Building2, Signal, Banknote, Building,
-  type LucideIcon,
-} from "lucide-react";
-
 interface Client {
   name: string;
-  Icon?: LucideIcon;
-  logo?: string; // Path to logo image
+  logo: string; // path in /public
 }
 
 const clients: Client[] = [
-  { name: "Reigns Clinic" },
-  { name: "Aruba Arabian Restaurant" },
-  { name: "Urban Beer Kenya" },
-  { name: "Kawira Consult" },
-  { name: "Armand Air" },
-  { name: "Rav Africa Safaris" },
-  { name: "Sopa Lodges" },
-  { name: "Loyal Nature Adventure" },
-  { name: "Solai Coffee" },
-  { name: "Equity Bank" },
-  { name: "Turkana County Gov" },
-  { name: "Racsam Graphixs Agency" },
-  { name: "Safaricom" },
-  { name: "M-Kopa Kenya" },
-  { name: "Khetias Supermaket" },
-  { name: "Golf Hotel Kakamega" },
-  { name: "BanDex Enterprise Ltd" },
+  { name: "Reigns Clinic",           logo: "/Reigns Clinic.png" },
+  { name: "Aruba Arabian Restaurant",logo: "/Aruba Arabian Restaurant.png" },
+  { name: "Urban Beer Kenya",        logo: "/Urban Beer Kenya.png" },
+  { name: "Kawira Consult",          logo: "/Kawira Consult.png" },
+  { name: "Rav Africa Safaris",      logo: "/Rav-Africa-Safaris-Logo.png" },
+  { name: "Sopa Lodges",             logo: "/Sopa Lodges.jpg" },
+  { name: "Silverstone Events,Tour and Travel ",  logo: "/silverstone.png" },
+  { name: "Solai Coffee",            logo: "/Solai Coffee.png" },
+  { name: "Equity Bank",             logo: "/Equity Bank.png" },
+  { name: "Turkana County Gov",      logo: "/Turkana County Gov.png" },
+  { name: "Racsam Graphixs Agency",  logo: "/Racsam Graphixs Agency.png" },
+  { name: "Safaricom",               logo: "/Safaricom.png" },
+  { name: " Blesssed Edmond Academy",            logo: "/blessed.png" },
+  { name: "Khetias Supermarket",     logo: "/Khetias Supermarket.png" },
+  { name: "Domas Little Voices Therapy Hub",     logo: "/domas.png" },
 ];
 
 const TrustedBy = () => {
-  // Duplicate the list so the marquee loops seamlessly
   const loop = [...clients, ...clients];
 
   return (
@@ -55,14 +45,25 @@ const TrustedBy = () => {
             "linear-gradient(to right, transparent, black 8%, black 92%, transparent)",
         }}
       >
-        <div className="flex w-max animate-marquee gap-12 items-center">
-          {loop.map(({ name }, i) => (
+        <div className="flex w-max animate-marquee gap-8 items-center">
+          {loop.map(({ name, logo }, i) => (
             <div
               key={`${name}-${i}`}
-              className="flex items-center gap-3 shrink-0 px-4"
+              className="flex items-center justify-center shrink-0"
             >
-              <div className="flex items-center justify-center min-w-[120px] h-12 border border-olive/40 rounded-[4px] bg-forest/10 px-3">
-                <span className="text-forest font-display text-sm text-center whitespace-nowrap">{name}</span>
+              <div className="flex items-center justify-center w-[160px] h-[80px] border border-olive/40 rounded-[4px] bg-white/60 px-4 py-3">
+                <img
+                  src={logo}
+                  alt={`${name} logo`}
+                  className="max-h-full max-w-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    const span = document.createElement("span");
+                    span.className = "text-forest font-display text-xs text-center leading-tight";
+                    span.textContent = name;
+                    e.currentTarget.parentElement?.appendChild(span);
+                  }}
+                />
               </div>
             </div>
           ))}

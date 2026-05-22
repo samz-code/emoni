@@ -9,13 +9,13 @@ interface ProjectCardProps {
 
 const sectorColors: Record<string, string> = {
   "Web Development": "bg-sky-50 text-sky-700 border-sky-100",
-  "Branding": "bg-violet-50 text-violet-700 border-violet-100",
-  "GovTech": "bg-emerald-50 text-emerald-700 border-emerald-100",
-  "E-commerce": "bg-amber-50 text-amber-700 border-amber-100",
-  "Enterprise": "bg-slate-50 text-slate-600 border-slate-100",
-  "FinTech": "bg-green-50 text-green-700 border-green-100",
-  "Education": "bg-blue-50 text-blue-700 border-blue-100",
-  "NGO": "bg-rose-50 text-rose-700 border-rose-100",
+  "Branding":        "bg-violet-50 text-violet-700 border-violet-100",
+  "GovTech":         "bg-emerald-50 text-emerald-700 border-emerald-100",
+  "E-commerce":      "bg-amber-50 text-amber-700 border-amber-100",
+  "Enterprise":      "bg-slate-50 text-slate-600 border-slate-100",
+  "FinTech":         "bg-green-50 text-green-700 border-green-100",
+  "Education":       "bg-blue-50 text-blue-700 border-blue-100",
+  "NGO":             "bg-rose-50 text-rose-700 border-rose-100",
 };
 
 const ProjectCard = ({ project }: ProjectCardProps) => {
@@ -37,11 +37,10 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
       }}
       transition={{ type: "spring", stiffness: 300, damping: 24 }}
     >
-      {/* ── Image area ── */}
+      {/* ── Image ── */}
       <div className="relative overflow-hidden bg-paper border-b border-border">
         {hasImage && !imgError ? (
           <>
-            {/* Actual screenshot */}
             <motion.img
               src={project.image}
               alt={project.name}
@@ -50,8 +49,6 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
               animate={{ scale: hovered ? 1.06 : 1 }}
               transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
             />
-
-            {/* Gradient scrim — appears on hover */}
             <AnimatePresence>
               {hovered && (
                 <motion.div
@@ -64,8 +61,6 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
                 />
               )}
             </AnimatePresence>
-
-            {/* "View Live" pill — slides up from bottom on hover */}
             <AnimatePresence>
               {hovered && isLive && (
                 <motion.a
@@ -86,14 +81,12 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             </AnimatePresence>
           </>
         ) : (
-          /* ── Fallback for no-image or broken-image projects ── */
           <div className="w-full h-36 flex flex-col items-center justify-center gap-2 text-[#C8C8C8]">
             <ImageOff size={22} strokeWidth={1.5} />
             <span className="font-body text-xs">No preview</span>
           </div>
         )}
 
-        {/* Live badge — top-right corner */}
         {isLive && (
           <span className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-snow/90 backdrop-blur-sm border border-border text-[10px] font-body font-medium text-emerald-600 px-2 py-0.5 rounded-full shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -102,41 +95,19 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         )}
       </div>
 
-      {/* ── Card body ── */}
+      {/* ── Body ── */}
       <div className="p-5 flex flex-col flex-1">
-        {/* Sector + year row */}
-        <div className="flex items-center justify-between mb-3">
-          <span
-            className={`inline-block text-[11px] font-body font-medium px-2 py-0.5 rounded-[4px] border ${sectorClass}`}
-          >
+        <div className="flex items-center mb-3">
+          <span className={`inline-block text-[11px] font-body font-medium px-2 py-0.5 rounded-[4px] border ${sectorClass}`}>
             {project.sector}
           </span>
-          {project.year && (
-            <span className="font-body text-[11px] text-[#9A9A9A]">{project.year}</span>
-          )}
         </div>
 
-        {/* Title */}
         <h3 className="font-display text-[17px] leading-snug text-ink">{project.name}</h3>
-
-        {/* Description */}
         <p className="font-body text-[13px] text-[#4A4A4A] mt-2 leading-relaxed flex-1">
           {project.description}
         </p>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1.5 mt-4">
-          {project.tags.slice(0, 4).map((tag) => (
-            <span
-              key={tag}
-              className="font-body text-[11px] text-[#7A7A7A] bg-paper border border-border px-2 py-0.5 rounded-[3px]"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        {/* CTA row */}
         {isLive && (
           <a
             href={project.liveUrl!}
@@ -147,10 +118,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
             <span className="underline underline-offset-2 decoration-ember/30 group-hover/link:decoration-ember transition-colors">
               View project
             </span>
-            <motion.span
-              animate={hovered ? { x: 2, y: -2 } : { x: 0, y: 0 }}
-              transition={{ duration: 0.2 }}
-            >
+            <motion.span animate={hovered ? { x: 2, y: -2 } : { x: 0, y: 0 }} transition={{ duration: 0.2 }}>
               <ArrowUpRight size={14} strokeWidth={2} />
             </motion.span>
           </a>

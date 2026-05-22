@@ -347,16 +347,17 @@ const Contact = () => {
 
               <div className="flex flex-wrap gap-3 mt-8">
                 {[
-                  { label: "LinkedIn", href: "#", bg: "bg-[#0A66C2]", icon: Linkedin },
+                  { label: "LinkedIn", href: "https://www.linkedin.com/in/samuelemoni", bg: "bg-[#0A66C2]", icon: Linkedin },
                   { label: "WhatsApp", href: "https://wa.me/254727492545", bg: "bg-[#25D366]", icon: MessageCircle },
-                  { label: "GitHub", href: "#", bg: "bg-ink", icon: Github },
-                  { label: "Instagram", href: "#", bg: "bg-[#E1306C]", icon: Instagram },
+                  { label: "GitHub", href: "https://github.com/Samz-Code", bg: "bg-ink", icon: Github },
+                  { label: "Instagram", href: "https://www.instagram.com/emoni_sam", bg: "bg-[#E1306C]", icon: Instagram },
                 ].map((s) => (
                   <a
                     key={s.label}
                     href={s.href}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel={s.label === "WhatsApp" ? "noopener noreferrer" : "me noopener noreferrer"}
+                    aria-label={`Samuel A. Emoni on ${s.label}`}
                     className={`${s.bg} text-snow rounded-[4px] px-4 py-2 text-sm font-body flex items-center gap-2 hover:opacity-90 transition-opacity`}
                   >
                     <s.icon size={16} />
