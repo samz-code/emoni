@@ -197,23 +197,6 @@ I solve business problems through smart design, technology, and creative thinkin
                   View My Work →
                 </Link>
               </div>
- 
-              {/* Badge icons */}
-              <div className="flex flex-wrap gap-8 mt-8">
-                {[
-                  { icon: Shield,     text: "Secure by Design"  },
-                  { icon: TrendingUp, text: "Outcome Focused"   },
-                  { icon: Zap,        text: "Fast Delivery"     },
-                ].map((badge) => (
-                  <span
-                    key={badge.text}
-                    className="flex flex-col items-center gap-1.5 text-xs font-body text-olive"
-                  >
-                    <badge.icon size={28} strokeWidth={1.5} />
-                    {badge.text}
-                  </span>
-                ))}
-              </div>
             </motion.div>
  
             {/* Right — Profile Card */}
