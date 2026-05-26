@@ -50,7 +50,7 @@ const Terms = () => {
               <li>Project engagements: 70% deposit on signing, balance on delivery (or per milestone schedule).</li>
               <li>Retainers: invoiced monthly in advance.</li>
               <li>Rescue & advisory: invoiced weekly or per agreed cadence.</li>
-              <li>Accepted methods: M-Pesa, bank transfer, Stripe, or Wise.</li>
+              <li>Accepted methods: M-Pesa, bank transfer, Paypal.</li>
               <li>Overdue invoices accrue 2% interest per month after a 7-day grace period.</li>
             </ul>
           </section>
