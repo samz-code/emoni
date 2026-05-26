@@ -73,8 +73,8 @@ const Privacy = () => {
               Under the Kenya Data Protection Act, 2019, you have the right to access, correct, or
               request deletion of personal data I hold about you. To exercise any of these rights,
               email{" "}
-              <a className="text-ember underline" href="mailto:samuelemoni18@gmail.com">
-                samuelemoni18@gmail.com
+              <a className="text-ember underline" href="mailto:emonisamuel54@gmail.com">
+                emonisamuel54@gmail.com
               </a>
               . I will respond within 14 working days.
             </p>
