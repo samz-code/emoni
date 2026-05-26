@@ -106,7 +106,6 @@ const CourseCard = ({ course }: { course: Course }) => {
           <span
             className={`w-full inline-flex items-center justify-center gap-2 rounded-[4px] py-3 text-sm font-body font-medium transition-opacity hover:opacity-90 ${ctaStyles[course.status]}`}
           >
-            <MessageCircle size={16} />
             {ctaText[course.status]} on WhatsApp
           </span>
         </a>
