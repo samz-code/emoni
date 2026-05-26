@@ -19,17 +19,17 @@ const iconMap: Record<Service["icon"], IconType> = {
 };
 
 const outcomeColors: Record<string, string> = {
-  "digital-consultancy": "#F59E0B",
-  "system-design": "#0EA5E9",
-  "web-development": "#10B981",
-  "graphic-design": "#EC4899",
+  "digital-consultancy":  "#F59E0B",
+  "system-design":        "#0EA5E9",
+  "web-development":      "#10B981",
+  "graphic-design":       "#EC4899",
   "payment-integrations": "#8B5CF6",
-  "process-automation": "#F97316",
-  "api-integration": "#06B6D4",
-  "it-support": "#F43F5E",
+  "process-automation":   "#F97316",
+  "api-integration":      "#06B6D4",
+  "it-support":           "#F43F5E",
 };
 
-const DEFAULT_ICON_COLOR = "#6B7280"; // text-olive fallback
+const DEFAULT_ICON_COLOR = "#6B7280";
 
 const ServiceCard = ({ service }: { service: Service }) => {
   const Icon = iconMap[service.icon] || FiZap;
@@ -47,10 +47,7 @@ const ServiceCard = ({ service }: { service: Service }) => {
       <div className="mb-3">
         <Icon
           size={26}
-          style={{
-            color: hovered ? hoverColor : DEFAULT_ICON_COLOR,
-            transition: "color 0.3s ease",
-          }}
+          style={{ color: hovered ? hoverColor : DEFAULT_ICON_COLOR, transition: "color 0.3s ease" }}
         />
       </div>
 
@@ -83,14 +80,18 @@ const ServiceCard = ({ service }: { service: Service }) => {
       </ul>
 
       {/* Footer */}
-      <div className="mt-5 pt-5 border-t border-border flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Users size={13} className="text-[#9A9A9A] flex-shrink-0" />
-          <p className="font-body text-sm text-ink font-bold">{service.idealFor}</p>
+      <div className="mt-5 pt-5 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Ideal For */}
+        <div className="flex items-start gap-2">
+          <Users size={13} className="text-[#9A9A9A] flex-shrink-0 mt-[3px]" />
+          <p className="font-body text-sm text-ink font-bold leading-snug">
+            {service.idealFor}
+          </p>
         </div>
 
+        {/* Outcome badge */}
         {service.outcome && (
-          <span className="inline-block bg-forest text-cream text-xs rounded-[4px] px-2 py-1 font-body whitespace-nowrap">
+          <span className="self-start sm:self-auto inline-block bg-forest text-cream text-xs rounded-[4px] px-2 py-1 font-body whitespace-nowrap flex-shrink-0">
             {service.outcome}
           </span>
         )}

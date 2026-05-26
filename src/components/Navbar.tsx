@@ -9,26 +9,26 @@ const navLinks = [
     label: "What I Do",
     href: "/what-i-do",
     dropdown: [
-      { label: "Digital Consultancy", href: "/what-i-do#digital-consultancy" },
+      { label: "Digital Consultancy",          href: "/what-i-do#digital-consultancy" },
       { label: "System Design & Architecture", href: "/what-i-do#system-design" },
-      { label: "Web Development", href: "/what-i-do#web-development" },
-      { label: "Graphic Design & Branding", href: "/what-i-do#graphic-design" },
-      { label: "Payment Integrations", href: "/what-i-do#payment-integrations" },
-      { label: "Process Automation", href: "/what-i-do#process-automation" },
-      { label: "API & System Integration", href: "/what-i-do#api-integration" },
-      { label: "IT Support & Consulting", href: "/what-i-do#it-support" },
+      { label: "Web Development",              href: "/what-i-do#web-development" },
+      { label: "Graphic Design & Branding",    href: "/what-i-do#graphic-design" },
+      { label: "Payment Integrations",         href: "/what-i-do#payment-integrations" },
+      { label: "Process Automation",           href: "/what-i-do#process-automation" },
+      { label: "API & System Integration",     href: "/what-i-do#api-integration" },
+      { label: "IT Support & Consulting",      href: "/what-i-do#it-support" },
     ],
   },
-  { label: "Courses", href: "/courses" },
+  { label: "Courses",             href: "/courses" },
   { label: "Projects & Products", href: "/projects" },
-  { label: "Insights", href: "/insights" },
-  { label: "Contact", href: "/contact" },
+  { label: "Insights",            href: "/insights" },
+  { label: "Contact",             href: "/contact" },
 ];
 
 const Navbar = () => {
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileOpen, setMobileOpen]       = useState(false);
+  const [dropdownOpen, setDropdownOpen]   = useState(false);
   const [mobileAccordion, setMobileAccordion] = useState(false);
 
   useEffect(() => {
@@ -43,17 +43,17 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-forest w-full">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-        {/* Avatar */}
+      {/* ── Desktop & Mobile bar ── */}
+      <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-8 flex items-center justify-between h-20">
+
+        {/* Avatar — larger, breathing room from the edge */}
         <Link to="/" className="flex-shrink-0">
-          <div className="w-14 h-14 rounded-full border-2 border-olive overflow-hidden bg-olive/30">
+          <div className="w-16 h-16 rounded-full border-2 border-olive overflow-hidden bg-olive/30 ring-2 ring-olive/20">
             <img
               src="/images/avatar.jpg"
               alt="Samuel Emoni"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
             />
           </div>
         </Link>
@@ -116,17 +116,18 @@ const Navbar = () => {
         {/* Mobile hamburger */}
         <button
           onClick={() => setMobileOpen(true)}
-          className="md:hidden text-cream p-2"
+          className="md:hidden text-cream p-2 -mr-1"
           aria-label="Open menu"
         >
-          <Menu size={24} />
+          <Menu size={26} />
         </button>
       </div>
 
-      {/* Mobile drawer */}
+      {/* ── Mobile drawer ── */}
       <AnimatePresence>
         {mobileOpen && (
           <>
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
@@ -134,35 +135,54 @@ const Navbar = () => {
               className="fixed inset-0 bg-ink z-50"
               onClick={() => setMobileOpen(false)}
             />
+
+            {/* Panel */}
             <motion.div
               initial={{ x: 300 }}
               animate={{ x: 0 }}
               exit={{ x: 300 }}
-              transition={{ duration: 0.3 }}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className="fixed top-0 right-0 h-full w-72 bg-forest z-50 flex flex-col"
             >
-              <div className="flex items-center justify-between p-4">
-                <div className="w-14 h-14 rounded-full border-2 border-olive overflow-hidden bg-olive/30">
-                  <img src="/images/avatar.jpg" alt="Samuel Emoni" className="w-full h-full object-cover" />
+              {/* Drawer header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-cream/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full border-2 border-olive overflow-hidden bg-olive/30 flex-shrink-0">
+                    <img
+                      src="/images/avatar.jpg"
+                      alt="Samuel Emoni"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="leading-tight">
+                    <p className="font-body text-sm font-bold text-cream">Samuel Emoni</p>
+                    <p className="font-body text-xs text-cream/50">Digital Consultant</p>
+                  </div>
                 </div>
-                <button onClick={() => setMobileOpen(false)} className="text-cream p-2" aria-label="Close menu">
-                  <X size={24} />
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="text-cream/60 hover:text-cream transition-colors p-1"
+                  aria-label="Close menu"
+                >
+                  <X size={22} />
                 </button>
               </div>
-              <div className="flex-1 px-4 py-4 space-y-1">
+
+              {/* Links */}
+              <div className="flex-1 px-6 py-5 space-y-1 overflow-y-auto">
                 {navLinks.map((link) =>
                   link.dropdown ? (
                     <div key={link.label}>
                       <button
                         onClick={() => setMobileAccordion(!mobileAccordion)}
-                        className={`w-full flex items-center justify-between py-3 font-body text-lg font-semibold text-cream ${
-                          isActive(link.href) ? "text-ember" : ""
+                        className={`w-full flex items-center justify-between py-3 font-body text-base font-semibold transition-colors ${
+                          isActive(link.href) ? "text-ember" : "text-cream hover:text-ember"
                         }`}
                       >
                         {link.label}
                         <ChevronDown
-                          size={16}
-                          className={`transition-transform ${mobileAccordion ? "rotate-180" : ""}`}
+                          size={15}
+                          className={`transition-transform duration-200 ${mobileAccordion ? "rotate-180" : ""}`}
                         />
                       </button>
                       <AnimatePresence>
@@ -171,13 +191,14 @@ const Navbar = () => {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden pl-4"
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden pl-3 border-l border-ember/30 ml-1 mb-1"
                           >
                             {link.dropdown.map((item) => (
                               <Link
                                 key={item.label}
                                 to={item.href}
-                                className="block py-2 text-base font-medium text-cream/80 hover:text-ember transition-colors"
+                                className="block py-2.5 text-sm font-medium text-cream/75 hover:text-ember transition-colors"
                               >
                                 {item.label}
                               </Link>
@@ -190,8 +211,8 @@ const Navbar = () => {
                     <Link
                       key={link.label}
                       to={link.href}
-                      className={`block py-3 font-body text-lg font-semibold text-cream transition-colors hover:text-ember ${
-                        isActive(link.href) ? "text-ember" : ""
+                      className={`block py-3 font-body text-base font-semibold transition-colors hover:text-ember ${
+                        isActive(link.href) ? "text-ember" : "text-cream"
                       }`}
                     >
                       {link.label}
@@ -199,10 +220,13 @@ const Navbar = () => {
                   )
                 )}
               </div>
-              <div className="p-4">
+
+              {/* CTA */}
+              <div className="px-6 pb-8 pt-4 border-t border-cream/10">
                 <Link
                   to="/contact"
-                  className="block text-center bg-ember text-snow px-5 py-3 text-base font-body font-semibold rounded-[4px]"
+                  onClick={() => setMobileOpen(false)}
+                  className="block text-center bg-ember text-snow px-5 py-3.5 text-base font-body font-semibold rounded-[4px] hover:opacity-90 transition-opacity"
                 >
                   Start a Project →
                 </Link>

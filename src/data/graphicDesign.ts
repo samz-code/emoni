@@ -106,22 +106,8 @@ export const designItems: DesignItem[] = [
   { id: "poster-41", title: "Urban Legend Vol.2",           category: "Posters & Flyers", image: "/images/URBAN LEGEND 2.jpg" },
   { id: "poster-43", title: "Urban Legend Vol.4",           category: "Posters & Flyers", image: "/images/URBAN LEGEND.jpg" },
   { id: "poster-44", title: "Redeemed Church – Vision Bearer", category: "Posters & Flyers", image: "/images/REDEEMED CHURCH -VISION BEARER.jpg" },
+  { id: "poster-45", title: "Election Posters/Flyers ", category: "Posters & Flyers", image: "/images/mamamiradi.jpg" },
 
-  // ─── Other categories — images TBD ──────────────────────────────────────────
-  // Invitations & Cards
-  { id: "inv-01", title: "Wedding Invitation Card",  category: "Invitations & Cards", image: "/images/inv-wedding.jpg" },
-  { id: "inv-02", title: "Birthday Invitation",      category: "Invitations & Cards", image: "/images/inv-birthday.jpg" },
-  { id: "inv-03", title: "Corporate Event Invite",   category: "Invitations & Cards", image: "/images/inv-corporate.jpg" },
-  { id: "inv-04", title: "Baby Shower Card",         category: "Invitations & Cards", image: "/images/inv-babyshower.jpg" },
-  { id: "inv-05", title: "Graduation Card",          category: "Invitations & Cards", image: "/images/inv-graduation.jpg" },
-
-  // Certificates
-  { id: "cert-01", title: "Training Certificate",          category: "Certificates", image: "/images/cert-training.jpg" },
-  { id: "cert-02", title: "Award of Excellence",           category: "Certificates", image: "/images/cert-award.jpg" },
-  { id: "cert-03", title: "School Completion Certificate", category: "Certificates", image: "/images/cert-school.jpg" },
-  { id: "cert-04", title: "Participation Certificate",     category: "Certificates", image: "/images/cert-participation.jpg" },
-
- 
  // Fiverr Gigs
 { id: "gig-01", title: "Data Analysis & Automation",  category: "Fiverr Gigs", image: "/images/data.jpg" },
 { id: "gig-02", title: "Fast Responsive Websites",     category: "Fiverr Gigs", image: "/images/websites.jpg" },
@@ -129,27 +115,22 @@ export const designItems: DesignItem[] = [
 { id: "gig-04", title: "Professional Mobile Apps",     category: "Fiverr Gigs", image: "/images/mobile.jpg" },
 { id: "gig-05", title: "Secure Full Stack Web Apps",   category: "Fiverr Gigs", image: "/images/fullstack.jpg" },
 
-  // CV / Resume & Cover Letter
-  { id: "cv-01", title: "Professional CV",         category: "CV / Resume & Cover Letter", image: "/images/cv-professional.jpg" },
-  { id: "cv-02", title: "Creative Resume",         category: "CV / Resume & Cover Letter", image: "/images/cv-creative.jpg" },
-  { id: "cv-03", title: "Cover Letter Layout",     category: "CV / Resume & Cover Letter", image: "/images/cover-letter.jpg" },
-  { id: "cv-04", title: "Executive CV with Photo", category: "CV / Resume & Cover Letter", image: "/images/cv-executive.jpg" },
-  { id: "cv-05", title: "Minimalist Resume",       category: "CV / Resume & Cover Letter", image: "/images/cv-minimalist.jpg" },
-
-  // Banners & Roll-Ups
-  { id: "banner-01", title: "Roll-Up Banner 85×200cm",   category: "Banners & Roll-Ups", image: "/images/rollup-01.jpg" },
-  { id: "banner-02", title: "Outdoor Backdrop Banner",   category: "Banners & Roll-Ups", image: "/images/backdrop-01.jpg" },
-  { id: "banner-03", title: "Social Media Web Banner",   category: "Banners & Roll-Ups", image: "/images/web-banner.jpg" },
-  { id: "banner-04", title: "Pull-Up Exhibition Banner", category: "Banners & Roll-Ups", image: "/images/pullup-01.jpg" },
-  { id: "banner-05", title: "Step & Repeat Banner",      category: "Banners & Roll-Ups", image: "/images/step-repeat.jpg" },
 
   // Menus & Price Lists
-  { id: "menu-01", title: "Restaurant Menu A4", category: "Menus & Price Lists", image: "/images/menu-restaurant.jpg" },
-  { id: "menu-02", title: "Café Drinks Menu",   category: "Menus & Price Lists", image: "/images/menu-cafe.jpg" },
-  { id: "menu-03", title: "Service Price List", category: "Menus & Price Lists", image: "/images/pricelist-service.jpg" },
-  { id: "menu-04", title: "Salon Price Card",   category: "Menus & Price Lists", image: "/images/pricelist-salon.jpg" },
-  { id: "menu-05", title: "Spa Treatment Menu", category: "Menus & Price Lists", image: "/images/menu-spa.jpg" },
-
+{ id: "menu-01", title: "Bitings",                    category: "Menus & Price Lists", image: "/images/bitings.jpg" },
+{ id: "menu-02", title: "Meat",                       category: "Menus & Price Lists", image: "/images/meat.jpg" },
+{ id: "menu-03", title: "Chicken",                    category: "Menus & Price Lists", image: "/images/chicken.jpg" },
+{ id: "menu-04", title: "Group Dishes",               category: "Menus & Price Lists", image: "/images/group_dishes.jpg" },
+{ id: "menu-05", title: "Special Dishes",             category: "Menus & Price Lists", image: "/images/special_dishes.jpg" },
+{ id: "menu-06", title: "Accomplishments & Sides",    category: "Menus & Price Lists", image: "/images/sides.jpg" },
+{ id: "menu-07", title: "Cowboys Menu",               category: "Menus & Price Lists", image: "/images/cowboys_menu.jpg" },
+{ id: "menu-08", title: "Drinks",                     category: "Menus & Price Lists", image: "/images/drinks.jpg" },
+{ id: "menu-09", title: "Coffee Pricelist Menu",      category: "Menus & Price Lists", image: "/images/coffee_pricelistmenu.jpg" },
+{ id: "menu-10", title: "Byriani",                    category: "Menus & Price Lists", image: "/images/byriani.jpg" },
+{ id: "menu-11", title: "Food Menu",                  category: "Menus & Price Lists", image: "/images/food_menu.jpg" },
+{ id: "menu-12", title: "Breakfast",                  category: "Menus & Price Lists", image: "/images/breakfast.jpg" },
+{ id: "menu-13", title: "Tea & Beverages",            category: "Menus & Price Lists", image: "/images/tea_beverages.jpg" },
+{ id: "menu-14", title: "Soups & Starters",           category: "Menus & Price Lists", image: "/images/soups_starters.jpg" },
   // Labels & Stickers
   { id: "label-01", title: "Honey Jar Label",        category: "Labels & Stickers", image: "/images/label-honey.jpg" },
   { id: "label-02", title: "Cosmetics Bottle Label", category: "Labels & Stickers", image: "/images/label-cosmetics.jpg" },
@@ -161,25 +142,7 @@ export const designItems: DesignItem[] = [
   { id: "prod-01", title: "Packaging Box Mockup", category: "Product Design", image: "/images/packaging-box.jpg" },
   { id: "prod-02", title: "T-Shirt Print Design", category: "Product Design", image: "/images/tshirt-print.jpg" },
   { id: "prod-03", title: "Branded Mug Mockup",   category: "Product Design", image: "/images/mug-branded.jpg" },
-  { id: "prod-04", title: "Tote Bag Design",       category: "Product Design", image: "/images/tote-bag.jpg" },
-  { id: "prod-05", title: "Branded Cap Design",    category: "Product Design", image: "/images/cap-branded.jpg" },
+  { id: "prod-04", title: "Kraft Paper Packaging Design",       category: "Product Design", image: "/images/kraftpaper_design.jpg" },
+  { id: "prod-05", title: "Rounded Colar T-shirt Design",    category: "Product Design", image: "/images/rounded_colar.jpg" },
 
-  // Company Profiles
-  { id: "cp-01", title: "Construction Firm Profile", category: "Company Profiles", image: "/images/profile-construction.jpg" },
-  { id: "cp-02", title: "NGO Company Profile",       category: "Company Profiles", image: "/images/profile-ngo.jpg" },
-  { id: "cp-03", title: "Tech Startup Profile",      category: "Company Profiles", image: "/images/profile-tech.jpg" },
-  { id: "cp-04", title: "Logistics Company Profile", category: "Company Profiles", image: "/images/profile-logistics.jpg" },
-
-  // YouTube Thumbnails
-  { id: "yt-01", title: "Tech Tutorial Thumbnail", category: "YouTube Thumbnails", image: "/images/thumb-tech.jpg" },
-  { id: "yt-02", title: "Vlog Thumbnail",          category: "YouTube Thumbnails", image: "/images/thumb-vlog.jpg" },
-  { id: "yt-03", title: "Business Tips Thumbnail", category: "YouTube Thumbnails", image: "/images/thumb-business.jpg" },
-  { id: "yt-04", title: "Motivation Thumbnail",    category: "YouTube Thumbnails", image: "/images/thumb-motivation.jpg" },
-  { id: "yt-05", title: "Podcast Cover Thumbnail", category: "YouTube Thumbnails", image: "/images/thumb-podcast.jpg" },
-
-  // Brochures
-  { id: "broc-01", title: "Tri-fold Service Brochure", category: "Brochures", image: "/images/brochure-service.jpg" },
-  { id: "broc-02", title: "School Prospectus",         category: "Brochures", image: "/images/brochure-school.jpg" },
-  { id: "broc-03", title: "Real Estate Brochure",      category: "Brochures", image: "/images/brochure-realestate.jpg" },
-  { id: "broc-04", title: "Medical Clinic Brochure",   category: "Brochures", image: "/images/brochure-medical.jpg" },
 ];
