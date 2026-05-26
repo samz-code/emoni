@@ -239,8 +239,6 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="font-body text-[13px] font-bold text-black">
             © {year} Samuel A. Emoni. All rights reserved.
-            <span className="mx-2 text-black/35">·</span>
-            <span className="font-bold">Trusted {yearsTrusted}+ Years</span>
           </p>
           <div className="flex items-center gap-5 font-body text-[13px] font-bold text-black">
             <Link to="/privacy" className="hover:text-white transition-colors duration-150">Privacy Policy</Link>
