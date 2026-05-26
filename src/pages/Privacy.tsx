@@ -101,7 +101,7 @@ const Privacy = () => {
             <h2 className="font-heading text-2xl text-forest mb-3">9. Contact</h2>
             <p>
               Samuel A. Emoni · Nairobi, Kenya<br />
-              Email: <a className="text-ember underline" href="mailto:samuelemoni18@gmail.com">samuelemoni18@gmail.com</a><br />
+              Email: <a className="text-ember underline" href="mailto:emonisamuel54@gmail.com">emonisamuel54@gmail.com</a><br />
               Phone: <a className="text-ember underline" href="tel:+254727492545">+254 727 492 545</a>
             </p>
           </section>
