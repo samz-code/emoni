@@ -571,28 +571,23 @@ I solve business problems through smart design, technology, and creative thinkin
       </section>
 
       {/* ── Final CTA ── */}
-      <section className="bg-forest py-24">
+      <section className="bg-[#F7F4ED] py-20 md:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-display text-[44px] md:text-[56px] text-cream leading-tight">
+          <h2 className="font-display text-[44px] md:text-[56px] text-green leading-tight">
             Have a system to build, fix, or rescue?
           </h2>
-          <p className="font-body text-lg text-cream/70 mt-5 max-w-2xl mx-auto">
+          <p className="font-body text-lg text-black/70 mt-5 max-w-2xl mx-auto">
             Tell me about the problem. I will tell you honestly whether I am the right person to
             solve it — and what it will take.
           </p>
           <div className="flex flex-wrap gap-4 justify-center mt-10">
             <Link
               to="/contact"
-              className="bg-ember text-snow px-6 py-3 text-sm font-body font-medium rounded-[4px] hover:opacity-90 transition-opacity"
+              className="bg-ember text-snow px-8 py-3.5 text-sm font-body font-bold rounded-[4px] hover:opacity-90 transition-opacity"
             >
               Start a Project →
             </Link>
-            <Link
-              to="/projects"
-              className="border border-cream/40 text-cream px-6 py-3 text-sm font-body rounded-[4px] hover:bg-cream hover:text-forest transition-colors"
-            >
-              See past work
-            </Link>
+            
           </div>
         </div>
       </section>
