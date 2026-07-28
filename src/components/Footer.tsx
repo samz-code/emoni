@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   FaInstagram,
@@ -7,7 +7,6 @@ import {
   FaXTwitter,
   FaReddit,
   FaLinkedin,
-  FaGithub,
   FaPinterest,
   FaBehance,
 } from "react-icons/fa6";
@@ -40,7 +39,6 @@ const socials: {
   isOfficialProfile: boolean;
 }[] = [
   { Icon: FaLinkedin,  href: "https://www.linkedin.com/in/samuelemoni?utm_source=share_via&utm_content=profile&utm_medium=member_android", label: "LinkedIn",    color: "#0A66C2", isOfficialProfile: true },
-  { Icon: FaGithub,    href: "https://github.com/Samz-Code",            label: "GitHub",     color: "#ffffff",  isOfficialProfile: true },
   { Icon: FaInstagram, href: "https://www.instagram.com/emoni_sam?igsh=OGQ5ZDc2ODk2ZA==", label: "Instagram", color: "#E1306C", isOfficialProfile: true },
   { Icon: FaFacebook,  href: "https://www.facebook.com/share/14bqxEBvppA/", label: "Facebook",  color: "#1877F2", isOfficialProfile: true },
   { Icon: FaXTwitter,  href: "https://x.com/samuelemoni18",             label: "X (Twitter)", color: "#ffffff", isOfficialProfile: true },
@@ -58,7 +56,6 @@ const SparkLogo = () => (
     whileHover="hovered"
     initial="idle"
   >
-    {/* Ambient glow — brightens on hover */}
     <motion.div
       className="absolute inset-0 pointer-events-none rounded-2xl"
       variants={{
@@ -68,8 +65,6 @@ const SparkLogo = () => (
       transition={{ duration: 0.4, ease: "easeOut" }}
       style={{ filter: "blur(12px)" }}
     />
-
-    {/* Color-wash overlay — tints the logo ember on hover */}
     <motion.div
       className="absolute inset-0 pointer-events-none rounded-xl z-20"
       variants={{
@@ -79,8 +74,6 @@ const SparkLogo = () => (
       transition={{ duration: 0.35, ease: "easeOut" }}
       style={{ background: "#E77E23", mixBlendMode: "color" }}
     />
-
-    {/* Logo image */}
     <motion.img
       src="/images/brand_white.png"
       alt="Samuel A. Emoni"
@@ -103,28 +96,87 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   </p>
 );
 
+// ─── Column link list ─────────────────────────────────────────────────────────
+
+const LinkList = ({ items }: { items: { label: string; href: string }[] }) => (
+  <ul className="flex flex-col gap-4">
+    {items.map((link) => (
+      <li key={link.label}>
+        <Link
+          to={link.href}
+          className="group inline-flex items-center gap-1.5 font-body text-[15px] text-cream/65 hover:text-ember transition-colors duration-200"
+        >
+          <span className="transition-transform duration-200 group-hover:translate-x-1">
+            {link.label}
+          </span>
+          <ArrowUpRight
+            size={13}
+            className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
+          />
+        </Link>
+      </li>
+    ))}
+  </ul>
+);
+
 // ─── Footer ──────────────────────────────────────────────────────────────────
 
 const Footer = () => {
   const year = new Date().getFullYear();
-  const yearsTrusted = year - 2020;
 
   return (
-    <footer className="bg-forest text-cream">
+    <footer className="relative bg-forest text-cream overflow-hidden">
+
+      {/* Ambient corner glow */}
+      <div
+        className="pointer-events-none absolute -top-40 -right-40 w-[520px] h-[520px] rounded-full opacity-40 blur-3xl"
+        style={{ background: "radial-gradient(circle, rgba(231,126,35,0.28) 0%, transparent 70%)" }}
+      />
 
       {/* Top accent rule */}
       <div
-        className="h-px w-full"
+        className="relative h-px w-full"
         style={{ background: "linear-gradient(90deg, transparent, #E77E23 30%, #E77E23 70%, transparent)" }}
       />
 
+      {/* ── CTA strip ── */}
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pt-20 pb-14">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 border-b border-cream/8 pb-14">
+          <div>
+            <p className="font-body text-[11px] font-semibold uppercase tracking-[0.24em] text-ember mb-4">
+              Let's build something
+            </p>
+            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[0.95] tracking-tight text-cream">
+              Have a project
+              <br />
+              <span className="text-cream/40">in mind?</span>
+            </h2>
+          </div>
+
+          <Link
+            to="/contact"
+            className="group inline-flex items-center gap-3 self-start rounded-full bg-ember px-8 py-4 font-body text-[15px] font-bold text-black transition-all duration-200 hover:bg-cream hover:shadow-[0_0_30px_rgba(231,126,35,0.4)]"
+          >
+            Start a conversation
+            <ArrowUpRight
+              size={18}
+              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
+          </Link>
+        </div>
+      </div>
+
       {/* ── Main grid ── */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-20">
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10">
 
           {/* ── Brand column ── */}
           <div className="lg:col-span-4 flex flex-col gap-7">
             <SparkLogo />
+
+            <p className="font-body text-[15px] text-cream/45 leading-relaxed max-w-xs">
+              Full-stack development and design, built for clarity and scale.
+            </p>
 
             <div className="flex flex-col gap-3.5">
               <a
@@ -159,42 +211,20 @@ const Footer = () => {
           {/* ── Explore ── */}
           <div className="lg:col-span-2">
             <SectionLabel>Explore</SectionLabel>
-            <ul className="flex flex-col gap-4">
-              {explore.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    to={link.href}
-                    className="font-body text-[15px] text-cream/65 hover:text-ember hover:translate-x-1 inline-block transition-all duration-200"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <LinkList items={explore} />
           </div>
 
           {/* ── Services ── */}
           <div className="lg:col-span-3">
             <SectionLabel>Services</SectionLabel>
-            <ul className="flex flex-col gap-4">
-              {services.map((s) => (
-                <li key={s.label}>
-                  <Link
-                    to={s.href}
-                    className="font-body text-[15px] text-cream/65 hover:text-ember hover:translate-x-1 inline-block transition-all duration-200"
-                  >
-                    {s.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <LinkList items={services} />
           </div>
 
           {/* ── Connect ── */}
           <div className="lg:col-span-3">
             <SectionLabel>Connect</SectionLabel>
 
-            {/* 2×4 social grid */}
+            {/* 2-column social grid */}
             <div className="grid grid-cols-2 gap-2.5">
               {socials.map(({ Icon, href, label, color, isOfficialProfile }) => (
                 <a
@@ -229,13 +259,8 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* ── Divider ── */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="h-px bg-cream/8" />
-      </div>
-
       {/* ── Bottom bar ── */}
-      <div style={{ backgroundColor: "#E77E23" }}>
+      <div style={{ backgroundColor: "#E77E23" }} className="relative">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="font-body text-[13px] font-bold text-black">
             © {year} Samuel A. Emoni. All rights reserved.
