@@ -85,7 +85,7 @@ const Navbar = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-28">
-        {/* Brand Logo Only — horizontal script logo, scales down on small screens */}
+        {/* Brand Logo */}
         <Link to="/" className="flex items-center group shrink-0">
           <img
             src="/whitelogo.png"
@@ -94,7 +94,7 @@ const Navbar = () => {
           />
         </Link>
 
-        {/* Navigation Links — desktop/tablet only */}
+        {/* Navigation Links — desktop/laptop only */}
         <div className="hidden lg:flex items-center gap-4 xl:gap-6">
           {navLinks.map((link) =>
             link.dropdown ? (
@@ -172,7 +172,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Portal Login + Theme Toggle — desktop/tablet only */}
+        {/* Portal Login + Theme Toggle — desktop/laptop only */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
           <ThemeToggle />
           <Link
@@ -184,9 +184,8 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Mobile / Tablet: Theme Toggle + Portal Login + Hamburger */}
-        <div className="flex items-center gap-1 lg:hidden">
-          <ThemeToggle />
+        {/* Mobile / Tablet: Portal Login + Hamburger (ThemeToggle removed) */}
+        <div className="flex items-center gap-2 lg:hidden">
           <Link
             to="/admin/login"
             aria-label="Portal Login"
@@ -295,7 +294,7 @@ const Navbar = () => {
                 )}
               </div>
 
-              {/* Portal Login — sole action in mobile drawer footer */}
+              {/* Portal Login Footer */}
               <div className="p-5 sm:p-6 border-t border-[hsl(var(--cream))/0.2] shrink-0">
                 <Link
                   to="/admin/login"
