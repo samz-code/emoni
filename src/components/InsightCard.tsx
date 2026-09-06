@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { Insight } from "@/data/insights";
+import type { Insight } from "@/types/insight";
 import { Eye } from "lucide-react";
 
 const InsightCard = ({ insight, featured = false }: { insight: Insight; featured?: boolean }) => {
@@ -12,7 +12,7 @@ const InsightCard = ({ insight, featured = false }: { insight: Insight; featured
               <img
                 src={insight.image}
                 alt={insight.title}
-                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+                className="w-full h-64 sm:h-80 md:h-96 object-cover hover:scale-105 transition-transform duration-300"
               />
             </div>
           )}
@@ -29,7 +29,7 @@ const InsightCard = ({ insight, featured = false }: { insight: Insight; featured
           )}
           <div className="flex items-center gap-4 mt-6">
             <span className="font-body text-[12px] text-cream/60">
-              {insight.date} · {insight.readTime}
+              {insight.date} · {insight.read_time}
             </span>
             {insight.readers && (
               <span className="flex items-center gap-1 font-body text-[12px] text-cream/60">
@@ -54,7 +54,7 @@ const InsightCard = ({ insight, featured = false }: { insight: Insight; featured
             <img
               src={insight.image}
               alt={insight.title}
-              className="w-full h-32 object-cover hover:scale-105 transition-transform duration-300"
+              className="w-full h-44 sm:h-52 md:h-56 object-cover hover:scale-105 transition-transform duration-300"
             />
           </div>
         )}
@@ -67,7 +67,7 @@ const InsightCard = ({ insight, featured = false }: { insight: Insight; featured
         )}
         <div className="flex justify-between items-center mt-4">
           <span className="font-body text-[12px] text-[#9A9A9A]">
-            {insight.date} · {insight.readTime}
+            {insight.date} · {insight.read_time}
           </span>
           {insight.readers && (
             <span className="flex items-center gap-1 font-body text-[11px] text-[#9A9A9A]">

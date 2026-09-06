@@ -3,7 +3,12 @@ import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   prefix: "",
   theme: {
     container: {
@@ -15,10 +20,21 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Clash Display"', 'system-ui', 'sans-serif'],
-        body: ['"Inter"', 'system-ui', 'sans-serif'],
+        display: ['"Oswald"', "sans-serif"],
+        body: ['"Source Serif 4"', "Georgia", "serif"],
       },
       colors: {
+        // Direct Fintech Hex Helpers
+        fintech: {
+          tealDark: "#007979",
+          tealLight: "#24B1B1",
+          gold: "#FFE2AF",
+          orange: "#E37434",
+          coral: "#EC5B38",
+          stoneDark: "#524646",
+          stoneMuted: "#A8A492",
+        },
+        // Existing Mapped Theme Variables
         forest: "hsl(var(--forest))",
         olive: "hsl(var(--olive))",
         cream: "hsl(var(--cream))",

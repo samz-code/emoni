@@ -1,6 +1,4 @@
-/* Inter (body) from Google Fonts + Clash Display (headings) from Fontshare */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,65 +6,94 @@
 
 @layer base {
   :root {
-    --forest: 103 16% 27%;
-    --olive: 97 33% 38%;
-    --cream: 40 42% 81%;
-    --ember: 28 80% 52%;
-    --ink: 0 0% 10%;
-    --paper: 38 38% 95%;
-    --snow: 0 0% 100%;
+    /* ── New Palette (hex → HSL) ──────────────────────────── */
+    --sage:        107 11% 59%;   /* #8FA28A — primary brand green */
+    --sage-dark:   107 13% 48%;   /* darker sage — hover/pressed states */
+    --sage-light:  98  18% 79%;   /* #C7D3C0 — soft secondary surfaces */
+    --paper:       42  39% 95%;   /* #F7F4ED — background */
+    --tan:         40  46% 60%;   /* #C8A96B — accent / CTA */
+    --tan-dark:    40  46% 50%;   /* darker tan — hover/pressed states */
+    --ink:         219 16% 14%;   /* #1D2128 — text, dark surfaces */
+    --snow:        0   0%  100%;
 
-    --background: 38 38% 95%;
-    --foreground: 0 0% 10%;
+    /* ── Semantic aliases so existing components (bg-forest,
+         text-cream, etc.) keep working without edits ── */
+    --forest: var(--ink);
+    --olive:  var(--sage-dark);
+    --cream:  var(--paper);
+    --ember:  var(--tan);
+    --coral:  var(--tan-dark);
+    --stone-muted: 98 10% 70%;
+
+    --background: var(--paper);
+    --foreground: var(--ink);
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 103 16% 27%;
-    --primary-foreground: 40 42% 81%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 28 80% 52%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 35 18% 86%;
-    --input: 35 18% 86%;
-    --ring: 103 16% 27%;
-    --radius: 4px;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
+    --card-foreground: var(--ink);
+    --primary: var(--sage);
+    --primary-foreground: var(--paper);
+    --accent: var(--tan);
+    --border: 98 18% 85%;
+    --radius: 8px;
   }
 
-  html {
-    scroll-behavior: smooth;
+  #root {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    text-align: left;
   }
 
   body {
-    @apply bg-paper text-ink font-body antialiased;
+    background-color: hsl(var(--paper));
+    color: hsl(var(--ink));
+    font-family: 'Inter', -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+  }
+}
+
+@layer components {
+  .fintech-card {
+    @apply transition-all duration-300 border border-slate-200 bg-white p-6 rounded-xl hover:-translate-y-1 hover:shadow-xl;
+  }
+  .fintech-card:hover {
+    border-color: hsl(var(--sage));
   }
 
-  *:focus-visible {
-    outline: 2px solid hsl(var(--ember));
-    outline-offset: 2px;
+  /* Tan badge — status labels, featured tags */
+  .badge-tan {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide;
+    background-color: hsl(var(--tan) / 0.18);
+    color: hsl(var(--tan-dark));
+    border: 1px solid hsl(var(--tan) / 0.4);
+  }
+
+  /* Primary sage button */
+  .btn-sage {
+    @apply px-6 py-3 rounded-lg font-bold text-sm transition-all duration-200;
+    background-color: hsl(var(--sage));
+    color: hsl(var(--paper));
+  }
+  .btn-sage:hover {
+    background-color: hsl(var(--sage-dark));
+  }
+
+  /* Tan/accent button */
+  .btn-tan {
+    @apply px-6 py-3 rounded-lg font-bold text-sm transition-all duration-200;
+    background-color: hsl(var(--tan));
+    color: hsl(var(--ink));
+  }
+  .btn-tan:hover {
+    background-color: hsl(var(--tan-dark));
   }
 }

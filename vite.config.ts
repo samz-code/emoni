@@ -7,7 +7,8 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 5173,
+    port: 1080,
+    open: true, // Automatically opens the app in your default browser on startup
     hmr: {
       overlay: false,
     },

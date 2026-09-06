@@ -1,38 +1,64 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import InsightCard from "@/components/InsightCard";
-import { insights } from "@/data/insights";
-import { BookOpen, Users, TrendingUp, Filter } from "lucide-react";
-
-const categories = ["All", "Engineering", "Business", "GovTech", "Design", "AI & Automation", "Blockchain", "UX/UI Design", "Entrepreneurship", "Remote Work", "Sustainability", "FinTech", "Security", "Marketing"];
+import { supabase } from "@/lib/supabase";
+import type { Insight } from "@/types/insight";
+import { BookOpen, Users, TrendingUp, Filter, Loader2 } from "lucide-react";
 
 const Insights = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [totalReaders, setTotalReaders] = useState(0);
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    const baseReaders = insights.reduce((sum, insight) => sum + (insight.readers || 0), 0);
-    let storedReaders = 0;
-
-    if (typeof window !== "undefined") {
+    const fetchInsights = async () => {
+      setLoading(true);
+      setLoadError(null);
       try {
-        const stored = window.localStorage.getItem("insightViews");
-        const counts: Record<string, number> = stored ? JSON.parse(stored) : {};
-        storedReaders = Object.values(counts).reduce((sum: number, value: number) => sum + value, 0);
-      } catch {
-        storedReaders = 0;
-      }
-    }
+        const { data, error } = await supabase
+          .from("insights")
+          .select("*")
+          .eq("published", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: false });
 
-    setTotalReaders(baseReaders + storedReaders);
+        if (error) throw error;
+
+        const fetched = (data || []) as Insight[];
+        setInsights(fetched);
+        setTotalReaders(fetched.reduce((sum, insight) => sum + (insight.readers || 0), 0));
+      } catch (err: any) {
+        console.error("Error fetching insights from database:", err);
+        setLoadError(err.message || "Failed to load articles from the database.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInsights();
   }, []);
+
+  // Derive the real set of topics from the fetched articles (category + tags),
+  // instead of a hardcoded list. Falls back to just "All" while loading/empty.
+  const categories = useMemo(() => {
+    const unique = new Set<string>();
+    insights.forEach((insight) => {
+      if (insight.category) unique.add(insight.category);
+      insight.tags?.forEach((tag) => unique.add(tag));
+    });
+    return ["All", ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
+  }, [insights]);
 
   const filteredInsights = selectedCategory === "All"
     ? insights
     : insights.filter(insight => insight.category === selectedCategory || insight.tags?.includes(selectedCategory));
 
-  const featured = filteredInsights[0];
-  const rest = filteredInsights.slice(1);
+  // Prefer an explicitly featured article; fall back to the first result.
+  const explicitFeatured = filteredInsights.find((i) => i.featured);
+  const featured = explicitFeatured || filteredInsights[0];
+  const rest = filteredInsights.filter((i) => i.slug !== featured?.slug);
 
   const dotPattern = `data:image/svg+xml,${encodeURIComponent('<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="#ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="4"/></g></g></svg>')}`;
 
@@ -179,50 +205,70 @@ const Insights = () => {
           </div>
         </motion.div>
 
-        {/* Featured Article */}
-        {featured && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            className="mb-16"
-          >
-            <h2 className="font-display text-3xl text-ink mb-8">Featured Article</h2>
-            <InsightCard insight={featured} featured />
-          </motion.div>
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-20">
+            <Loader2 size={40} className="animate-spin text-ember mx-auto mb-4" />
+            <p className="font-body text-ink/60 text-sm">Fetching articles from the database...</p>
+          </div>
         )}
 
-        {/* Articles Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-        >
-          <h2 className="font-display text-3xl text-ink mb-8">
-            {selectedCategory === "All" ? "Latest Articles" : `${selectedCategory} Articles`}
-          </h2>
+        {/* Error State */}
+        {!loading && loadError && (
+          <div className="text-center py-20">
+            <p className="font-body text-red-600 text-sm">{loadError}</p>
+            <p className="font-body text-ink/40 text-xs mt-2">Please refresh the page or try again shortly.</p>
+          </div>
+        )}
 
-          {rest.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {rest.map((insight, i) => (
-                <motion.div
-                  key={insight.slug}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.9 + i * 0.05 }}
-                >
-                  <InsightCard insight={insight} />
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <BookOpen size={48} className="text-olive/40 mx-auto mb-4" />
-              <p className="text-lg text-ink/60">No articles found in this category yet.</p>
-              <p className="text-sm text-ink/40 mt-2">Check back soon for new content!</p>
-            </div>
-          )}
-        </motion.div>
+        {!loading && !loadError && (
+          <>
+            {/* Featured Article */}
+            {featured && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="mb-16"
+              >
+                <h2 className="font-display text-3xl text-ink mb-8">Featured Article</h2>
+                <InsightCard insight={featured} featured />
+              </motion.div>
+            )}
+
+            {/* Articles Grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 }}
+            >
+              <h2 className="font-display text-3xl text-ink mb-8">
+                {selectedCategory === "All" ? "Latest Articles" : `${selectedCategory} Articles`}
+              </h2>
+
+              {rest.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {rest.map((insight, i) => (
+                    <motion.div
+                      key={insight.slug}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.9 + i * 0.05 }}
+                    >
+                      <InsightCard insight={insight} />
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <BookOpen size={48} className="text-olive/40 mx-auto mb-4" />
+                  <p className="text-lg text-ink/60">No articles found in this category yet.</p>
+                  <p className="text-sm text-ink/40 mt-2">Check back soon for new content!</p>
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
       </div>
     </main>
   );

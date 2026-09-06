@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin, ArrowUpRight } from "lucide-react";
-import { motion } from "framer-motion";
 import {
   FaInstagram,
   FaFacebook,
@@ -47,45 +46,20 @@ const socials: {
   { Icon: FaBehance,   href: "https://www.behance.net/samturkidemoni",  label: "Behance",    color: "#1769FF", isOfficialProfile: true },
 ];
 
-// ─── Logo with hover color-shift ─────────────────────────────────────────────
+// ─── Static Logo ─────────────────────────────────────────────────────────────
 
 const SparkLogo = () => (
-  <motion.div
+  <div
     className="relative self-start cursor-pointer"
     style={{ width: 200, height: 112 }}
-    whileHover="hovered"
-    initial="idle"
   >
-    <motion.div
-      className="absolute inset-0 pointer-events-none rounded-2xl"
-      variants={{
-        idle:    { opacity: 0, background: "radial-gradient(ellipse at center, rgba(231,126,35,0.20) 0%, transparent 70%)" },
-        hovered: { opacity: 1, background: "radial-gradient(ellipse at center, rgba(231,126,35,0.55) 0%, transparent 70%)" },
-      }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      style={{ filter: "blur(12px)" }}
-    />
-    <motion.div
-      className="absolute inset-0 pointer-events-none rounded-xl z-20"
-      variants={{
-        idle:    { opacity: 0 },
-        hovered: { opacity: 0.22 },
-      }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      style={{ background: "#E77E23", mixBlendMode: "color" }}
-    />
-    <motion.img
-      src="/images/brand_white.png"
+    <img
+      src="/profile.png"
       alt="Samuel A. Emoni"
       loading="lazy"
       className="h-28 w-auto object-contain relative z-10"
-      variants={{
-        idle:    { scale: 1,    filter: "brightness(1)" },
-        hovered: { scale: 1.04, filter: "brightness(1.15) drop-shadow(0 0 12px rgba(231,126,35,0.6))" },
-      }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
     />
-  </motion.div>
+  </div>
 );
 
 // ─── Section heading ──────────────────────────────────────────────────────────
@@ -260,7 +234,7 @@ const Footer = () => {
       </div>
 
       {/* ── Bottom bar ── */}
-      <div style={{ backgroundColor: "#E77E23" }} className="relative">
+      <div style={{ backgroundColor: "#C8A96A" }} className="relative">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="font-body text-[13px] font-bold text-black">
             © {year} Samuel A. Emoni. All rights reserved.
