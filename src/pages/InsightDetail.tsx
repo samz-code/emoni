@@ -5,6 +5,21 @@ import { ArrowLeft, Loader2, Clock, Eye, Calendar, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Insight } from "@/types/insight";
 
+// Basic client-side sanitizer: strips scripts/styles/iframes and inline event handlers
+// before we render stored article HTML with dangerouslySetInnerHTML.
+const sanitizeArticleHtml = (html: string) => {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script, style, iframe, object, embed").forEach((el) => el.remove());
+  doc.querySelectorAll("*").forEach((el) => {
+    [...el.attributes].forEach((attr) => {
+      if (attr.name.startsWith("on")) el.removeAttribute(attr.name);
+    });
+  });
+  return doc.body.innerHTML;
+};
+
+const looksLikeHtml = (text: string) => /<[a-z][\s\S]*>/i.test(text);
+
 const InsightDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [insight, setInsight] = useState<Insight | null>(null);
@@ -83,6 +98,11 @@ const InsightDetail = () => {
     );
   }
 
+  // Articles saved from the rich text editor store one HTML string in body[0].
+  // Older articles (pre rich-editor) stored one plain/markdown-ish paragraph per array element.
+  const body = insight.body || [];
+  const isRichHtmlBody = body.length === 1 && looksLikeHtml(body[0]);
+
   return (
     <main className="bg-paper min-h-screen">
       <section className="bg-forest py-12 md:py-20">
@@ -141,29 +161,36 @@ const InsightDetail = () => {
             {insight.excerpt}
           </p>
 
-          <div className="space-y-6">
-            {insight.body?.map((line, idx) => {
-              if (line.startsWith("## ")) {
+          {isRichHtmlBody ? (
+            <div
+              className="insight-body font-body text-sm sm:text-base text-ink/90 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(body[0]) }}
+            />
+          ) : (
+            <div className="space-y-6">
+              {body.map((line, idx) => {
+                if (line.startsWith("## ")) {
+                  return (
+                    <h2 key={idx} className="font-display text-xl sm:text-2xl text-ink mt-8 mb-3 pt-4 border-t border-border">
+                      {line.replace(/^##\s/, "")}
+                    </h2>
+                  );
+                }
+                if (line.startsWith("- ")) {
+                  return (
+                    <li key={idx} className="font-body text-sm sm:text-base text-ink/80 leading-relaxed list-disc ml-6">
+                      {line.replace(/^-\s/, "")}
+                    </li>
+                  );
+                }
                 return (
-                  <h2 key={idx} className="font-display text-xl sm:text-2xl text-ink mt-8 mb-3 pt-4 border-t border-border">
-                    {line.replace(/^##\s/, "")}
-                  </h2>
+                  <p key={idx} className="font-body text-sm sm:text-base text-ink/90 leading-relaxed">
+                    {line}
+                  </p>
                 );
-              }
-              if (line.startsWith("- ")) {
-                return (
-                  <li key={idx} className="font-body text-sm sm:text-base text-ink/80 leading-relaxed list-disc ml-6">
-                    {line.replace(/^-\s/, "")}
-                  </li>
-                );
-              }
-              return (
-                <p key={idx} className="font-body text-sm sm:text-base text-ink/90 leading-relaxed">
-                  {line}
-                </p>
-              );
-            })}
-          </div>
+              })}
+            </div>
+          )}
 
           {insight.tags && insight.tags.length > 0 && (
             <div className="mt-12 pt-6 border-t border-border flex flex-wrap items-center gap-2">
@@ -206,6 +233,25 @@ const InsightDetail = () => {
           </div>
         </section>
       )}
+
+      <style>{`
+        .insight-body h1 { font-family: inherit; font-size: 1.5rem; font-weight: 700; margin: 2rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid var(--tw-border-color, rgba(0,0,0,0.1)); }
+        .insight-body h2 { font-size: 1.35rem; font-weight: 700; margin: 2rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); }
+        .insight-body h3 { font-size: 1.1rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+        .insight-body p { margin: 0 0 1.1rem; }
+        .insight-body ul { list-style: disc; padding-left: 1.5rem; margin: 0 0 1.1rem; }
+        .insight-body ol { list-style: decimal; padding-left: 1.5rem; margin: 0 0 1.1rem; }
+        .insight-body li { margin: 0.35rem 0; }
+        .insight-body a { color: #b45309; text-decoration: underline; }
+        .insight-body blockquote {
+          border-left: 3px solid #b45309;
+          padding: 0.35rem 0 0.35rem 1.1rem;
+          margin: 1.25rem 0;
+          font-style: italic;
+          color: rgba(0,0,0,0.65);
+        }
+        .insight-body img { max-width: 100%; border-radius: 0.5rem; margin: 1.25rem 0; display: block; }
+      `}</style>
     </main>
   );
 };
