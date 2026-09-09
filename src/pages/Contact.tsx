@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Phone, Mail, MapPin, Globe, MessageCircle } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { Phone, Mail, MapPin, Globe } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
 
 // Working hours in EAT (UTC+3) — used only for the online/offline badge
@@ -41,93 +42,144 @@ const Contact = () => {
     { icon: Globe, text: "Working in EAT (UTC+3)" },
   ];
 
+  const canonicalUrl = "https://www.emonisamuel.co.ke/contact";
+  const pageTitle = "Contact & Hire | Samuel A. Emoni — Full-Stack Developer";
+  const pageDescription = "Get in touch with Samuel A. Emoni for software engineering, full-stack web development, dynamic web applications, or digital consulting. Available remotely worldwide.";
+
+  // Dynamic Schema markup for Contact Page
+  const contactSchema = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "name": pageTitle,
+    "description": pageDescription,
+    "url": canonicalUrl,
+    "mainEntity": {
+      "@type": "Person",
+      "name": "Samuel A. Emoni",
+      "jobTitle": "Full-Stack Software Engineer",
+      "email": "mailto:emonisamuel54@gmail.com",
+      "telephone": "+254727492545",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Nairobi",
+        "addressCountry": "KE"
+      },
+      "url": "https://www.emonisamuel.co.ke"
+    }
+  };
+
   return (
-    <main className="bg-paper">
-      <section className="py-20 sm:py-24">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      <Helmet>
+        {/* Core Meta Tags */}
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <link rel="canonical" href={canonicalUrl} />
 
-          {/* Status badge */}
-          <div
-            className={`inline-flex items-center gap-2 border rounded-[4px] px-3 py-1.5 mb-6 ${
-              isOnline ? "border-olive bg-olive/10" : "border-border bg-snow"
-            }`}
-          >
-            <span className="relative flex w-2 h-2">
-              {isOnline && (
-                <span className="absolute inline-flex w-full h-full rounded-full bg-olive opacity-60 animate-ping" />
-              )}
-              <span className={`relative inline-flex w-2 h-2 rounded-full ${isOnline ? "bg-olive" : "bg-[#9A9A9A]"}`} />
-            </span>
-            <span className="font-body text-[12px] uppercase tracking-widest text-ink">
-              {isOnline ? "Online now" : "Offline"}
-            </span>
-            <span className="font-body text-[12px] text-[#9A9A9A]">· {eatTimeLabel} EAT</span>
-          </div>
+        {/* Open Graph Tags */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content="https://www.emonisamuel.co.ke/og-image.jpg" />
 
-          <h1 className="font-display text-[44px] md:text-[56px] text-ink leading-tight max-w-3xl">
-            Let's Work Together
-          </h1>
-          <p className="font-body text-lg text-[#4A4A4A] mt-4 max-w-2xl leading-relaxed">
-            Got a project in mind, a broken system to fix, or just need some advice? Drop me a message below and I'll usually get back to you within 24 hours on weekdays.
-          </p>
+        {/* Twitter Card Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content="https://www.emonisamuel.co.ke/og-image.jpg" />
 
-          {/* Contact grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mt-14">
+        {/* Structured Data / Schema */}
+        <script type="application/ld+json">
+          {JSON.stringify(contactSchema)}
+        </script>
+      </Helmet>
 
-            {/* Left — quick contact */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="lg:col-span-5"
+      <main className="bg-paper">
+        <section className="py-20 sm:py-24">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            {/* Status badge */}
+            <div
+              className={`inline-flex items-center gap-2 border rounded-[4px] px-3 py-1.5 mb-6 ${
+                isOnline ? "border-olive bg-olive/10" : "border-border bg-snow"
+              }`}
             >
-              <p className="font-body text-[11px] uppercase tracking-widest text-ember mb-2">
-                Reach Me Directly
-              </p>
-              <h2 className="font-display text-[30px] text-ink leading-tight">
-                A few ways to say hello
-              </h2>
+              <span className="relative flex w-2 h-2">
+                {isOnline && (
+                  <span className="absolute inline-flex w-full h-full rounded-full bg-olive opacity-60 animate-ping" />
+                )}
+                <span className={`relative inline-flex w-2 h-2 rounded-full ${isOnline ? "bg-olive" : "bg-[#9A9A9A]"}`} />
+              </span>
+              <span className="font-body text-[12px] uppercase tracking-widest text-ink">
+                {isOnline ? "Online now" : "Offline"}
+              </span>
+              <span className="font-body text-[12px] text-[#9A9A9A]">· {eatTimeLabel} EAT</span>
+            </div>
 
-              <div className="space-y-4 mt-8">
-                {contactItems.map((item) => (
-                  <div key={item.text} className="flex items-center gap-3">
-                    <span className="w-9 h-9 rounded-[4px] border border-border bg-snow flex items-center justify-center flex-shrink-0">
-                      <item.icon size={16} className="text-olive" />
-                    </span>
-                    {item.href ? (
-                      <a href={item.href} className="font-body text-sm text-ink hover:text-ember transition-colors">
-                        {item.text}
-                      </a>
-                    ) : (
-                      <span className="font-body text-sm text-ink">{item.text}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
+            <h1 className="font-display text-[44px] md:text-[56px] text-ink leading-tight max-w-3xl">
+              Let's Work Together
+            </h1>
+            <p className="font-body text-lg text-[#4A4A4A] mt-4 max-w-2xl leading-relaxed">
+              Got a project in mind, a broken system to fix, or just need some advice? Drop me a message below and I'll usually get back to you within 24 hours on weekdays.
+            </p>
 
-              
+            {/* Contact grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 mt-14">
 
-              <p className="font-body text-[13px] text-[#9A9A9A] italic mt-4">
-                Fastest way to reach me during working hours.
-              </p>
-            </motion.div>
+              {/* Left — quick contact */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="lg:col-span-5"
+              >
+                <p className="font-body text-[11px] uppercase tracking-widest text-ember mb-2">
+                  Reach Me Directly
+                </p>
+                <h2 className="font-display text-[30px] text-ink leading-tight">
+                  A few ways to say hello
+                </h2>
 
-            {/* Right — form */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="lg:col-span-7"
-            >
-              <ContactForm />
-            </motion.div>
+                <div className="space-y-4 mt-8">
+                  {contactItems.map((item) => (
+                    <div key={item.text} className="flex items-center gap-3">
+                      <span className="w-9 h-9 rounded-[4px] border border-border bg-snow flex items-center justify-center flex-shrink-0">
+                        <item.icon size={16} className="text-olive" />
+                      </span>
+                      {item.href ? (
+                        <a href={item.href} className="font-body text-sm text-ink hover:text-ember transition-colors">
+                          {item.text}
+                        </a>
+                      ) : (
+                        <span className="font-body text-sm text-ink">{item.text}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
 
+                <p className="font-body text-[13px] text-[#9A9A9A] italic mt-4">
+                  Fastest way to reach me during working hours.
+                </p>
+              </motion.div>
+
+              {/* Right — form */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.15 }}
+                className="lg:col-span-7"
+              >
+                <ContactForm />
+              </motion.div>
+
+            </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      </main>
+    </>
   );
 };
 
