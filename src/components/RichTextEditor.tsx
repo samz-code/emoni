@@ -94,6 +94,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
   const [showTextColor, setShowTextColor] = useState(false);
   const [showHighlight, setShowHighlight] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [activeStates, setActiveStates] = useState<Record<string, boolean>>({});
 
   // Sync incoming value (e.g. switching between edit/create) into the editable div
@@ -125,6 +126,28 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
   }, []);
 
   const focusEditor = () => editorRef.current?.focus();
+
+  // Positions the text cursor at the exact point a file was dropped, so the
+  // image lands where the user dropped it instead of wherever focus last was.
+  const placeCaretAtPoint = (x: number, y: number) => {
+    const anyDoc = document as any;
+    let range: Range | null = null;
+    if (typeof anyDoc.caretRangeFromPoint === "function") {
+      range = anyDoc.caretRangeFromPoint(x, y);
+    } else if (typeof anyDoc.caretPositionFromPoint === "function") {
+      const pos = anyDoc.caretPositionFromPoint(x, y);
+      if (pos) {
+        range = document.createRange();
+        range.setStart(pos.offsetNode, pos.offset);
+        range.collapse(true);
+      }
+    }
+    if (range) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    }
+  };
 
   const handleInput = () => {
     if (editorRef.current) onChange(editorRef.current.innerHTML);
@@ -195,6 +218,30 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
     const url = window.prompt("Image URL");
     if (!url) return;
     exec("insertImage", url);
+  };
+
+  const handleEditorDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    if (showHtmlView) return;
+    if (e.dataTransfer.types.includes("Files")) {
+      e.preventDefault();
+      setIsDraggingImage(true);
+    }
+  };
+
+  const handleEditorDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingImage(false);
+  };
+
+  const handleEditorDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    if (showHtmlView) return;
+    e.preventDefault();
+    setIsDraggingImage(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    focusEditor();
+    placeCaretAtPoint(e.clientX, e.clientY);
+    await handleImageFile(file);
   };
 
   const toggleHtmlView = () => {
@@ -412,17 +459,40 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
         />
       ) : (
         <div
-          ref={editorRef}
-          contentEditable
-          suppressContentEditableWarning
-          onInput={handleInput}
-          onPaste={handlePaste}
-          onKeyUp={updateActiveStates}
-          onMouseUp={updateActiveStates}
-          onFocus={updateActiveStates}
-          data-placeholder={placeholder}
-          className="rte-content min-h-[240px] max-h-[480px] overflow-y-auto p-3 text-sm text-ink focus:outline-none"
-        />
+          className="relative"
+          onDragOver={handleEditorDragOver}
+          onDragLeave={handleEditorDragLeave}
+          onDrop={handleEditorDrop}
+        >
+          <div
+            ref={editorRef}
+            contentEditable
+            suppressContentEditableWarning
+            onInput={handleInput}
+            onPaste={handlePaste}
+            onKeyUp={updateActiveStates}
+            onMouseUp={updateActiveStates}
+            onFocus={updateActiveStates}
+            data-placeholder={placeholder}
+            className="rte-content min-h-[240px] max-h-[480px] overflow-y-auto p-3 text-sm text-ink focus:outline-none"
+          />
+
+          {(isDraggingImage || uploadingImage) && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-paper/95 border-2 border-dashed border-ember rounded pointer-events-none">
+              {uploadingImage ? (
+                <>
+                  <Loader2 size={22} className="animate-spin text-ember" />
+                  <span className="text-xs font-body text-ink/70">Uploading to Supabase storage...</span>
+                </>
+              ) : (
+                <>
+                  <UploadCloud size={22} className="text-ember" />
+                  <span className="text-xs font-body text-ink/70">Drop image to insert here</span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       )}
 
       <style>{`
