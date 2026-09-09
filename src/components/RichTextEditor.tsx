@@ -71,6 +71,21 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({ onClick, active, title, d
 
 const ToolbarDivider = () => <div className="w-px h-5 bg-border mx-1 self-center" />;
 
+// Strip scripts, styles, and inline event handlers from pasted HTML before it's inserted.
+// This is a paste-time safety net, not a substitute for sanitizing on the server/render side.
+const sanitizeHtml = (html: string) => {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script, style, iframe, object, embed").forEach((el) => el.remove());
+  doc.querySelectorAll("*").forEach((el) => {
+    [...el.attributes].forEach((attr) => {
+      if (attr.name.startsWith("on") || attr.name === "style") {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return doc.body.innerHTML;
+};
+
 const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeholder }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showHtmlView, setShowHtmlView] = useState(false);
@@ -122,11 +137,20 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
     updateActiveStates();
   };
 
-  // Paste as plain text so content doesn't drag in Word/Google Docs markup
+  // Word/Google Docs paste drags in messy inline styles -> strip to plain text.
+  // But if the clipboard's plain text is itself HTML markup (e.g. someone pasting
+  // <p>...</p> source straight from a doc or from Claude), render it as real HTML
+  // instead of dumping the tags as literal text.
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
     const text = e.clipboardData.getData("text/plain");
-    document.execCommand("insertText", false, text);
+    const looksLikeHtml = /^\s*<([a-z][a-z0-9]*)\b[^>]*>[\s\S]*<\/\1>/i.test(text.trim());
+
+    if (looksLikeHtml) {
+      document.execCommand("insertHTML", false, sanitizeHtml(text));
+    } else {
+      document.execCommand("insertText", false, text);
+    }
     handleInput();
   };
 
