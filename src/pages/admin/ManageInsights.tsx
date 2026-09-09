@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Insight } from "@/types/insight";
+import RichTextEditor from "@/components/RichTextEditor";
 import {
   Plus,
   Edit2,
@@ -15,222 +16,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Search,
-  Bold,
-  Italic,
-  Underline as UnderlineIcon,
-  Strikethrough,
-  List,
-  ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  Link as LinkIcon,
-  Unlink,
-  Image as ImageIcon,
-  Palette,
 } from "lucide-react";
 
-// TipTap Editor Imports
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
-import TextAlign from "@tiptap/extension-text-align";
-import { TextStyle } from "@tiptap/extension-text-style";
-import Color from "@tiptap/extension-color";
-import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
-
-// --- RICH TEXT TOOLBAR BAR COMPONENT ---
-interface EditorToolbarProps {
-  editor: ReturnType<typeof useEditor>;
-}
-
-const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
-  if (!editor) return null;
-
-  const setLink = () => {
-    const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("URL", previousUrl);
-    if (url === null) return;
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-  };
-
-  const addImage = () => {
-    const url = window.prompt("Image URL");
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
-    }
-  };
-
-  return (
-    <div className="flex flex-wrap items-center gap-1 p-2 bg-snow border-b border-border rounded-t font-body">
-      {/* Bold, Italic, Underline, Strike */}
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().toggleBold().run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive("bold") ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Bold"
-      >
-        <Bold size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive("italic") ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Italic"
-      >
-        <Italic size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive("underline") ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Underline"
-      >
-        <UnderlineIcon size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().toggleStrike().run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive("strike") ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Strikethrough"
-      >
-        <Strikethrough size={16} />
-      </button>
-
-      <span className="w-px h-5 bg-border mx-1" />
-
-      {/* Font Color Picker */}
-      <div className="flex items-center gap-1 px-1">
-        <Palette size={16} className="text-ink/70" />
-        <input
-          type="color"
-          onInput={(e) =>
-            editor.chain().focus().setColor((e.target as HTMLInputElement).value).run()
-          }
-          value={editor.getAttributes("textStyle").color || "#000000"}
-          className="w-6 h-6 p-0 border-0 rounded cursor-pointer bg-transparent"
-          title="Text Color"
-        />
-      </div>
-
-      <span className="w-px h-5 bg-border mx-1" />
-
-      {/* Alignment */}
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().setTextAlign("left").run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive({ textAlign: "left" }) ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Align Left"
-      >
-        <AlignLeft size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().setTextAlign("center").run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive({ textAlign: "center" }) ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Align Center"
-      >
-        <AlignCenter size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().setTextAlign("right").run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive({ textAlign: "right" }) ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Align Right"
-      >
-        <AlignRight size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().setTextAlign("justify").run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive({ textAlign: "justify" }) ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Justify"
-      >
-        <AlignJustify size={16} />
-      </button>
-
-      <span className="w-px h-5 bg-border mx-1" />
-
-      {/* Lists */}
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive("bulletList") ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Bullet List"
-      >
-        <List size={16} />
-      </button>
-      <button
-        type="button"
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive("orderedList") ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Ordered List"
-      >
-        <ListOrdered size={16} />
-      </button>
-
-      <span className="w-px h-5 bg-border mx-1" />
-
-      {/* Links & Images */}
-      <button
-        type="button"
-        onClick={setLink}
-        className={`p-1.5 rounded hover:bg-paper ${
-          editor.isActive("link") ? "bg-border text-ember" : "text-ink/70"
-        }`}
-        title="Insert Link"
-      >
-        <LinkIcon size={16} />
-      </button>
-      {editor.isActive("link") && (
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().unsetLink().run()}
-          className="p-1.5 rounded hover:bg-paper text-ink/70"
-          title="Remove Link"
-        >
-          <Unlink size={16} />
-        </button>
-      )}
-      <button
-        type="button"
-        onClick={addImage}
-        className="p-1.5 rounded hover:bg-paper text-ink/70"
-        title="Insert Image"
-      >
-        <ImageIcon size={16} />
-      </button>
-    </div>
-  );
-};
-
-// --- MAIN CMS COMPONENT ---
 const ManageInsights = () => {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
@@ -253,28 +40,9 @@ const ManageInsights = () => {
     date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
     image: "",
     tags: "",
+    bodyText: "", // now holds rich HTML from RichTextEditor, not plain paragraph lines
     featured: false,
     published: true,
-  });
-
-  // Initialize TipTap Editor
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      TextStyle,
-      Color,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      Link.configure({ openOnClick: false }),
-      Image,
-    ],
-    content: "",
-    editorProps: {
-      attributes: {
-        class:
-          "prose prose-sm max-w-none p-3 min-h-[220px] focus:outline-none bg-paper rounded-b text-ink",
-      },
-    },
   });
 
   useEffect(() => {
@@ -304,6 +72,16 @@ const ManageInsights = () => {
     }
   };
 
+  // `body` is stored in Supabase as text[]. For rich content we keep it as a single
+  // HTML-string element in that array (body[0]) so the column type doesn't need to change.
+  const bodyArrayToHtml = (body?: string[] | null) => {
+    if (!body || body.length === 0) return "";
+    // Back-compat: old records stored one plain-text paragraph per array element.
+    // If it looks like HTML already (has tags), just join; otherwise wrap old paragraphs in <p>.
+    const looksLikeHtml = body.some((line) => /<[a-z][\s\S]*>/i.test(line));
+    return looksLikeHtml ? body.join("") : body.map((line) => `<p>${line}</p>`).join("");
+  };
+
   const handleOpenModal = (item?: Insight) => {
     if (item) {
       setEditingItem(item);
@@ -316,10 +94,10 @@ const ManageInsights = () => {
         date: item.date,
         image: item.image || "",
         tags: item.tags ? item.tags.join(", ") : "",
+        bodyText: bodyArrayToHtml(item.body),
         featured: !!item.featured,
         published: item.published ?? true,
       });
-      editor?.commands.setContent(item.body ? item.body.join("\n") : "");
     } else {
       setEditingItem(null);
       setFormData({
@@ -331,10 +109,10 @@ const ManageInsights = () => {
         date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
         image: "",
         tags: "",
+        bodyText: "",
         featured: false,
         published: true,
       });
-      editor?.commands.setContent("");
     }
     setIsModalOpen(true);
   };
@@ -389,9 +167,9 @@ const ManageInsights = () => {
 
     try {
       const computedSlug = formData.slug.trim() || generateSlug(formData.title);
-      const htmlContent = editor?.getHTML() || "";
-      const bodyArray = [htmlContent]; // Saved as HTML output
-
+      const trimmedBody = formData.bodyText.trim();
+      // Store the rich HTML as a single element so the existing text[] column keeps working.
+      const bodyArray = trimmedBody ? [trimmedBody] : [];
       const tagsArray = formData.tags
         .split(",")
         .map((t) => t.trim())
@@ -853,13 +631,13 @@ const ManageInsights = () => {
                 />
               </div>
 
-              {/* Rich Text Editor */}
               <div>
-                <label className="block text-xs font-medium text-ink mb-1">Article Content *</label>
-                <div className="border border-border rounded shadow-sm overflow-hidden focus-within:border-ember">
-                  <EditorToolbar editor={editor} />
-                  <EditorContent editor={editor} />
-                </div>
+                <label className="block text-xs font-medium text-ink mb-1">Article Body *</label>
+                <RichTextEditor
+                  value={formData.bodyText}
+                  onChange={(html) => setFormData((prev) => ({ ...prev, bodyText: html }))}
+                  placeholder="Write your article... use the toolbar for headings, bold, links, colors, lists and images."
+                />
               </div>
 
               <div className="flex flex-wrap gap-6 pt-2">
