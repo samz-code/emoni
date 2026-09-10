@@ -10,12 +10,11 @@ export interface ProjectCardProps {
     sector?: string;
     industry?: string;
     image?: string;
-    images?: string[]; // Supports multiple uploads for carousels
+    images?: string[];
     liveUrl?: string;
   };
 }
 
-// Sector accent dots — restrained, not full pastel-pill backgrounds
 const sectorDot: Record<string, string> = {
   "Web Development": "bg-sky-500",
   "Branding": "bg-violet-500",
@@ -35,7 +34,18 @@ const sectorDot: Record<string, string> = {
   "Product Design": "bg-blue-500",
 };
 
-// Strips protocol/trailing slash so the footer link stays short and clean
+// Design-focused sectors that shouldn't show web deployment statuses
+const designSectors = [
+  "Graphic Design",
+  "Branding",
+  "Logos & Brand Identity",
+  "Labels & Stickers",
+  "Logos",
+  "Menus & Price Lists",
+  "Posters & Flyers",
+  "Product Design",
+];
+
 const formatDisplayUrl = (url: string) => {
   try {
     const parsed = new URL(url);
@@ -61,6 +71,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
   const isLive = Boolean(project.liveUrl && project.liveUrl !== "#");
   const sectorName = project.sector || project.industry || "General";
   const dotClass = sectorDot[sectorName] ?? "bg-stone-400";
+  const isDesignProject = designSectors.includes(sectorName);
 
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -85,7 +96,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
       }}
       transition={{ type: "spring", stiffness: 300, damping: 24 }}
     >
-      {/* ── Image & Carousel Section ── */}
+      {/* Image & Carousel Section */}
       <div className="relative overflow-hidden bg-paper border-b border-border h-48">
         {hasImages ? (
           <>
@@ -153,7 +164,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         )}
       </div>
 
-      {/* ── Content Body ── */}
+      {/* Content Body */}
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-center gap-1.5 mb-3">
           <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
@@ -167,19 +178,27 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
           {project.description}
         </p>
 
-        {/* ── Status Footer: always visible, not hover-gated ── */}
+        {/* Status Footer */}
         <div className="mt-4 pt-3 border-t border-border flex items-center justify-between gap-3 text-[12px]">
           <span
             className={`flex items-center gap-1.5 font-mono uppercase tracking-wide ${
-              isLive ? "text-emerald-600" : "text-[#B0B0B0]"
+              isLive
+                ? "text-emerald-600"
+                : isDesignProject
+                ? "text-violet-600"
+                : "text-[#B0B0B0]"
             }`}
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                isLive ? "bg-emerald-500 animate-pulse" : "bg-[#D4D4D4]"
+                isLive
+                  ? "bg-emerald-500 animate-pulse"
+                  : isDesignProject
+                  ? "bg-violet-500"
+                  : "bg-[#D4D4D4]"
               }`}
             />
-            {isLive ? "Live" : "Not deployed"}
+            {isLive ? "Live" : isDesignProject ? "Design Asset" : "Archived"}
           </span>
 
           {isLive && (

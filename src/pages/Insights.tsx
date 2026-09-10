@@ -126,7 +126,7 @@ const Insights = () => {
         <div
           className="relative overflow-hidden bg-[#E77E23] py-24"
           style={{
-            backgroundImage: `linear-gradient(rgba(231, 126, 35, 0.9), rgba(231, 126, 35, 0.9)), url('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80')`,
+            backgroundImage: `linear-gradient(rgba(231, 126, 35, 0.9), rgba(231, 126, 35, 0.9)), url('/blog.png')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundBlendMode: 'multiply'

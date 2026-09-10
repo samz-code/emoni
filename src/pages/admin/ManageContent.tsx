@@ -1,4 +1,3 @@
-// src/pages/admin/ManageContent.tsx
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -21,6 +20,8 @@ import {
   Sparkles,
   UploadCloud,
   Image as ImageIcon,
+  ListOrdered,
+  User,
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════════
@@ -52,6 +53,15 @@ type HeroPair = {
   published: boolean;
 };
 
+type ProcessStep = {
+  id?: string;
+  step_number: string;
+  title: string;
+  description: string;
+  sort_order: number;
+  published: boolean;
+};
+
 type Sector = {
   id?: string;
   icon: string;
@@ -71,18 +81,33 @@ type Reason = {
 type SiteSettings = {
   id?: string;
   banner_text: string;
-  focus_areas: string[]; // stored as jsonb
+  banner_cta_text: string;
+  banner_cta_link: string;
+  focus_areas: string[];
   availability_text: string;
   cta_heading: string;
   cta_subtext: string;
   profile_title: string;
   profile_subtitle: string;
+  profile_footer_note: string;
+  profile_image_url?: string;
+  services_heading: string;
+  services_subheading: string;
+  process_heading: string;
+  process_description1: string;
+  process_description2: string;
+  sectors_heading: string;
+  sectors_subheading: string;
+  reasons_heading: string;
+  reasons_subheading: string;
+  insights_heading: string;
+  insights_subheading: string;
 };
 
-type Tab = "hero" | "carousel" | "pairs" | "sectors" | "reasons" | "settings";
+type Tab = "hero" | "carousel" | "pairs" | "process" | "sectors" | "reasons" | "settings";
 
 /* ═══════════════════════════════════════════════════════════
-   ICON OPTIONS (must match frontend sectorIconMap)
+   ICON OPTIONS
 ═══════════════════════════════════════════════════════════ */
 const SECTOR_ICONS = [
   "Landmark",
@@ -150,7 +175,10 @@ export default function ManageContent() {
 
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const profileImageInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (message: string, type: "success" | "error" = "success") =>
     setToast({ message, type });
@@ -190,6 +218,18 @@ export default function ManageContent() {
         .order("sort_order", { ascending: true });
       if (error) throw error;
       return (data ?? []) as HeroPair[];
+    },
+  });
+
+  const { data: processSteps = [], isLoading: processLoading } = useQuery({
+    queryKey: ["admin-process-steps"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("process_steps")
+        .select("*")
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as ProcessStep[];
     },
   });
 
@@ -233,6 +273,7 @@ export default function ManageContent() {
   /* ── Local edit state ───────────────────────────────────── */
   const [heroForm, setHeroForm] = useState<HeroContent | null>(null);
   const [editingPair, setEditingPair] = useState<HeroPair | null>(null);
+  const [editingProcess, setEditingProcess] = useState<ProcessStep | null>(null);
   const [editingSector, setEditingSector] = useState<Sector | null>(null);
   const [editingReason, setEditingReason] = useState<Reason | null>(null);
   const [settingsForm, setSettingsForm] = useState<SiteSettings | null>(null);
@@ -242,13 +283,13 @@ export default function ManageContent() {
       setHeroForm(heroData);
     } else if (!heroLoading) {
       setHeroForm({
-        badge: "Systems & Infrastructure",
+        badge: "Consulting · Public & Private Sector",
         heading: "Engineering reliable solutions for digital platforms",
-        subheading: "I design, build, and optimize backend systems, web portals, and automated workflows.",
-        primary_cta_text: "Get in touch",
-        primary_cta_link: "/contact",
-        secondary_cta_text: "View work",
-        secondary_cta_link: "/work",
+        subheading: "I solve business problems through smart design, technology, and creative thinking. Software engineer and creative designer building reliable digital systems for businesses, NGOs, and government institutions across East Africa.",
+        primary_cta_text: "Explore My Services",
+        primary_cta_link: "/what-i-do",
+        secondary_cta_text: "View My Work →",
+        secondary_cta_link: "/projects",
       });
     }
   }, [heroData, heroLoading]);
@@ -257,6 +298,21 @@ export default function ManageContent() {
     if (settings) {
       setSettingsForm({
         ...settings,
+        profile_image_url: settings.profile_image_url || "",
+        banner_cta_text: settings.banner_cta_text || "Talk through a problem",
+        banner_cta_link: settings.banner_cta_link || "/contact",
+        profile_footer_note: settings.profile_footer_note || "Documentation-first · No lock-in · East Africa",
+        services_heading: settings.services_heading || "Core Disciplines",
+        services_subheading: settings.services_subheading || "From digital strategy to deployment, every engagement is structured around a clear problem and a measurable outcome.",
+        process_heading: settings.process_heading || "Diagnose first. Build second.",
+        process_description1: settings.process_description1 || "The biggest reason digital projects fail is that they start with a solution instead of a problem. Every engagement begins with a structured diagnosis — your systems, your constraints, your real goals.",
+        process_description2: settings.process_description2 || "Only then do we design. You see the full plan, signed off, before a single line of code is written.",
+        sectors_heading: settings.sectors_heading || "Where I do my best work",
+        sectors_subheading: settings.sectors_subheading || "Six years of work across public and private institutions in East Africa.",
+        reasons_heading: settings.reasons_heading || "One person, full service.",
+        reasons_subheading: settings.reasons_subheading || "I understand both business needs and technical solutions. After 6 years, I can build systems that actually solve your real problems.",
+        insights_heading: settings.insights_heading || "Field notes from the work",
+        insights_subheading: settings.insights_subheading || "Practical perspectives on building digital systems in Africa — written for the people who actually have to ship them.",
         focus_areas: Array.isArray(settings.focus_areas)
           ? settings.focus_areas
           : typeof settings.focus_areas === "string"
@@ -265,7 +321,10 @@ export default function ManageContent() {
       });
     } else if (!settingsLoading) {
       setSettingsForm({
+        profile_image_url: "",
         banner_text: "Built for institutions that cannot afford systems that fail quietly.",
+        banner_cta_text: "Talk through a problem",
+        banner_cta_link: "/contact",
         focus_areas: ["GovTech", "Systems", "Automation", "Design", "Integrations"],
         availability_text: "Available for projects",
         cta_heading: "Have a system to build, fix, or rescue?",
@@ -273,9 +332,56 @@ export default function ManageContent() {
           "Tell me about the problem. I will tell you honestly whether I am the right person to solve it — and what it will take.",
         profile_title: "Samuel A. Emoni",
         profile_subtitle: "Solutions Architect · Digital Systems",
+        profile_footer_note: "Documentation-first · No lock-in · East Africa",
+        services_heading: "Core Disciplines",
+        services_subheading: "From digital strategy to deployment, every engagement is structured around a clear problem and a measurable outcome.",
+        process_heading: "Diagnose first. Build second.",
+        process_description1: "The biggest reason digital projects fail is that they start with a solution instead of a problem. Every engagement begins with a structured diagnosis — your systems, your constraints, your real goals.",
+        process_description2: "Only then do we design. You see the full plan, signed off, before a single line of code is written.",
+        sectors_heading: "Where I do my best work",
+        sectors_subheading: "Six years of work across public and private institutions in East Africa.",
+        reasons_heading: "One person, full service.",
+        reasons_subheading: "I understand both business needs and technical solutions. After 6 years, I can build systems that actually solve your real problems.",
+        insights_heading: "Field notes from the work",
+        insights_subheading: "Practical perspectives on building digital systems in Africa — written for the people who actually have to ship them.",
       });
     }
   }, [settings, settingsLoading]);
+
+  /* ── Profile Image Upload logic ─────────────────────────── */
+  const handleProfileImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      showToast("Please select a valid image file", "error");
+      return;
+    }
+
+    setUploadingProfilePic(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `profile-${Date.now()}.${fileExt}`;
+      const filePath = `profile/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("site-assets")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from("site-assets")
+        .getPublicUrl(filePath);
+
+      setSettingsForm((prev) =>
+        prev ? { ...prev, profile_image_url: publicUrlData.publicUrl } : null
+      );
+
+      showToast("Profile image uploaded successfully");
+    } catch (error: any) {
+      showToast(error.message || "Failed to upload profile image", "error");
+    } finally {
+      setUploadingProfilePic(false);
+    }
+  };
 
   /* ── Upload & Carousel logic ────────────────────────────── */
   const handleUploadFiles = async (files: FileList | File[]) => {
@@ -380,7 +486,7 @@ export default function ManageContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-hero"] });
-      queryClient.invalidateQueries({ queryKey: ["hero-content"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
       showToast("Hero section updated");
     },
     onError: (e: any) => showToast(e.message || "Failed to save Hero section", "error"),
@@ -412,7 +518,7 @@ export default function ManageContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-hero-pairs"] });
-      queryClient.invalidateQueries({ queryKey: ["hero-pairs"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
       setEditingPair(null);
       showToast("Hero pair saved");
     },
@@ -426,8 +532,56 @@ export default function ManageContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-hero-pairs"] });
-      queryClient.invalidateQueries({ queryKey: ["hero-pairs"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
       showToast("Pair deleted");
+    },
+    onError: (e: any) => showToast(e.message || "Failed to delete", "error"),
+  });
+
+  /* ── Mutations – Process Steps ──────────────────────────── */
+  const saveProcess = useMutation({
+    mutationFn: async (step: ProcessStep) => {
+      if (step.id) {
+        const { error } = await supabase
+          .from("process_steps")
+          .update({
+            step_number: step.step_number,
+            title: step.title,
+            description: step.description,
+            sort_order: step.sort_order,
+            published: step.published,
+          })
+          .eq("id", step.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("process_steps").insert({
+          step_number: step.step_number || `0${processSteps.length + 1}`,
+          title: step.title,
+          description: step.description,
+          sort_order: step.sort_order ?? processSteps.length,
+          published: step.published ?? true,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-process-steps"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
+      setEditingProcess(null);
+      showToast("Process step saved");
+    },
+    onError: (e: any) => showToast(e.message || "Failed to save process step", "error"),
+  });
+
+  const deleteProcess = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("process_steps").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-process-steps"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
+      showToast("Process step deleted");
     },
     onError: (e: any) => showToast(e.message || "Failed to delete", "error"),
   });
@@ -458,7 +612,7 @@ export default function ManageContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-sectors"] });
-      queryClient.invalidateQueries({ queryKey: ["sectors"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
       setEditingSector(null);
       showToast("Sector saved");
     },
@@ -472,7 +626,7 @@ export default function ManageContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-sectors"] });
-      queryClient.invalidateQueries({ queryKey: ["sectors"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
       showToast("Sector deleted");
     },
     onError: (e: any) => showToast(e.message || "Failed to delete", "error"),
@@ -504,7 +658,7 @@ export default function ManageContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-reasons"] });
-      queryClient.invalidateQueries({ queryKey: ["reasons"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
       setEditingReason(null);
       showToast("Reason saved");
     },
@@ -518,7 +672,7 @@ export default function ManageContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-reasons"] });
-      queryClient.invalidateQueries({ queryKey: ["reasons"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
       showToast("Reason deleted");
     },
     onError: (e: any) => showToast(e.message || "Failed to delete", "error"),
@@ -529,12 +683,27 @@ export default function ManageContent() {
     mutationFn: async (form: SiteSettings) => {
       const payload = {
         banner_text: form.banner_text,
+        banner_cta_text: form.banner_cta_text,
+        banner_cta_link: form.banner_cta_link,
         focus_areas: form.focus_areas,
         availability_text: form.availability_text,
         cta_heading: form.cta_heading,
         cta_subtext: form.cta_subtext,
         profile_title: form.profile_title,
         profile_subtitle: form.profile_subtitle,
+        profile_footer_note: form.profile_footer_note,
+        profile_image_url: form.profile_image_url,
+        services_heading: form.services_heading,
+        services_subheading: form.services_subheading,
+        process_heading: form.process_heading,
+        process_description1: form.process_description1,
+        process_description2: form.process_description2,
+        sectors_heading: form.sectors_heading,
+        sectors_subheading: form.sectors_subheading,
+        reasons_heading: form.reasons_heading,
+        reasons_subheading: form.reasons_subheading,
+        insights_heading: form.insights_heading,
+        insights_subheading: form.insights_subheading,
       };
 
       if (form.id) {
@@ -550,6 +719,7 @@ export default function ManageContent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-site-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
       showToast("Site settings saved");
     },
     onError: (e: any) => showToast(e.message || "Failed to save settings", "error"),
@@ -557,7 +727,7 @@ export default function ManageContent() {
 
   /* ── Reorder helpers ────────────────────────────────────── */
   const moveItem = async (
-    table: "hero_pairs" | "sectors" | "reasons" | "carousel_images",
+    table: "hero_pairs" | "sectors" | "reasons" | "carousel_images" | "process_steps",
     items: any[],
     index: number,
     direction: "up" | "down"
@@ -576,9 +746,11 @@ export default function ManageContent() {
       sectors: "admin-sectors",
       reasons: "admin-reasons",
       carousel_images: "admin-carousel-images",
+      process_steps: "admin-process-steps",
     };
 
     queryClient.invalidateQueries({ queryKey: [keyMap[table]] });
+    queryClient.invalidateQueries({ queryKey: ["home-page-data"] });
   };
 
   /* ── Tabs config ────────────────────────────────────────── */
@@ -586,9 +758,10 @@ export default function ManageContent() {
     { id: "hero", label: "Hero", icon: Sparkles },
     { id: "carousel", label: "Carousel Images", icon: ImageIcon },
     { id: "pairs", label: "Hero Pairs", icon: MessageSquare },
+    { id: "process", label: "Process Steps", icon: ListOrdered },
     { id: "sectors", label: "Sectors", icon: Layers },
     { id: "reasons", label: "Why Work With Me", icon: CheckCircle2 },
-    { id: "settings", label: "Site Settings", icon: Settings2 },
+    { id: "settings", label: "Homepage Copy & Settings", icon: Settings2 },
   ];
 
   /* ═══════════════════════════════════════════════════════════
@@ -605,7 +778,7 @@ export default function ManageContent() {
                 Manage Content
               </h1>
               <p className="font-body text-sm text-[#524646]/70 mt-0.5">
-                Hero section, carousel, homepage copy, sectors, reasons & site-wide settings
+                Hero section, carousel, homepage copy, process steps, sectors, reasons & site-wide settings
               </p>
             </div>
           </div>
@@ -651,10 +824,10 @@ export default function ManageContent() {
                     label="Badge / Eyebrow"
                     value={heroForm.badge}
                     onChange={(v) => setHeroForm({ ...heroForm, badge: v })}
-                    placeholder="Systems & Infrastructure"
+                    placeholder="Consulting · Public & Private Sector"
                   />
                   <Field
-                    label="Main Heading"
+                    label="Main Heading (Fallback)"
                     value={heroForm.heading}
                     onChange={(v) => setHeroForm({ ...heroForm, heading: v })}
                     multiline
@@ -665,7 +838,7 @@ export default function ManageContent() {
                     value={heroForm.subheading}
                     onChange={(v) => setHeroForm({ ...heroForm, subheading: v })}
                     multiline
-                    placeholder="I design, build, and optimize backend systems..."
+                    placeholder="I solve business problems through smart design, technology..."
                   />
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -673,13 +846,13 @@ export default function ManageContent() {
                       label="Primary CTA Text"
                       value={heroForm.primary_cta_text}
                       onChange={(v) => setHeroForm({ ...heroForm, primary_cta_text: v })}
-                      placeholder="Get in touch"
+                      placeholder="Explore My Services"
                     />
                     <Field
                       label="Primary CTA Link"
                       value={heroForm.primary_cta_link}
                       onChange={(v) => setHeroForm({ ...heroForm, primary_cta_link: v })}
-                      placeholder="/contact"
+                      placeholder="/what-i-do"
                     />
                   </div>
 
@@ -688,13 +861,13 @@ export default function ManageContent() {
                       label="Secondary CTA Text"
                       value={heroForm.secondary_cta_text}
                       onChange={(v) => setHeroForm({ ...heroForm, secondary_cta_text: v })}
-                      placeholder="View work"
+                      placeholder="View My Work →"
                     />
                     <Field
                       label="Secondary CTA Link"
                       value={heroForm.secondary_cta_link}
                       onChange={(v) => setHeroForm({ ...heroForm, secondary_cta_link: v })}
-                      placeholder="/work"
+                      placeholder="/projects"
                     />
                   </div>
 
@@ -725,7 +898,6 @@ export default function ManageContent() {
               transition={{ duration: 0.2 }}
               className="space-y-6"
             >
-              {/* Drag and drop upload zone */}
               <div
                 onDragOver={(e) => {
                   e.preventDefault();
@@ -769,7 +941,6 @@ export default function ManageContent() {
                 </div>
               </div>
 
-              {/* Image List / Carousel preview items */}
               {carouselLoading ? (
                 <div className="flex justify-center py-20">
                   <Loader2 className="animate-spin text-[#007979]" size={28} />
@@ -940,6 +1111,112 @@ export default function ManageContent() {
                         <button
                           onClick={() => {
                             if (confirm("Delete this pair?")) deletePair.mutate(pair.id!);
+                          }}
+                          className="p-2 rounded-lg hover:bg-red-50 text-red-500"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ════════════ PROCESS STEPS ════════════ */}
+          {activeTab === "process" && (
+            <motion.div
+              key="process"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <p className="font-body text-sm text-[#524646]/70">
+                  Approach and process steps displayed on homepage.
+                </p>
+                <button
+                  onClick={() =>
+                    setEditingProcess({
+                      step_number: `0${processSteps.length + 1}`,
+                      title: "",
+                      description: "",
+                      sort_order: processSteps.length,
+                      published: true,
+                    })
+                  }
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#007979] text-[#FFE2AF] rounded-lg text-sm font-body font-medium hover:bg-[#24B1B1] transition-colors"
+                >
+                  <Plus size={16} /> Add Step
+                </button>
+              </div>
+
+              {processLoading ? (
+                <div className="flex justify-center py-20">
+                  <Loader2 className="animate-spin text-[#007979]" size={28} />
+                </div>
+              ) : processSteps.length === 0 ? (
+                <EmptyState
+                  title="No process steps found"
+                  description="Add steps for your work approach."
+                  onAction={() =>
+                    setEditingProcess({
+                      step_number: "01",
+                      title: "",
+                      description: "",
+                      sort_order: 0,
+                      published: true,
+                    })
+                  }
+                />
+              ) : (
+                <div className="space-y-3">
+                  {processSteps.map((step, idx) => (
+                    <div
+                      key={step.id}
+                      className="bg-white border border-[#E8E2D6] rounded-xl p-5 flex items-start gap-4 group"
+                    >
+                      <div className="flex flex-col gap-1 pt-1 text-[#9A9A9A]">
+                        <button
+                          onClick={() => moveItem("process_steps", processSteps, idx, "up")}
+                          disabled={idx === 0}
+                          className="hover:text-[#007979] disabled:opacity-30"
+                        >
+                          <ArrowUp size={14} />
+                        </button>
+                        <button
+                          onClick={() => moveItem("process_steps", processSteps, idx, "down")}
+                          disabled={idx === processSteps.length - 1}
+                          className="hover:text-[#007979] disabled:opacity-30"
+                        >
+                          <ArrowDown size={14} />
+                        </button>
+                      </div>
+
+                      <div className="w-12 h-12 rounded-lg bg-[#FBF9F5] border border-[#E8E2D6] flex items-center justify-center font-display text-lg font-bold text-[#007979]">
+                        {step.step_number || `0${idx + 1}`}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display text-lg text-[#1A1A16]">{step.title}</h3>
+                        <p className="font-body text-sm text-[#524646]/80 mt-1 leading-relaxed">
+                          {step.description}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => setEditingProcess(step)}
+                          className="p-2 rounded-lg hover:bg-[#FBF9F5]"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm("Delete this process step?"))
+                              deleteProcess.mutate(step.id!);
                           }}
                           className="p-2 rounded-lg hover:bg-red-50 text-red-500"
                         >
@@ -1166,55 +1443,114 @@ export default function ManageContent() {
                   <Loader2 className="animate-spin text-[#007979]" size={28} />
                 </div>
               ) : (
-                <div className="bg-white border border-[#E8E2D6] rounded-xl p-6 space-y-6 max-w-2xl">
+                <div className="bg-white border border-[#E8E2D6] rounded-xl p-6 space-y-6 max-w-3xl">
+                  <h2 className="font-display text-lg text-[#1A1A16] border-b border-[#E8E2D6] pb-2">
+                    Profile & Banner
+                  </h2>
+
+                  {/* Profile Image Field */}
+                  <div>
+                    <label className="block font-body text-xs uppercase tracking-widest text-[#524646]/70 mb-2">
+                      Profile Image
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <div className="relative w-20 h-20 rounded-full bg-[#FBF9F5] border border-[#E8E2D6] overflow-hidden flex items-center justify-center shrink-0">
+                        {settingsForm.profile_image_url ? (
+                          <img
+                            src={settingsForm.profile_image_url}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User size={32} className="text-[#524646]/40" />
+                        )}
+                        {uploadingProfilePic && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <Loader2 className="animate-spin text-white" size={18} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="file"
+                          ref={profileImageInputRef}
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              handleProfileImageUpload(e.target.files[0]);
+                            }
+                          }}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => profileImageInputRef.current?.click()}
+                            disabled={uploadingProfilePic}
+                            className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#007979] text-[#FFE2AF] rounded-lg text-xs font-body font-medium hover:bg-[#24B1B1] transition-colors"
+                          >
+                            <UploadCloud size={14} /> Upload Image
+                          </button>
+
+                          {settingsForm.profile_image_url && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setSettingsForm({ ...settingsForm, profile_image_url: "" })
+                              }
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-body font-medium hover:bg-red-100 transition-colors"
+                            >
+                              <Trash2 size={13} /> Remove
+                            </button>
+                          )}
+                        </div>
+                        <p className="font-body text-[11px] text-[#524646]/60">
+                          JPG, PNG or WEBP format. Square aspect ratio works best.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field
+                      label="Profile Title"
+                      value={settingsForm.profile_title}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, profile_title: v })}
+                    />
+                    <Field
+                      label="Profile Subtitle"
+                      value={settingsForm.profile_subtitle}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, profile_subtitle: v })}
+                    />
+                  </div>
                   <Field
-                    label="Banner text"
+                    label="Profile Footer Note"
+                    value={settingsForm.profile_footer_note}
+                    onChange={(v) => setSettingsForm({ ...settingsForm, profile_footer_note: v })}
+                  />
+                  <Field
+                    label="Banner Text"
                     value={settingsForm.banner_text}
-                    onChange={(v) =>
-                      setSettingsForm({ ...settingsForm, banner_text: v })
-                    }
+                    onChange={(v) => setSettingsForm({ ...settingsForm, banner_text: v })}
                     multiline
                   />
-                  <Field
-                    label="Availability text"
-                    value={settingsForm.availability_text}
-                    onChange={(v) =>
-                      setSettingsForm({ ...settingsForm, availability_text: v })
-                    }
-                  />
-                  <Field
-                    label="Profile title"
-                    value={settingsForm.profile_title}
-                    onChange={(v) =>
-                      setSettingsForm({ ...settingsForm, profile_title: v })
-                    }
-                  />
-                  <Field
-                    label="Profile subtitle"
-                    value={settingsForm.profile_subtitle}
-                    onChange={(v) =>
-                      setSettingsForm({ ...settingsForm, profile_subtitle: v })
-                    }
-                  />
-                  <Field
-                    label="CTA heading"
-                    value={settingsForm.cta_heading}
-                    onChange={(v) =>
-                      setSettingsForm({ ...settingsForm, cta_heading: v })
-                    }
-                  />
-                  <Field
-                    label="CTA subtext"
-                    value={settingsForm.cta_subtext}
-                    onChange={(v) =>
-                      setSettingsForm({ ...settingsForm, cta_subtext: v })
-                    }
-                    multiline
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field
+                      label="Banner CTA Button Text"
+                      value={settingsForm.banner_cta_text}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, banner_cta_text: v })}
+                    />
+                    <Field
+                      label="Banner CTA Link"
+                      value={settingsForm.banner_cta_link}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, banner_cta_link: v })}
+                    />
+                  </div>
 
                   <div>
                     <label className="block font-body text-xs uppercase tracking-widest text-[#524646]/70 mb-2">
-                      Focus areas (comma separated)
+                      Focus Areas (comma separated)
                     </label>
                     <input
                       type="text"
@@ -1232,17 +1568,109 @@ export default function ManageContent() {
                     />
                   </div>
 
+                  <h2 className="font-display text-lg text-[#1A1A16] border-b border-[#E8E2D6] pb-2 pt-4">
+                    Section Headings & Descriptions
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field
+                      label="Services Section Heading"
+                      value={settingsForm.services_heading}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, services_heading: v })}
+                    />
+                    <Field
+                      label="Services Subheading"
+                      value={settingsForm.services_subheading}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, services_subheading: v })}
+                      multiline
+                    />
+                  </div>
+
+                  <Field
+                    label="Process Section Heading"
+                    value={settingsForm.process_heading}
+                    onChange={(v) => setSettingsForm({ ...settingsForm, process_heading: v })}
+                  />
+                  <Field
+                    label="Process Paragraph 1"
+                    value={settingsForm.process_description1}
+                    onChange={(v) => setSettingsForm({ ...settingsForm, process_description1: v })}
+                    multiline
+                  />
+                  <Field
+                    label="Process Paragraph 2"
+                    value={settingsForm.process_description2}
+                    onChange={(v) => setSettingsForm({ ...settingsForm, process_description2: v })}
+                    multiline
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field
+                      label="Sectors Section Heading"
+                      value={settingsForm.sectors_heading}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, sectors_heading: v })}
+                    />
+                    <Field
+                      label="Sectors Subheading"
+                      value={settingsForm.sectors_subheading}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, sectors_subheading: v })}
+                      multiline
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field
+                      label="Reasons Section Heading"
+                      value={settingsForm.reasons_heading}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, reasons_heading: v })}
+                    />
+                    <Field
+                      label="Reasons Subheading"
+                      value={settingsForm.reasons_subheading}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, reasons_subheading: v })}
+                      multiline
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Field
+                      label="Insights Section Heading"
+                      value={settingsForm.insights_heading}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, insights_heading: v })}
+                    />
+                    <Field
+                      label="Insights Subheading"
+                      value={settingsForm.insights_subheading}
+                      onChange={(v) => setSettingsForm({ ...settingsForm, insights_subheading: v })}
+                      multiline
+                    />
+                  </div>
+
+                  <h2 className="font-display text-lg text-[#1A1A16] border-b border-[#E8E2D6] pb-2 pt-4">
+                    Bottom CTA Banner
+                  </h2>
+                  <Field
+                    label="CTA Heading"
+                    value={settingsForm.cta_heading}
+                    onChange={(v) => setSettingsForm({ ...settingsForm, cta_heading: v })}
+                  />
+                  <Field
+                    label="CTA Subtext"
+                    value={settingsForm.cta_subtext}
+                    onChange={(v) => setSettingsForm({ ...settingsForm, cta_subtext: v })}
+                    multiline
+                  />
+
                   <button
                     onClick={() => saveSettings.mutate(settingsForm)}
                     disabled={saveSettings.isPending}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#007979] text-[#FFE2AF] rounded-lg text-sm font-body font-medium hover:bg-[#24B1B1] transition-colors disabled:opacity-60"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#007979] text-[#FFE2AF] rounded-lg text-sm font-body font-medium hover:bg-[#24B1B1] transition-colors disabled:opacity-60 mt-4"
                   >
                     {saveSettings.isPending ? (
                       <Loader2 size={16} className="animate-spin" />
                     ) : (
                       <Save size={16} />
                     )}
-                    Save Settings
+                    Save All Settings
                   </button>
                 </div>
               )}
@@ -1293,6 +1721,59 @@ export default function ManageContent() {
                 >
                   {savePair.isPending ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
                   Save
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
+
+        {editingProcess && (
+          <Modal title={editingProcess.id ? "Edit Process Step" : "New Process Step"} onClose={() => setEditingProcess(null)}>
+            <div className="space-y-4">
+              <Field
+                label="Step Number"
+                value={editingProcess.step_number}
+                onChange={(v) => setEditingProcess({ ...editingProcess, step_number: v })}
+                placeholder="01"
+              />
+              <Field
+                label="Title"
+                value={editingProcess.title}
+                onChange={(v) => setEditingProcess({ ...editingProcess, title: v })}
+                placeholder="Discovery & Audit"
+              />
+              <Field
+                label="Description"
+                value={editingProcess.description}
+                onChange={(v) => setEditingProcess({ ...editingProcess, description: v })}
+                multiline
+                placeholder="We audit existing workflows..."
+              />
+              <label className="flex items-center gap-2 font-body text-sm text-[#524646]">
+                <input
+                  type="checkbox"
+                  checked={editingProcess.published}
+                  onChange={(e) =>
+                    setEditingProcess({ ...editingProcess, published: e.target.checked })
+                  }
+                  className="rounded border-[#E8E2D6]"
+                />
+                Published
+              </label>
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setEditingProcess(null)}
+                  className="px-4 py-2 text-sm font-body text-[#524646] hover:bg-[#FBF9F5] rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => saveProcess.mutate(editingProcess)}
+                  disabled={saveProcess.isPending || !editingProcess.title}
+                  className="inline-flex items-center gap-2 px-5 py-2 bg-[#007979] text-[#FFE2AF] rounded-lg text-sm font-medium hover:bg-[#24B1B1] disabled:opacity-50"
+                >
+                  {saveProcess.isPending ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+                  Save Step
                 </button>
               </div>
             </div>
@@ -1444,7 +1925,7 @@ function Field({
       </label>
       {multiline ? (
         <textarea
-          value={value}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={3}
@@ -1453,7 +1934,7 @@ function Field({
       ) : (
         <input
           type="text"
-          value={value}
+          value={value ?? ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={cls}

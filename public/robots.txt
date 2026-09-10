@@ -1,21 +1,13 @@
-# Allow all crawlers full access
+# Allow all search engine crawlers full access
 User-agent: *
 Allow: /
 
-# Block non-public/dev paths
-Disallow: /src/
-Disallow: /node_modules/
-Disallow: /dist/
-Disallow: /.env
-Disallow: /404
-
-# Google
+# Specific Search Crawlers
 User-agent: Googlebot
 Allow: /
 
-# Bing
 User-agent: Bingbot
 Allow: /
 
-# Sitemap
+# Sitemap Location
 Sitemap: https://www.emonisamuel.co.ke/sitemap.xml
