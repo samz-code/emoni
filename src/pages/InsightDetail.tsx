@@ -6,8 +6,7 @@ import { ArrowLeft, Loader2, Clock, Eye, Calendar, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Insight } from "@/types/insight";
 
-// Basic client-side sanitizer: strips scripts/styles/iframes and inline event handlers
-// before we render stored article HTML with dangerouslySetInnerHTML.
+// Client-side sanitizer: strips scripts/styles/iframes and inline event handlers
 const sanitizeArticleHtml = (html: string) => {
   const doc = new DOMParser().parseFromString(html, "text/html");
   doc.querySelectorAll("script, style, iframe, object, embed").forEach((el) => el.remove());
@@ -105,8 +104,6 @@ const InsightDetail = () => {
     );
   }
 
-  // Articles saved from the rich text editor store one HTML string in body[0].
-  // Older articles (pre rich-editor) stored one plain/markdown-ish paragraph per array element.
   const body = insight.body || [];
   const isRichHtmlBody = body.length === 1 && looksLikeHtml(body[0]);
 
@@ -116,7 +113,6 @@ const InsightDetail = () => {
   const pageDescription = insight.excerpt || "Read technical insights, architecture patterns, and software development guides by Samuel A. Emoni.";
   const articleImage = insight.image || "https://www.emonisamuel.co.ke/og-image.jpg";
 
-  // Dynamic BlogPosting Schema markup
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -143,12 +139,10 @@ const InsightDetail = () => {
   return (
     <>
       <Helmet>
-        {/* Core Meta Tags */}
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
         <link rel="canonical" href={canonicalUrl} />
 
-        {/* Open Graph Tags */}
         <meta property="og:type" content="article" />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
@@ -157,13 +151,11 @@ const InsightDetail = () => {
         <meta property="article:published_time" content={insight.date} />
         <meta property="article:section" content={insight.category} />
 
-        {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={articleImage} />
 
-        {/* Article Structured Data */}
         <script type="application/ld+json">
           {JSON.stringify(articleSchema)}
         </script>
@@ -221,7 +213,7 @@ const InsightDetail = () => {
         )}
 
         <article className="py-12 md:py-16">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <p className="font-body text-lg sm:text-xl text-ink font-medium leading-relaxed mb-8 border-l-4 border-ember pl-4">
               {insight.excerpt}
             </p>
@@ -299,23 +291,59 @@ const InsightDetail = () => {
           </section>
         )}
 
+        {/* Global CSS Renderer for Editor Content Elements, Templates, and Layouts */}
         <style>{`
-          .insight-body h1 { font-family: inherit; font-size: 1.5rem; font-weight: 700; margin: 2rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid var(--tw-border-color, rgba(0,0,0,0.1)); }
+          .insight-body h1 { font-size: 1.6rem; font-weight: 700; margin: 2rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); }
           .insight-body h2 { font-size: 1.35rem; font-weight: 700; margin: 2rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); }
-          .insight-body h3 { font-size: 1.1rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
-          .insight-body p { margin: 0 0 1.1rem; }
+          .insight-body h3 { font-size: 1.15rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+          .insight-body p { margin: 0 0 1.1rem; line-height: 1.7; }
           .insight-body ul { list-style: disc; padding-left: 1.5rem; margin: 0 0 1.1rem; }
           .insight-body ol { list-style: decimal; padding-left: 1.5rem; margin: 0 0 1.1rem; }
           .insight-body li { margin: 0.35rem 0; }
           .insight-body a { color: #b45309; text-decoration: underline; }
+          
+          /* Custom Callout and Blockquotes */
           .insight-body blockquote {
-            border-left: 3px solid #b45309;
-            padding: 0.35rem 0 0.35rem 1.1rem;
+            border-left: 4px solid #b45309;
+            padding: 0.75rem 1rem;
             margin: 1.25rem 0;
             font-style: italic;
-            color: rgba(0,0,0,0.65);
+            color: rgba(0,0,0,0.8);
+            background-color: rgba(180, 83, 9, 0.05);
+            border-radius: 0 0.375rem 0.375rem 0;
           }
-          .insight-body img { max-width: 100%; border-radius: 0.5rem; margin: 1.25rem 0; display: block; }
+
+          /* Responsive Tables */
+          .insight-body table, .insight-body .rte-custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.875rem;
+            display: table;
+            overflow-x: auto;
+          }
+          .insight-body th, .insight-body td {
+            border: 1px solid #d1d5db;
+            padding: 10px 14px;
+            text-align: left;
+          }
+          .insight-body th {
+            background-color: #f3f4f6;
+            font-weight: 600;
+          }
+
+          /* Image Mask & Frame Template Support */
+          .insight-body img { max-width: 100%; height: auto; }
+          .insight-body .shape-mask-wrapper { display: inline-block; margin: 0.75rem 0; max-width: 100%; }
+          .insight-body .shape-mask-wrapper img { display: block; object-fit: cover; }
+          
+          /* Grid & Column Layout Breakdown on Mobile */
+          @media (max-width: 768px) {
+            .insight-body div[style*="grid-template-columns"] {
+              grid-template-columns: 1fr !important;
+              gap: 1rem !important;
+            }
+          }
         `}</style>
       </main>
     </>
