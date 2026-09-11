@@ -41,6 +41,8 @@ const Insights = () => {
     fetchInsights();
   }, []);
 
+  // Derive the real set of topics from the fetched articles (category + tags),
+  // instead of a hardcoded list. Falls back to just "All" while loading/empty.
   const categories = useMemo(() => {
     const unique = new Set<string>();
     insights.forEach((insight) => {
@@ -54,12 +56,14 @@ const Insights = () => {
     ? insights
     : insights.filter(insight => insight.category === selectedCategory || insight.tags?.includes(selectedCategory));
 
+  // Prefer an explicitly featured article; fall back to the first result.
   const explicitFeatured = filteredInsights.find((i) => i.featured);
   const featured = explicitFeatured || filteredInsights[0];
   const rest = filteredInsights.filter((i) => i.slug !== featured?.slug);
 
   const dotPattern = `data:image/svg+xml,${encodeURIComponent('<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="#ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="4"/></g></g></svg>')}`;
 
+  // SEO dynamic values
   const canonicalUrl = "https://www.emonisamuel.co.ke/insights";
   const pageTitle = selectedCategory === "All" 
     ? "Insights & Perspectives | Samuel A. Emoni" 
@@ -67,6 +71,7 @@ const Insights = () => {
   const pageDescription = "Deep dives into digital systems, software architecture, emerging technologies, and building digital solutions in Africa and beyond.";
   const ogImage = "https://www.emonisamuel.co.ke/og-image.jpg";
 
+  // CollectionPage Structured Data Schema
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -92,30 +97,34 @@ const Insights = () => {
   return (
     <>
       <Helmet>
+        {/* Core Meta Tags */}
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
         <link rel="canonical" href={canonicalUrl} />
 
+        {/* Open Graph Tags */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={ogImage} />
 
+        {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={ogImage} />
 
+        {/* Structured Data */}
         <script type="application/ld+json">
           {JSON.stringify(collectionSchema)}
         </script>
       </Helmet>
 
-      <main className="bg-paper overflow-x-hidden min-h-screen">
+      <main className="bg-paper">
         {/* Animated Banner */}
         <div
-          className="relative overflow-hidden bg-[#E77E23] py-12 sm:py-20 md:py-24"
+          className="relative overflow-hidden bg-[#E77E23] py-24"
           style={{
             backgroundImage: `linear-gradient(rgba(231, 126, 35, 0.9), rgba(231, 126, 35, 0.9)), url('/blog.png')`,
             backgroundSize: 'cover',
@@ -124,23 +133,23 @@ const Insights = () => {
           }}
         >
           <div
-            className="absolute inset-0 opacity-20 pointer-events-none"
+            className="absolute inset-0 opacity-20"
             style={{ backgroundImage: `url('${dotPattern}')` }}
           />
 
-          {/* Floating Background Elements - Hidden on small screens to prevent layout shifting */}
+          {/* Floating Elements */}
           <motion.div
-            className="hidden sm:block absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full pointer-events-none"
+            className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full"
             animate={{ y: [0, -20, 0], rotate: [0, 180, 360] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div
-            className="hidden sm:block absolute bottom-10 right-10 w-16 h-16 bg-ember/20 rounded-full pointer-events-none"
+            className="absolute bottom-10 right-10 w-16 h-16 bg-ember/20 rounded-full"
             animate={{ y: [0, 20, 0], x: [0, -10, 0] }}
             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           />
           <motion.div
-            className="hidden sm:block absolute top-1/2 left-1/4 w-12 h-12 bg-olive/30 rounded-full pointer-events-none"
+            className="absolute top-1/2 left-1/4 w-12 h-12 bg-olive/30 rounded-full"
             animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           />
@@ -150,23 +159,23 @@ const Insights = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="mb-6 sm:mb-8"
+              className="mb-8"
             >
               <motion.div
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="inline-block mb-3 sm:mb-4"
+                className="inline-block mb-4"
               >
-                <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-cream mx-auto" />
+                <BookOpen size={64} className="text-cream mx-auto" />
               </motion.div>
-              <h1 className="font-display text-3xl sm:text-5xl md:text-[64px] text-cream leading-tight break-words px-2">
+              <h1 className="font-display text-[48px] md:text-[64px] text-cream leading-tight">
                 Insights & Perspectives
               </h1>
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="font-body text-base sm:text-xl text-cream/80 max-w-3xl mx-auto mt-4 sm:mt-6 leading-relaxed px-2"
+                className="font-body text-xl text-cream/80 max-w-3xl mx-auto mt-6 leading-relaxed"
               >
                 Deep dives into digital systems, emerging technologies, and building technology solutions in Africa and beyond.
               </motion.p>
@@ -177,43 +186,43 @@ const Insights = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="grid grid-cols-1 min-[420px]:grid-cols-3 gap-3 sm:gap-6 max-w-2xl mx-auto mt-8 sm:mt-12"
+              className="flex flex-wrap justify-center gap-8 mt-12"
             >
               <motion.div
-                whileHover={{ scale: 1.03 }}
-                className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:px-6 sm:py-4 border border-white/20 flex items-center justify-center min-w-0"
+                whileHover={{ scale: 1.05 }}
+                className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/20"
               >
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                  <BookOpen size={20} className="text-ember shrink-0 sm:w-6 sm:h-6" />
-                  <div className="text-left min-w-0">
-                    <div className="text-lg sm:text-2xl font-bold text-cream truncate">{insights.length}</div>
-                    <div className="text-xs sm:text-sm text-cream/70 truncate">Articles</div>
+                <div className="flex items-center gap-3">
+                  <BookOpen size={24} className="text-ember" />
+                  <div>
+                    <div className="text-2xl font-bold text-cream">{insights.length}</div>
+                    <div className="text-sm text-cream/70">Articles</div>
                   </div>
                 </div>
               </motion.div>
 
               <motion.div
-                whileHover={{ scale: 1.03 }}
-                className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:px-6 sm:py-4 border border-white/20 flex items-center justify-center min-w-0"
+                whileHover={{ scale: 1.05 }}
+                className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/20"
               >
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                  <Users size={20} className="text-ember shrink-0 sm:w-6 sm:h-6" />
-                  <div className="text-left min-w-0">
-                    <div className="text-lg sm:text-2xl font-bold text-cream truncate">{totalReaders.toLocaleString()}</div>
-                    <div className="text-xs sm:text-sm text-cream/70 truncate">Readers</div>
+                <div className="flex items-center gap-3">
+                  <Users size={24} className="text-ember" />
+                  <div>
+                    <div className="text-2xl font-bold text-cream">{totalReaders.toLocaleString()}</div>
+                    <div className="text-sm text-cream/70">Readers</div>
                   </div>
                 </div>
               </motion.div>
 
               <motion.div
-                whileHover={{ scale: 1.03 }}
-                className="bg-white/10 backdrop-blur-sm rounded-lg p-3 sm:px-6 sm:py-4 border border-white/20 flex items-center justify-center min-w-0"
+                whileHover={{ scale: 1.05 }}
+                className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/20"
               >
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                  <TrendingUp size={20} className="text-ember shrink-0 sm:w-6 sm:h-6" />
-                  <div className="text-left min-w-0">
-                    <div className="text-lg sm:text-2xl font-bold text-cream truncate">{Math.max(0, categories.length - 1)}</div>
-                    <div className="text-xs sm:text-sm text-cream/70 truncate">Topics</div>
+                <div className="flex items-center gap-3">
+                  <TrendingUp size={24} className="text-ember" />
+                  <div>
+                    <div className="text-2xl font-bold text-cream">{categories.length - 1}</div>
+                    <div className="text-sm text-cream/70">Topics</div>
                   </div>
                 </div>
               </motion.div>
@@ -222,30 +231,29 @@ const Insights = () => {
         </div>
 
         {/* Content Section */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* Category Filter */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
-            className="mb-8 sm:mb-12"
+            className="mb-12"
           >
-            <div className="flex items-center gap-2.5 sm:gap-3 mb-4 sm:mb-6">
-              <Filter size={18} className="text-olive sm:w-5 sm:h-5" />
-              <h2 className="font-display text-xl sm:text-2xl text-ink">Explore Topics</h2>
+            <div className="flex items-center gap-3 mb-6">
+              <Filter size={20} className="text-olive" />
+              <h2 className="font-display text-2xl text-ink">Explore Topics</h2>
             </div>
 
-            {/* Horizontal Scroll / Flex Wrap Pills */}
-            <div className="flex flex-wrap gap-2 sm:gap-3 max-w-full">
+            <div className="flex flex-wrap gap-3">
               {categories.map((category) => (
                 <motion.button
                   key={category}
                   onClick={() => setSelectedCategory(category)}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full font-body text-xs sm:text-sm transition-all break-words max-w-full ${
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`px-4 py-2 rounded-full font-body text-sm transition-all ${
                     selectedCategory === category
-                      ? "bg-ember text-cream shadow-md"
+                      ? "bg-ember text-cream shadow-lg"
                       : "bg-snow border border-border text-ink hover:border-olive hover:bg-olive/5"
                   }`}
                 >
@@ -257,16 +265,16 @@ const Insights = () => {
 
           {/* Loading State */}
           {loading && (
-            <div className="text-center py-16 sm:py-20">
-              <Loader2 size={36} className="animate-spin text-ember mx-auto mb-4" />
-              <p className="font-body text-ink/60 text-xs sm:text-sm">Fetching articles from the database...</p>
+            <div className="text-center py-20">
+              <Loader2 size={40} className="animate-spin text-ember mx-auto mb-4" />
+              <p className="font-body text-ink/60 text-sm">Fetching articles from the database...</p>
             </div>
           )}
 
           {/* Error State */}
           {!loading && loadError && (
-            <div className="text-center py-16 sm:py-20 px-4">
-              <p className="font-body text-red-600 text-xs sm:text-sm">{loadError}</p>
+            <div className="text-center py-20">
+              <p className="font-body text-red-600 text-sm">{loadError}</p>
               <p className="font-body text-ink/40 text-xs mt-2">Please refresh the page or try again shortly.</p>
             </div>
           )}
@@ -279,12 +287,10 @@ const Insights = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.7 }}
-                  className="mb-10 sm:mb-16 min-w-0"
+                  className="mb-16"
                 >
-                  <h2 className="font-display text-2xl sm:text-3xl text-ink mb-4 sm:mb-8">Featured Article</h2>
-                  <div className="w-full min-w-0 overflow-hidden">
-                    <InsightCard insight={featured} featured />
-                  </div>
+                  <h2 className="font-display text-3xl text-ink mb-8">Featured Article</h2>
+                  <InsightCard insight={featured} featured />
                 </motion.div>
               )}
 
@@ -293,31 +299,29 @@ const Insights = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.8 }}
-                className="min-w-0"
               >
-                <h2 className="font-display text-2xl sm:text-3xl text-ink mb-6 sm:mb-8">
+                <h2 className="font-display text-3xl text-ink mb-8">
                   {selectedCategory === "All" ? "Latest Articles" : `${selectedCategory} Articles`}
                 </h2>
 
                 {rest.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {rest.map((insight, i) => (
                       <motion.div
                         key={insight.slug}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: 0.9 + i * 0.05 }}
-                        className="w-full min-w-0"
                       >
                         <InsightCard insight={insight} />
                       </motion.div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12 px-4">
-                    <BookOpen size={40} className="text-olive/40 mx-auto mb-3 sm:mb-4" />
-                    <p className="text-base sm:text-lg text-ink/60">No articles found in this category yet.</p>
-                    <p className="text-xs sm:text-sm text-ink/40 mt-1 sm:mt-2">Check back soon for new content!</p>
+                  <div className="text-center py-12">
+                    <BookOpen size={48} className="text-olive/40 mx-auto mb-4" />
+                    <p className="text-lg text-ink/60">No articles found in this category yet.</p>
+                    <p className="text-sm text-ink/40 mt-2">Check back soon for new content!</p>
                   </div>
                 )}
               </motion.div>
