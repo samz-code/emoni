@@ -161,8 +161,8 @@ const InsightDetail = () => {
         </script>
       </Helmet>
 
-      <main className="bg-paper min-h-screen">
-        <section className="bg-forest py-12 md:py-20">
+      <main className="bg-paper min-h-screen overflow-x-hidden">
+        <section className="bg-forest py-10 sm:py-16 md:py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <Link to="/insights" className="inline-flex items-center gap-2 text-cream/70 font-body text-xs sm:text-sm hover:text-ember transition-colors mb-6">
@@ -180,15 +180,15 @@ const InsightDetail = () => {
                 )}
               </div>
 
-              <h1 className="font-display text-2xl sm:text-4xl md:text-5xl text-cream leading-tight">
+              <h1 className="font-display text-2xl sm:text-4xl md:text-5xl text-cream leading-tight break-words">
                 {insight.title}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-cream/70 font-body text-xs sm:text-sm mt-6">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-cream/70 font-body text-xs sm:text-sm mt-6">
                 <span className="flex items-center gap-1.5"><Calendar size={14} /> {insight.date}</span>
-                <span>•</span>
+                <span className="hidden sm:inline">•</span>
                 <span className="flex items-center gap-1.5"><Clock size={14} /> {insight.read_time}</span>
-                <span>•</span>
+                <span className="hidden sm:inline">•</span>
                 <span className="flex items-center gap-1.5"><Eye size={14} /> {(insight.readers || 0).toLocaleString()} reads</span>
               </div>
             </motion.div>
@@ -196,7 +196,7 @@ const InsightDetail = () => {
         </section>
 
         {insight.image && (
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 md:-mt-14">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-10 md:-mt-14">
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
@@ -206,21 +206,21 @@ const InsightDetail = () => {
               <img
                 src={insight.image}
                 alt={insight.title}
-                className="w-full h-[22rem] sm:h-[30rem] md:h-[38rem] lg:h-[44rem] object-cover"
+                className="w-full h-56 sm:h-[26rem] md:h-[34rem] lg:h-[40rem] object-cover"
               />
             </motion.div>
           </div>
         )}
 
-        <article className="py-12 md:py-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p className="font-body text-lg sm:text-xl text-ink font-medium leading-relaxed mb-8 border-l-4 border-ember pl-4">
+        <article className="py-8 sm:py-12 md:py-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full min-w-0">
+            <p className="font-body text-base sm:text-lg md:text-xl text-ink font-medium leading-relaxed mb-8 border-l-4 border-ember pl-4 break-words">
               {insight.excerpt}
             </p>
 
             {isRichHtmlBody ? (
               <div
-                className="insight-body font-body text-sm sm:text-base text-ink/90 leading-relaxed"
+                className="insight-body font-body text-sm sm:text-base text-ink/90 leading-relaxed overflow-hidden"
                 dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(body[0]) }}
               />
             ) : (
@@ -228,20 +228,20 @@ const InsightDetail = () => {
                 {body.map((line, idx) => {
                   if (line.startsWith("## ")) {
                     return (
-                      <h2 key={idx} className="font-display text-xl sm:text-2xl text-ink mt-8 mb-3 pt-4 border-t border-border">
+                      <h2 key={idx} className="font-display text-xl sm:text-2xl text-ink mt-8 mb-3 pt-4 border-t border-border break-words">
                         {line.replace(/^##\s/, "")}
                       </h2>
                     );
                   }
                   if (line.startsWith("- ")) {
                     return (
-                      <li key={idx} className="font-body text-sm sm:text-base text-ink/80 leading-relaxed list-disc ml-6">
+                      <li key={idx} className="font-body text-sm sm:text-base text-ink/80 leading-relaxed list-disc ml-6 break-words">
                         {line.replace(/^-\s/, "")}
                       </li>
                     );
                   }
                   return (
-                    <p key={idx} className="font-body text-sm sm:text-base text-ink/90 leading-relaxed">
+                    <p key={idx} className="font-body text-sm sm:text-base text-ink/90 leading-relaxed break-words">
                       {line}
                     </p>
                   );
@@ -291,57 +291,109 @@ const InsightDetail = () => {
           </section>
         )}
 
-        {/* Global CSS Renderer for Editor Content Elements, Templates, and Layouts */}
+        {/* Global Mobile Anti-Overlap & Rich-Text Renderer Engine */}
         <style>{`
-          .insight-body h1 { font-size: 1.6rem; font-weight: 700; margin: 2rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); }
-          .insight-body h2 { font-size: 1.35rem; font-weight: 700; margin: 2rem 0 0.75rem; padding-top: 1rem; border-top: 1px solid rgba(0,0,0,0.1); }
-          .insight-body h3 { font-size: 1.15rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
-          .insight-body p { margin: 0 0 1.1rem; line-height: 1.7; }
-          .insight-body ul { list-style: disc; padding-left: 1.5rem; margin: 0 0 1.1rem; }
-          .insight-body ol { list-style: decimal; padding-left: 1.5rem; margin: 0 0 1.1rem; }
-          .insight-body li { margin: 0.35rem 0; }
-          .insight-body a { color: #b45309; text-decoration: underline; }
-          
-          /* Custom Callout and Blockquotes */
+          /* Universal Container Constraints */
+          .insight-body {
+            width: 100%;
+            max-width: 100%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+          }
+
+          /* Headings & Text Break Rules */
+          .insight-body h1, .insight-body h2, .insight-body h3, .insight-body h4, .insight-body p {
+            max-width: 100%;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+          }
+
+          .insight-body h1 { font-size: 1.4rem; font-weight: 700; margin: 1.5rem 0 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.1); }
+          .insight-body h2 { font-size: 1.25rem; font-weight: 700; margin: 1.5rem 0 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.1); }
+          .insight-body h3 { font-size: 1.1rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+          .insight-body p { margin: 0 0 1rem; line-height: 1.65; }
+
+          @media (min-width: 640px) {
+            .insight-body h1 { font-size: 1.6rem; margin: 2rem 0 0.75rem; padding-top: 1rem; }
+            .insight-body h2 { font-size: 1.35rem; margin: 2rem 0 0.75rem; padding-top: 1rem; }
+            .insight-body h3 { font-size: 1.15rem; }
+          }
+
+          .insight-body ul { list-style: disc; padding-left: 1.25rem; margin: 0 0 1.1rem; }
+          .insight-body ol { list-style: decimal; padding-left: 1.25rem; margin: 0 0 1.1rem; }
+          .insight-body li { margin: 0.35rem 0; word-break: break-word; }
+          .insight-body a { color: #b45309; text-decoration: underline; word-break: break-all; }
+
+          /* Blockquotes / Callouts */
           .insight-body blockquote {
             border-left: 4px solid #b45309;
-            padding: 0.75rem 1rem;
-            margin: 1.25rem 0;
+            padding: 0.5rem 0.75rem;
+            margin: 1rem 0;
             font-style: italic;
             color: rgba(0,0,0,0.8);
             background-color: rgba(180, 83, 9, 0.05);
             border-radius: 0 0.375rem 0.375rem 0;
+            max-width: 100%;
           }
 
-          /* Responsive Tables */
-          .insight-body table, .insight-body .rte-custom-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1.5rem 0;
-            font-size: 0.875rem;
-            display: table;
-            overflow-x: auto;
+          /* Force Images, SVGs, Frames and Canvas elements to respect parent width */
+          .insight-body img, 
+          .insight-body iframe, 
+          .insight-body svg, 
+          .insight-body figure,
+          .insight-body canvas {
+            max-width: 100% !important;
+            height: auto !important;
+            box-sizing: border-box;
           }
+
+          /* Mobile Horizontal Scroll Wrappers for Tables */
+          .insight-body table {
+            width: 100% !important;
+            border-collapse: collapse;
+            margin: 1.25rem 0;
+            font-size: 0.8125rem;
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+          }
+
           .insight-body th, .insight-body td {
             border: 1px solid #d1d5db;
-            padding: 10px 14px;
+            padding: 8px 12px;
             text-align: left;
           }
+
           .insight-body th {
             background-color: #f3f4f6;
             font-weight: 600;
           }
 
-          /* Image Mask & Frame Template Support */
-          .insight-body img { max-width: 100%; height: auto; }
-          .insight-body .shape-mask-wrapper { display: inline-block; margin: 0.75rem 0; max-width: 100%; }
-          .insight-body .shape-mask-wrapper img { display: block; object-fit: cover; }
-          
-          /* Grid & Column Layout Breakdown on Mobile */
+          /* Shape Mask Wrappers */
+          .insight-body .shape-mask-wrapper {
+            display: block;
+            margin: 0.75rem auto;
+            max-width: 100% !important;
+          }
+
+          /* Custom Editors/Templates Grid Flattening on Mobile */
           @media (max-width: 768px) {
-            .insight-body div[style*="grid-template-columns"] {
+            .insight-body div[style*="grid-template-columns"],
+            .insight-body div[style*="display: flex"],
+            .insight-body div[style*="display:flex"] {
+              display: flex !important;
+              flex-direction: column !important;
               grid-template-columns: 1fr !important;
+              width: 100% !important;
               gap: 1rem !important;
+            }
+
+            .insight-body div[style*="width"],
+            .insight-body [style*="min-width"] {
+              width: 100% !important;
+              min-width: 0 !important;
+              max-width: 100% !important;
             }
           }
         `}</style>
