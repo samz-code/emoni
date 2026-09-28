@@ -31,6 +31,7 @@ const navLinks = [
   },
   { label: "COURSES",             href: "/courses" },
   { label: "PROJECTS & PRODUCTS", href: "/projects" },
+  { label: "PARTNERS",            href: "/partners" },
   { label: "INSIGHTS",            href: "/insights" },
   { label: "CONTACT",             href: "/contact" },
 ];
@@ -184,7 +185,7 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Mobile / Tablet: Portal Login + Hamburger (ThemeToggle removed) */}
+        {/* Mobile / Tablet: Portal Login + Hamburger */}
         <div className="flex items-center gap-2 lg:hidden">
           <Link
             to="/admin/login"

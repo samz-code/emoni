@@ -11,17 +11,20 @@ import Footer from "@/components/Footer";
 import FloatingWidgets from "@/components/FloatingWidgets";
 import BackToTop from "@/components/BackToTop";
 import ScrollToTop from "@/components/ScrollToTop";
+import CookieConsent from "@/components/CookieConsent";
 
 // Public Agency Pages
 import Index from "./pages/Index";
 import WhatIDo from "./pages/WhatIDo";
 import Courses from "./pages/Courses";
 import Projects from "./pages/Projects";
+import Partners from "./pages/Partners";
 import Insights from "./pages/Insights";
 import InsightDetail from "./pages/InsightDetail";
 import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Cookies from "./pages/Cookies";
 import NotFound from "./pages/NotFound";
 
 // Admin & Editor Pages
@@ -36,6 +39,7 @@ import ManageProcessSteps from "./pages/admin/ManageProcessSteps";
 import ManageIdealFor from "./pages/admin/ManageIdealFor";
 import ManageInsights from "./pages/admin/ManageInsights";
 import ManageContent from "./pages/admin/ManageContent";
+import ManagePartners from "./pages/admin/ManagePartners";
 
 const queryClient = new QueryClient();
 
@@ -129,6 +133,7 @@ const App = () => (
                 <Route path="process-steps" element={<ManageProcessSteps />} />
                 <Route path="ideal-for" element={<ManageIdealFor />} />
                 <Route path="insights" element={<ManageInsights />} />
+                <Route path="partners" element={<ManagePartners />} />
               </Route>
             </Route>
 
@@ -143,17 +148,20 @@ const App = () => (
                     <Route path="/what-i-do" element={<WhatIDo />} />
                     <Route path="/courses" element={<Courses />} />
                     <Route path="/projects" element={<Projects />} />
+                    <Route path="/partners" element={<Partners />} />
                     <Route path="/insights" element={<Insights />} />
                     <Route path="/insights/:slug" element={<InsightDetail />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/admin/login" element={<AdminLogin />} />
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/terms" element={<Terms />} />
+                    <Route path="/cookies" element={<Cookies />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                   <Footer />
                   <FloatingWidgets />
                   <BackToTop />
+                  <CookieConsent />
                 </>
               }
             />
