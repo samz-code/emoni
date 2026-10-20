@@ -38,6 +38,7 @@ const ManageInsights = () => {
     read_time: "5 min read",
     excerpt: "",
     date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+    author: "Samuel A. Emoni",
     image: "",
     tags: "",
     bodyText: "", // now holds rich HTML from RichTextEditor, not plain paragraph lines
@@ -92,6 +93,7 @@ const ManageInsights = () => {
         read_time: item.read_time || "5 min read",
         excerpt: item.excerpt,
         date: item.date,
+        author: item.author || "Samuel A. Emoni",
         image: item.image || "",
         tags: item.tags ? item.tags.join(", ") : "",
         bodyText: bodyArrayToHtml(item.body),
@@ -107,6 +109,7 @@ const ManageInsights = () => {
         read_time: "5 min read",
         excerpt: "",
         date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+        author: "Samuel A. Emoni",
         image: "",
         tags: "",
         bodyText: "",
@@ -182,6 +185,7 @@ const ManageInsights = () => {
         read_time: formData.read_time,
         excerpt: formData.excerpt,
         date: formData.date,
+        author: formData.author.trim(),
         image: formData.image,
         tags: tagsArray,
         body: bodyArray,
@@ -535,13 +539,23 @@ const ManageInsights = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <div>
                   <label className="block text-xs font-medium text-ink mb-1">Date</label>
                   <input
                     type="text"
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full border border-border rounded p-2.5 bg-paper text-ink focus:outline-none focus:border-ember"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink mb-1">Published by</label>
+                  <input
+                    type="text"
+                    value={formData.author}
+                    onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                    placeholder="Author name"
                     className="w-full border border-border rounded p-2.5 bg-paper text-ink focus:outline-none focus:border-ember"
                   />
                 </div>

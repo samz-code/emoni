@@ -16,6 +16,7 @@ import {
   Menu,
   Newspaper,
   Users,
+  User,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -221,6 +222,7 @@ export default function AdminLayout() {
     { to: "/admin/process-steps", label: "HOW I WORK", icon: ListOrdered },
     { to: "/admin/ideal-for", label: "IDEAL FOR", icon: Users },
     { to: "/admin/projects", label: "PROJECTS & CASE STUDIES", icon: FolderKanban },
+    { to: "/admin/about", label: "ABOUT & SHOUT-OUTS", icon: User },
     { to: "/admin/partners", label: "MANAGE PARTNERS", icon: Handshake, badge: newApplications },
   ];
 

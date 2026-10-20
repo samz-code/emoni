@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { Session } from "@supabase/supabase-js";
 import { BrowserRouter, Route, Routes, Navigate, Outlet } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
@@ -18,6 +19,7 @@ import Index from "./pages/Index";
 import WhatIDo from "./pages/WhatIDo";
 import Courses from "./pages/Courses";
 import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 import Partners from "./pages/Partners";
 import Insights from "./pages/Insights";
 import InsightDetail from "./pages/InsightDetail";
@@ -35,6 +37,7 @@ import ManageServices from "./pages/admin/ManageServices";
 import EditService from "./pages/admin/EditService";
 import ManageCourses from "./pages/admin/ManageCourses";
 import ManageProjects from "./pages/admin/ManageProjects";
+import ManageAbout from "./pages/admin/ManageAbout";
 import ManageProcessSteps from "./pages/admin/ManageProcessSteps";
 import ManageIdealFor from "./pages/admin/ManageIdealFor";
 import ManageInsights from "./pages/admin/ManageInsights";
@@ -44,41 +47,59 @@ import ManagePartners from "./pages/admin/ManagePartners";
 const queryClient = new QueryClient();
 
 function ProtectedAdminRoute() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    async function verifyAdmin() {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
+    let active = true;
+    let requestId = 0;
 
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single();
+    async function verifyAdmin(currentSession: Session | null) {
+      const currentRequest = ++requestId;
+      setSession(currentSession);
+      setLoading(true);
 
-        const role = profile?.role || session.user.app_metadata?.role || session.user.user_metadata?.role;
-        setIsAdmin(role === "admin");
-      }
-      setLoading(false);
-    }
-
-    verifyAdmin();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session) {
+      if (!currentSession?.user) {
         setIsAdmin(false);
         setLoading(false);
-      } else {
-        verifyAdmin();
+        return;
       }
+
+      try {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", currentSession.user.id)
+          .single();
+
+        if (error && error.code !== "PGRST116") {
+          console.error("Unable to verify administrator profile:", error);
+        }
+
+        const role = profile?.role || currentSession.user.app_metadata?.role;
+        if (active && currentRequest === requestId) setIsAdmin(role === "admin");
+      } catch (error) {
+        console.error("Unable to verify administrator access:", error);
+        if (active && currentRequest === requestId) setIsAdmin(false);
+      } finally {
+        if (active && currentRequest === requestId) setLoading(false);
+      }
+    }
+
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (error) console.error("Unable to read the current authentication session:", error);
+      if (active) void verifyAdmin(data.session);
     });
 
-    return () => subscription.unsubscribe();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void Promise.resolve().then(() => verifyAdmin(session));
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (loading) {
@@ -130,6 +151,7 @@ const App = () => (
                 <Route path="services/edit/:id" element={<EditService />} />
                 <Route path="courses" element={<ManageCourses />} />
                 <Route path="projects" element={<ManageProjects />} />
+                <Route path="about" element={<ManageAbout />} />
                 <Route path="process-steps" element={<ManageProcessSteps />} />
                 <Route path="ideal-for" element={<ManageIdealFor />} />
                 <Route path="insights" element={<ManageInsights />} />
@@ -147,6 +169,7 @@ const App = () => (
                     <Route path="/" element={<Index />} />
                     <Route path="/what-i-do" element={<WhatIDo />} />
                     <Route path="/courses" element={<Courses />} />
+                    <Route path="/projects/:kind/:id" element={<ProjectDetail />} />
                     <Route path="/projects" element={<Projects />} />
                     <Route path="/partners" element={<Partners />} />
                     <Route path="/insights" element={<Insights />} />

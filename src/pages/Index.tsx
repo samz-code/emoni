@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   Lightbulb, Layers, Monitor, Palette, CreditCard, Workflow, Plug, Wrench,
   Building2, Landmark, Stethoscope, GraduationCap, ShoppingBag, Plane,
-  ArrowRight, CheckCircle2, Banknote, Signal, Cog, Heart, Store, Sprout, User,
+  ArrowRight, CheckCircle2, Banknote, Signal, Cog, Heart, Store, Sprout, User, Code2,
 } from "lucide-react";
 import TrustedBy from "@/components/TrustedBy";
+import ProjectCard from "@/components/ProjectCard";
+import { supabase } from "@/lib/supabase";
 import {
   toStringArray,
   useHomeCarousel,
@@ -38,6 +41,16 @@ const normalizeLink = (href: string) => {
   const value = href.trim();
   if (!value || isExternal(value) || value.startsWith("/") || value.startsWith("#")) return value;
   return `/${value}`;
+};
+
+const safeWebUrl = (value?: string | null) => {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href : null;
+  } catch {
+    return null;
+  }
 };
 
 function Skel({ className = "", dark = false }: { className?: string; dark?: boolean }) {
@@ -254,6 +267,67 @@ const Index = () => {
   const sectorsQ = useHomeSectors();
   const reasonsQ = useHomeReasons();
   const insightsQ = useHomeInsights();
+  const featuredProjectsQ = useQuery({
+    queryKey: ["home-featured-projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id,name,description,sector,image,live_url,created_at")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60_000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+  const designMarqueeQ = useQuery({
+    queryKey: ["home-design-marquee"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("graphic_designs")
+        .select("id,title,category,image")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60_000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+  const aboutQ = useQuery({
+    queryKey: ["home-about"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("homepage_about")
+        .select("background,education,soft_skills,hard_skills,software,profile_image_url")
+        .eq("id", 1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 60_000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+  const shoutoutsQ = useQuery({
+    queryKey: ["home-about-shoutouts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("homepage_shoutouts")
+        .select("id,name,role,information,profile_url,image_url")
+        .eq("published", true)
+        .order("sort_order", { ascending: true })
+        .limit(12);
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60_000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
 
   const hero = heroQ.data ?? null;
   const s = settingsQ.data ?? null;
@@ -442,6 +516,145 @@ const Index = () => {
         </div>
       </section>
 
+      {/* ABOUT */}
+      {(aboutQ.isPending || aboutQ.isError || Boolean(aboutQ.data) || shoutoutsQ.isPending || shoutoutsQ.isError || (shoutoutsQ.data?.length ?? 0) > 0) && (
+        <section className="bg-snow py-16 dark:bg-[#141410] sm:py-20" aria-labelledby="home-about-heading">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
+              <div className="lg:col-span-5">
+                <Eyebrow>About</Eyebrow>
+                {aboutQ.data?.profile_image_url && (
+                  <img src={aboutQ.data.profile_image_url} alt="Samuel A. Emoni" loading="lazy" decoding="async"                   className="mx-auto mt-5 h-36 w-36 rounded-full border-4 border-snow object-cover shadow-md dark:border-[#1A1A16]" />
+                )}
+                <h2 id="home-about-heading" className="mt-3 whitespace-nowrap font-display text-xl leading-tight text-ink dark:text-cream sm:text-2xl">
+                  A little about my journey
+                </h2>
+                {aboutQ.isPending ? (
+                  <Skel className="mt-5 h-24 w-full" />
+                ) : aboutQ.isError ? (
+                  <p className="mt-5 font-body text-sm text-red-700" role="alert">About information could not be loaded.</p>
+                ) : aboutQ.data?.background ? (
+                  <p className="mt-5 whitespace-pre-line font-body text-base leading-relaxed text-[#4A4A4A] dark:text-cream/70">{aboutQ.data.background}</p>
+                ) : (
+                  <p className="mt-5 font-body text-sm text-[#4A4A4A] dark:text-cream/65">Background information will be added soon.</p>
+                )}
+              </div>
+
+              <div className="space-y-6 lg:col-span-7">
+                <div className="border-l-2 border-olive pl-4">
+                  <h3 className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><GraduationCap size={19} className="text-forest dark:text-olive" aria-hidden="true" />Education</h3>
+                  {aboutQ.data?.education?.length ? (
+                    <ul className="mt-2 space-y-1">
+                      {aboutQ.data.education.map((education: string, index: number) => (
+                        <li key={`${education}-${index}`} className="font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70">— {education}</li>
+                      ))}
+                    </ul>
+                  ) : <p className="mt-2 font-body text-sm text-ink/55 dark:text-cream/55">Education details coming soon.</p>}
+                </div>
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="border-l-2 border-ember pl-4">
+                    <h3 className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><Heart size={18} className="text-ember" aria-hidden="true" />Soft skills</h3>
+                    {aboutQ.data?.soft_skills?.length ? (
+                      <ul className="mt-2 space-y-1">
+                        {aboutQ.data.soft_skills.map((skill: string) => (
+                          <li key={skill} className="font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70">— {skill}</li>
+                        ))}
+                      </ul>
+                    ) : <p className="mt-2 font-body text-sm text-ink/55 dark:text-cream/55">Skills will be listed soon.</p>}
+                  </div>
+                  <div className="border-l-2 border-forest pl-4 dark:border-olive">
+                    <h3 className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><Wrench size={18} className="text-forest dark:text-olive" aria-hidden="true" />Hard skills</h3>
+                    {aboutQ.data?.hard_skills?.length ? (
+                      <ul className="mt-2 space-y-1">
+                        {aboutQ.data.hard_skills.map((skill: string) => (
+                          <li key={skill} className="font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70">— {skill}</li>
+                        ))}
+                      </ul>
+                    ) : <p className="mt-2 font-body text-sm text-ink/55 dark:text-cream/55">Hard skills will be listed soon.</p>}
+                  </div>
+                  <div className="border-l-2 border-forest pl-4 dark:border-olive sm:col-span-2">
+                    <h3 id="home-software-heading" className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><Monitor size={18} className="text-forest dark:text-olive" aria-hidden="true" />Software & tools</h3>
+                    {Array.isArray(aboutQ.data?.software) && aboutQ.data.software.length > 0 ? (
+                      <>
+                        <style>{`
+                          @keyframes homepage-software-marquee {
+                            from { transform: translateX(0); }
+                            to { transform: translateX(-50%); }
+                          }
+                          .homepage-software-marquee-track {
+                            animation: homepage-software-marquee 24s linear infinite;
+                          }
+                          .homepage-software-marquee:hover .homepage-software-marquee-track {
+                            animation-play-state: paused;
+                          }
+                          @media (prefers-reduced-motion: reduce) {
+                            .homepage-software-marquee-track { animation: none; }
+                            .homepage-software-marquee-duplicate { display: none; }
+                            .homepage-software-marquee { overflow-x: auto; }
+                          }
+                        `}</style>
+                        <div className="homepage-software-marquee mt-2 overflow-hidden" aria-labelledby="home-software-heading">
+                          <div className="homepage-software-marquee-track flex w-max">
+                            {[0, 1].map((copy) => (
+                              <ul key={copy} className={`flex shrink-0 gap-4 pr-4 ${copy === 1 ? "homepage-software-marquee-duplicate" : ""}`} aria-hidden={copy === 1}>
+                                {aboutQ.data.software.map((tool: { id?: string; icon_url?: string }, index: number) => (
+                                  <li key={tool.id || `software-${index}`} className="flex h-14 w-14 items-center justify-center">
+                                    {tool.icon_url ? <img src={tool.icon_url} alt="" title="Software tool" loading="lazy" className="h-11 w-11 object-contain" /> : <Code2 size={26} aria-hidden="true" />}
+                                  </li>
+                                ))}
+                              </ul>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    ) : <p className="mt-2 font-body text-sm text-ink/55 dark:text-cream/55">Software and tools will be listed soon.</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-10 flex flex-col items-start justify-between gap-5 rounded-[4px] bg-forest p-6 text-cream dark:bg-[#20251D] sm:flex-row sm:items-center sm:p-8">
+              <div>
+                <p className="font-body text-xs uppercase tracking-[0.18em] text-olive">Have a project in mind?</p>
+                <p className="mt-2 font-display text-2xl sm:text-3xl">Let’s make it happen.</p>
+              </div>
+              <Link to="/contact" className="inline-flex min-h-14 items-center justify-center gap-3 rounded-[4px] bg-olive px-7 py-4 font-body text-base font-semibold text-ink transition-colors hover:bg-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream sm:text-lg">
+                Discuss a project <ArrowRight size={19} aria-hidden="true" />
+              </Link>
+            </div>
+
+            {shoutoutsQ.isError ? (
+              <p className="mt-10 font-body text-sm text-red-700" role="alert">Acknowledgements could not be loaded.</p>
+            ) : (shoutoutsQ.data?.length ?? 0) > 0 ? (
+              <div className="mt-12 border-t border-[#E0DAD0] pt-8 dark:border-olive/20">
+                <h3 className="font-display text-2xl text-ink dark:text-cream">People I appreciate</h3>
+                <p className="mt-2 font-body text-sm text-[#4A4A4A] dark:text-cream/65">A shout-out to people who have shared knowledge, encouragement, or collaboration along the way.</p>
+                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {shoutoutsQ.data.map((person) => {
+                    const profileUrl = safeWebUrl(person.profile_url);
+                    return (
+                      <article key={person.id} className="flex gap-4 border border-[#E0DAD0] bg-paper p-4 dark:border-olive/20 dark:bg-[#1A1A16]">
+                        {person.image_url ? (
+                          <img src={person.image_url} alt="" loading="lazy" className="h-16 w-20 shrink-0 rounded-lg object-cover" />
+                        ) : (
+                          <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-lg bg-olive/15 font-display text-lg text-forest dark:text-olive">{person.name.slice(0, 1)}</div>
+                        )}
+                        <div className="min-w-0">
+                          <h4 className="font-display text-base text-ink dark:text-cream">{person.name}</h4>
+                          {person.role && <p className="mt-0.5 font-body text-xs text-ember">{person.role}</p>}
+                          {person.information && <p className="mt-2 line-clamp-3 font-body text-xs leading-relaxed text-[#4A4A4A] dark:text-cream/65">{person.information}</p>}
+                          {profileUrl && <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex font-body text-xs font-medium text-forest underline dark:text-olive">Website / social profile <ArrowRight size={12} className="ml-1" aria-hidden="true" /></a>}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      )}
+
       {/* TRUSTED BY — managed in Admin → Manage Content → Partners */}
       <TrustedBy
         eyebrow={s?.trusted_eyebrow}
@@ -467,7 +680,7 @@ const Index = () => {
               {s.banner_cta_text ? (
                 <CtaLink
                   to={s.banner_cta_link}
-                  className="w-full sm:w-auto text-center shrink-0 inline-flex items-center justify-center gap-2 border border-cream/40 text-cream px-5 py-2.5 text-sm font-body rounded-[4px] hover:bg-cream hover:text-forest transition-colors"
+                  className="w-full sm:w-auto text-center shrink-0 inline-flex items-center justify-center gap-2 border border-olive text-cream px-5 py-2.5 text-sm font-body rounded-[4px] hover:bg-olive hover:text-ink transition-colors"
                 >
                   {s.banner_cta_text} <ArrowRight size={14} />
                 </CtaLink>
@@ -476,6 +689,163 @@ const Index = () => {
           </div>
         </section>
       ) : null}
+
+      {/* FEATURED PROJECTS */}
+      <section className="bg-snow dark:bg-[#141410] py-16 sm:py-20 border-y border-[#E0DAD0] dark:border-olive/15">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <Eyebrow>Featured Projects</Eyebrow>
+              <h2 className="mt-3 font-display text-3xl leading-tight text-ink dark:text-cream sm:text-4xl">
+                Projects built to make a difference
+              </h2>
+              <p className="mt-3 max-w-2xl font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/65 sm:text-base">
+                Explore a selection of web applications and digital systems delivered for real-world needs.
+              </p>
+            </div>
+            <Link
+              to="/projects"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-[4px] bg-forest px-5 py-3 font-body text-sm font-medium text-cream transition-colors hover:bg-olive hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+            >
+              Explore all projects <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+          </div>
+
+          {featuredProjectsQ.isPending ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" aria-label="Loading featured projects">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="aspect-video animate-pulse bg-olive/10" />
+              ))}
+            </div>
+          ) : featuredProjectsQ.isError ? (
+            <div className="border border-[#E0DAD0] bg-paper p-6 text-center dark:border-olive/20 dark:bg-[#1A1A16]" role="alert">
+              <p className="font-body text-sm text-ink dark:text-cream">Featured projects could not be loaded.</p>
+              <button
+                type="button"
+                onClick={() => void featuredProjectsQ.refetch()}
+                className="mt-3 min-h-11 rounded-[4px] border border-forest px-4 py-2 font-body text-sm text-forest hover:bg-forest hover:text-cream dark:border-olive dark:text-olive"
+              >
+                Try again
+              </button>
+            </div>
+          ) : featuredProjectsQ.data.length === 0 ? (
+            <div className="border border-dashed border-[#D6D0C5] p-8 text-center dark:border-olive/20">
+              <p className="font-body text-sm text-[#4A4A4A] dark:text-cream/65">Project highlights are being added. Visit the portfolio to explore more work.</p>
+              <Link to="/projects" className="mt-4 inline-flex min-h-11 items-center gap-2 font-body text-sm font-medium text-ember hover:underline">
+                Browse the portfolio <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredProjectsQ.data.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={{
+                    id: project.id,
+                    name: project.name || "Untitled project",
+                    description: project.description || "",
+                    sector: project.sector || "Web Development",
+                    image: project.image || undefined,
+                    liveUrl: project.live_url || undefined,
+                    landscapePreview: true,
+                    detailUrl: `/projects/web/${project.id}`,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* GRAPHIC DESIGN MARQUEE */}
+      <section className="overflow-hidden bg-paper py-14 dark:bg-[#0F0F0C]" aria-labelledby="design-marquee-heading">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <Eyebrow>Graphic Design</Eyebrow>
+                <h2 id="design-marquee-heading" className="mt-3 font-display text-2xl text-ink dark:text-cream sm:text-3xl">
+                  Creative work, made for real-world use
+                </h2>
+              </div>
+              <Link
+                to="/projects?tab=design"
+                className="inline-flex min-h-11 items-center gap-2 font-body text-sm font-medium text-forest transition-colors hover:text-olive dark:text-olive dark:hover:text-cream"
+              >
+                Explore graphic design <ArrowRight size={15} aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+
+          {designMarqueeQ.isPending ? (
+            <div className="mx-auto grid max-w-6xl grid-cols-2 gap-3 px-4 sm:grid-cols-4 sm:px-6 lg:px-8" aria-label="Loading graphic design work">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="aspect-square animate-pulse bg-olive/10" />
+              ))}
+            </div>
+          ) : designMarqueeQ.isError ? (
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8" role="alert">
+              <p className="font-body text-sm text-ink/70 dark:text-cream/70">Graphic design work could not be loaded.</p>
+              <button type="button" onClick={() => void designMarqueeQ.refetch()} className="mt-2 min-h-10 font-body text-sm text-forest underline dark:text-olive">
+                Try again
+              </button>
+            </div>
+          ) : designMarqueeQ.data.length > 0 ? (
+            <>
+              <style>{`
+                @keyframes homepage-design-marquee {
+                  from { transform: translateX(0); }
+                  to { transform: translateX(-50%); }
+                }
+                .homepage-design-marquee-track {
+                  animation: homepage-design-marquee 42s linear infinite;
+                }
+                .homepage-design-marquee:hover .homepage-design-marquee-track,
+                .homepage-design-marquee:focus-within .homepage-design-marquee-track {
+                  animation-play-state: paused;
+                }
+                @media (prefers-reduced-motion: reduce) {
+                  .homepage-design-marquee-track { animation: none; }
+                  .homepage-design-marquee { overflow-x: auto; }
+                }
+              `}</style>
+              <div className="homepage-design-marquee overflow-hidden" aria-label="Graphic design portfolio highlights">
+                <div className="homepage-design-marquee-track flex w-max px-4">
+                  {[0, 1].map((copy) => (
+                    <div key={copy} className="flex gap-4 pr-4" aria-hidden={copy === 1}>
+                      {designMarqueeQ.data.map((design) => (
+                        <Link
+                          key={`${copy}-${design.id}`}
+                          to={`/projects/design/${design.id}`}
+                          tabIndex={copy === 1 ? -1 : undefined}
+                          className="group w-56 shrink-0 overflow-hidden border border-[#E0DAD0] bg-snow dark:border-olive/20 dark:bg-[#1A1A16] sm:w-64"
+                        >
+                          <div className="aspect-square overflow-hidden bg-[#eee9df] p-4">
+                            {design.image ? (
+                              <img src={design.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]" />
+                            ) : (
+                              <div className="flex h-full items-center justify-center font-body text-xs text-ink/50">Preview unavailable</div>
+                            )}
+                          </div>
+                          <div className="p-4">
+                            <p className="font-body text-[10px] uppercase tracking-wider text-ember">{design.category || "Graphic Design"}</p>
+                            <h3 className="mt-1 truncate font-display text-base text-ink dark:text-cream">{design.title}</h3>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
+              <p className="font-body text-sm text-ink/65 dark:text-cream/65">Design highlights are being added. Explore the portfolio or get in touch about a design service.</p>
+              <Link to="/projects" className="mt-3 inline-flex min-h-11 items-center gap-2 font-body text-sm font-medium text-forest underline dark:text-olive">
+                Browse projects <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </div>
+          )}
+      </section>
 
       {/* SERVICES */}
       {(servicesQ.isPending || services.length > 0) && (

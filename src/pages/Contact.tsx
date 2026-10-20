@@ -121,7 +121,7 @@ const Contact = () => {
               Let's Work Together
             </h1>
             <p className="font-body text-lg text-[#4A4A4A] mt-4 max-w-2xl leading-relaxed">
-              Got a project in mind, a broken system to fix, or just need some advice? Drop me a message below and I'll usually get back to you within 24 hours on weekdays.
+              Got a project in mind, a broken system to fix, or need some advice? Use the form below to prepare an email draft, then send it from your email app. You can also reach me directly using the contact details here.
             </p>
 
             {/* Contact grid */}

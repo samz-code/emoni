@@ -6,73 +6,144 @@ import { ArrowLeft, Loader2, Clock, Eye, Calendar, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Insight } from "@/types/insight";
 
-// Client-side sanitizer: strips scripts/styles/iframes and inline event handlers
 const sanitizeArticleHtml = (html: string) => {
   const doc = new DOMParser().parseFromString(html, "text/html");
-  doc.querySelectorAll("script, style, iframe, object, embed").forEach((el) => el.remove());
+  doc.querySelectorAll("script, style, iframe, object, embed, svg, math, form, input, button, base, meta, link").forEach((el) => el.remove());
   doc.querySelectorAll("*").forEach((el) => {
     [...el.attributes].forEach((attr) => {
-      if (attr.name.startsWith("on")) el.removeAttribute(attr.name);
+      const name = attr.name.toLowerCase();
+      if (name.startsWith("on") || ["srcdoc", "srcset", "formaction", "xlink:href"].includes(name)) {
+        el.removeAttribute(attr.name);
+      }
+
+      if (name === "style" && /url\s*\(|expression\s*\(|@import|behavior\s*:/i.test(attr.value)) {
+        el.removeAttribute(attr.name);
+      }
+
+      if (name === "href" || name === "src") {
+        const value = attr.value.trim();
+        try {
+          const url = new URL(value, window.location.origin);
+          const allowedProtocols = name === "src"
+            ? ["http:", "https:"]
+            : ["http:", "https:", "mailto:", "tel:"];
+          if (!allowedProtocols.includes(url.protocol)) el.removeAttribute(attr.name);
+        } catch {
+          el.removeAttribute(attr.name);
+        }
+      }
     });
+
+    if (el instanceof HTMLAnchorElement && el.target === "_blank") {
+      el.rel = "noopener noreferrer";
+    }
   });
   return doc.body.innerHTML;
 };
 
 const looksLikeHtml = (text: string) => /<[a-z][\s\S]*>/i.test(text);
+type RelatedInsight = Pick<Insight, "slug" | "title" | "category" | "read_time" | "excerpt" | "date" | "image">;
 
 const InsightDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [insight, setInsight] = useState<Insight | null>(null);
-  const [related, setRelated] = useState<Insight[]>([]);
+  const [related, setRelated] = useState<RelatedInsight[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
+    let active = true;
+    setInsight(null);
+    setRelated([]);
+    setLoadError(false);
+
+    if (!slug) {
+      setLoading(false);
+      return () => {
+        active = false;
+      };
+    }
 
     const loadArticleData = async () => {
       setLoading(true);
       try {
         const { data, error } = await supabase
           .from("insights")
-          .select("*")
+          .select("id,slug,title,category,read_time,excerpt,date,author,image,body,readers,tags,featured,published,sort_order,created_at,updated_at")
           .eq("slug", slug)
           .eq("published", true)
           .single();
 
-        if (error || !data) {
-          setInsight(null);
-          setLoading(false);
+        if (error?.code === "PGRST116") {
           return;
         }
+        if (error) throw error;
+        if (!data) return;
+        if (!active) return;
 
         setInsight(data as Insight);
+        setLoading(false);
 
-        // Session-cached unique view increment
+        void Promise.resolve()
+          .then(async () => {
+            const { data: relatedData, error: relatedError } = await supabase
+              .from("insights")
+              .select("slug,title,category,read_time,excerpt,date,image")
+              .neq("slug", slug)
+              .eq("published", true)
+              .order("sort_order", { ascending: true })
+              .limit(3);
+            if (relatedError) throw relatedError;
+            if (active && relatedData) setRelated(relatedData);
+          })
+          .catch((error: unknown) => {
+            console.error("Error loading related insights:", error);
+          });
+
         const sessionKey = `read_insight_${slug}`;
-        if (!sessionStorage.getItem(sessionKey)) {
-          await supabase.rpc("increment_insight_readers", { insight_slug: slug });
-          sessionStorage.setItem(sessionKey, "true");
-          setInsight((prev) => (prev ? { ...prev, readers: (prev.readers || 0) + 1 } : null));
+        let alreadyViewed = false;
+        try {
+          alreadyViewed = sessionStorage.getItem(sessionKey) !== null;
+          if (!alreadyViewed) sessionStorage.setItem(sessionKey, "pending");
+        } catch (error) {
+          console.error("Unable to access session storage for article view tracking:", error);
         }
 
-        // Dynamic Related Articles from Supabase
-        const { data: relatedData } = await supabase
-          .from("insights")
-          .select("*")
-          .neq("slug", slug)
-          .eq("published", true)
-          .order("sort_order", { ascending: true })
-          .limit(3);
-
-        if (relatedData) setRelated(relatedData as Insight[]);
-      } catch (err) {
-        console.error("Error loading article from database:", err);
+        if (!alreadyViewed) {
+          void Promise.resolve()
+            .then(async () => {
+              const { error } = await supabase.rpc("increment_insight_readers", { insight_slug: slug });
+              if (error) throw error;
+              try {
+                sessionStorage.setItem(sessionKey, "true");
+              } catch (storageError) {
+                console.error("Unable to save article view tracking state:", storageError);
+              }
+              if (active) {
+                setInsight((prev) => (prev ? { ...prev, readers: (prev.readers || 0) + 1 } : null));
+              }
+            })
+            .catch((error: unknown) => {
+              try {
+                sessionStorage.removeItem(sessionKey);
+              } catch (storageError) {
+                console.error("Unable to clear article view tracking state:", storageError);
+              }
+              console.error("Error recording article view:", error);
+            });
+        }
+      } catch (error) {
+        if (active) setLoadError(true);
+        console.error("Error loading article from database:", error);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
-    loadArticleData();
+    void loadArticleData();
+    return () => {
+      active = false;
+    };
   }, [slug]);
 
   if (loading) {
@@ -94,7 +165,9 @@ const InsightDetail = () => {
         <main className="bg-paper min-h-screen py-24 px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="font-display text-3xl md:text-4xl text-ink">Article Not Found</h1>
-            <p className="font-body text-ink/60 mt-3">This insight article is unavailable or unassigned.</p>
+            <p className="font-body text-ink/60 mt-3">
+              {loadError ? "The article could not be loaded. Please try again later." : "This insight article is unavailable or unassigned."}
+            </p>
             <Link to="/insights" className="inline-flex items-center gap-2 text-ember font-body text-sm mt-6 font-medium hover:underline">
               <ArrowLeft size={16} /> Return to Insights
             </Link>
@@ -124,8 +197,8 @@ const InsightDetail = () => {
     "dateModified": insight.date,
     "author": {
       "@type": "Person",
-      "name": "Samuel A. Emoni",
-      "url": "https://www.emonisamuel.co.ke"
+      "name": insight.author || "Samuel A. Emoni",
+      ...(insight.author ? {} : { "url": "https://www.emonisamuel.co.ke" })
     },
     "publisher": {
       "@type": "Person",
@@ -135,6 +208,8 @@ const InsightDetail = () => {
     "articleSection": insight.category,
     "keywords": insight.tags ? insight.tags.join(", ") : undefined
   };
+
+  const hasTags = Boolean(insight.tags && insight.tags.length > 0);
 
   return (
     <>
@@ -162,134 +237,167 @@ const InsightDetail = () => {
       </Helmet>
 
       <main className="bg-paper min-h-screen overflow-x-hidden">
-        <section className="bg-forest py-10 sm:py-16 md:py-20">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <Link to="/insights" className="inline-flex items-center gap-2 text-cream/70 font-body text-xs sm:text-sm hover:text-ember transition-colors mb-6">
-                <ArrowLeft size={16} /> Back to Insights
-              </Link>
-              
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="bg-ember text-cream text-xs rounded px-2.5 py-1 font-body font-medium">
-                  {insight.category}
-                </span>
-                {insight.featured && (
-                  <span className="bg-cream/20 text-cream text-xs rounded px-2.5 py-1 font-body">
-                    Featured
-                  </span>
-                )}
+        {/* HERO: title + meta on the left, cover image on the right (stacks on mobile) */}
+        <section className="bg-forest py-8 sm:py-12 lg:py-14">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className={
+                insight.image
+                  ? "grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
+                  : "max-w-4xl"
+              }
+            >
+              <div className={insight.image ? "lg:col-span-6 xl:col-span-5 min-w-0" : "min-w-0"}>
+                <Link to="/insights" className="inline-flex items-center gap-2 text-cream/70 font-body text-xs sm:text-sm hover:text-ember transition-colors mb-6">
+                  <ArrowLeft size={16} /> Back to Insights
+                </Link>
+
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  {insight.category && (
+                    <span className="bg-ember text-cream text-xs rounded px-2.5 py-1 font-body font-medium">
+                      {insight.category}
+                    </span>
+                  )}
+                  {insight.featured && (
+                    <span className="bg-cream/20 text-cream text-xs rounded px-2.5 py-1 font-body">
+                      Featured
+                    </span>
+                  )}
+                </div>
+
+                <h1 className="font-display text-2xl sm:text-4xl xl:text-5xl text-cream leading-tight break-words">
+                  {insight.title}
+                </h1>
+
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-cream/70 font-body text-xs sm:text-sm mt-6">
+                  <span>Published by {insight.author || "Samuel A. Emoni"}</span>
+                  {insight.date && <span className="flex items-center gap-1.5"><Calendar size={14} aria-hidden="true" /> {insight.date}</span>}
+                  {insight.read_time && <span className="flex items-center gap-1.5"><Clock size={14} aria-hidden="true" /> {insight.read_time}</span>}
+                  {Boolean(insight.readers) && <span className="flex items-center gap-1.5"><Eye size={14} aria-hidden="true" /> {insight.readers?.toLocaleString()} reads</span>}
+                </div>
               </div>
 
-              <h1 className="font-display text-2xl sm:text-4xl md:text-5xl text-cream leading-tight break-words">
-                {insight.title}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-cream/70 font-body text-xs sm:text-sm mt-6">
-                <span className="flex items-center gap-1.5"><Calendar size={14} /> {insight.date}</span>
-                <span className="hidden sm:inline">•</span>
-                <span className="flex items-center gap-1.5"><Clock size={14} /> {insight.read_time}</span>
-                <span className="hidden sm:inline">•</span>
-                <span className="flex items-center gap-1.5"><Eye size={14} /> {(insight.readers || 0).toLocaleString()} reads</span>
-              </div>
+              {insight.image && (
+                <div className="lg:col-span-6 xl:col-span-7 min-w-0">
+                  <div className="overflow-hidden rounded-lg shadow-xl border border-cream/10">
+                    <img
+                      src={insight.image}
+                      alt={insight.title}
+                      fetchPriority="high"
+                      decoding="async"
+                      className="w-full aspect-[16/10] lg:aspect-[16/9] object-cover"
+                    />
+                  </div>
+                </div>
+              )}
             </motion.div>
           </div>
         </section>
 
-        {insight.image && (
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-10 md:-mt-14">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="overflow-hidden rounded-lg shadow-xl border border-border"
-            >
-              <img
-                src={insight.image}
-                alt={insight.title}
-                className="w-full h-56 sm:h-[26rem] md:h-[34rem] lg:h-[40rem] object-cover"
-              />
-            </motion.div>
-          </div>
-        )}
+        {/* BODY: article column + sticky sidebar */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-10 lg:py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem] gap-10 lg:gap-12 items-start">
+            <article className="min-w-0 w-full">
+              {insight.excerpt && (
+                <p className="font-body text-base sm:text-lg md:text-xl text-ink font-medium leading-relaxed mb-8 border-l-4 border-ember pl-4 break-words">
+                  {insight.excerpt}
+                </p>
+              )}
 
-        <article className="py-8 sm:py-12 md:py-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full min-w-0">
-            <p className="font-body text-base sm:text-lg md:text-xl text-ink font-medium leading-relaxed mb-8 border-l-4 border-ember pl-4 break-words">
-              {insight.excerpt}
-            </p>
-
-            {isRichHtmlBody ? (
-              <div
-                className="insight-body font-body text-sm sm:text-base text-ink/90 leading-relaxed overflow-hidden"
-                dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(body[0]) }}
-              />
-            ) : (
-              <div className="space-y-6">
-                {body.map((line, idx) => {
-                  if (line.startsWith("## ")) {
+              {isRichHtmlBody ? (
+                <div
+                  className="insight-body font-body text-sm sm:text-base text-ink/90 leading-relaxed overflow-hidden"
+                  dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(body[0]) }}
+                />
+              ) : (
+                <div className="space-y-6">
+                  {body.map((line, idx) => {
+                    if (line.startsWith("## ")) {
+                      return (
+                        <h2 key={idx} className="font-display text-xl sm:text-2xl text-ink mt-8 mb-3 pt-4 border-t border-border break-words">
+                          {line.replace(/^##\s/, "")}
+                        </h2>
+                      );
+                    }
+                    if (line.startsWith("- ")) {
+                      return (
+                        <li key={idx} className="font-body text-sm sm:text-base text-ink/80 leading-relaxed list-disc ml-6 break-words">
+                          {line.replace(/^-\s/, "")}
+                        </li>
+                      );
+                    }
                     return (
-                      <h2 key={idx} className="font-display text-xl sm:text-2xl text-ink mt-8 mb-3 pt-4 border-t border-border break-words">
-                        {line.replace(/^##\s/, "")}
-                      </h2>
+                      <p key={idx} className="font-body text-sm sm:text-base text-ink/90 leading-relaxed break-words">
+                        {line}
+                      </p>
                     );
-                  }
-                  if (line.startsWith("- ")) {
-                    return (
-                      <li key={idx} className="font-body text-sm sm:text-base text-ink/80 leading-relaxed list-disc ml-6 break-words">
-                        {line.replace(/^-\s/, "")}
-                      </li>
-                    );
-                  }
-                  return (
-                    <p key={idx} className="font-body text-sm sm:text-base text-ink/90 leading-relaxed break-words">
-                      {line}
-                    </p>
-                  );
-                })}
-              </div>
-            )}
+                  })}
+                </div>
+              )}
+            </article>
 
-            {insight.tags && insight.tags.length > 0 && (
-              <div className="mt-12 pt-6 border-t border-border flex flex-wrap items-center gap-2">
-                <Tag size={16} className="text-ink/40 mr-1" />
-                {insight.tags.map((tag) => (
-                  <span key={tag} className="bg-snow border border-border text-ink/70 text-xs px-3 py-1 rounded-full font-body">
-                    {tag}
-                  </span>
-                ))}
-              </div>
+            {(hasTags || related.length > 0) && (
+              <aside className="min-w-0 w-full lg:sticky lg:top-24 space-y-6">
+                {hasTags && (
+                  <div className="bg-snow border border-border rounded-lg p-5">
+                    <h2 className="font-display text-base text-ink mb-3 flex items-center gap-2">
+                      <Tag size={16} className="text-ink/40" /> Topics
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {insight.tags?.map((tag) => (
+                        <span key={tag} className="bg-paper border border-border text-ink/70 text-xs px-3 py-1 rounded-full font-body">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {related.length > 0 && (
+                  <div className="bg-snow border border-border rounded-lg p-5">
+                    <h2 className="font-display text-base text-ink mb-4">Related Insights</h2>
+                    <ul className="divide-y divide-border/60">
+                      {related.map((item) => (
+                        <li key={item.slug} className="first:pt-0 last:pb-0 py-4">
+                          <Link to={`/insights/${item.slug}`} className="group flex gap-4">
+                            {item.image && (
+                              <div className="aspect-[4/3] w-24 shrink-0 overflow-hidden bg-paper sm:w-28">
+                                <img
+                                  src={item.image}
+                                  alt={item.title}
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                                />
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              {item.category && (
+                                <span className="text-xs font-body text-ember font-medium uppercase tracking-wider">
+                                  {item.category}
+                                </span>
+                              )}
+                              <h3 className="font-display text-base text-ink mt-1 group-hover:text-ember transition-colors line-clamp-2">
+                                {item.title}
+                              </h3>
+                              <div className="font-body text-xs text-ink/50 mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                                {item.date && <span>{item.date}</span>}
+                                {item.read_time && <span>{item.read_time}</span>}
+                              </div>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </aside>
             )}
           </div>
-        </article>
-
-        {related.length > 0 && (
-          <section className="bg-snow border-t border-border py-12 md:py-16">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h2 className="font-display text-2xl text-ink mb-6">Related Insights</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {related.map((item) => (
-                  <Link
-                    key={item.slug}
-                    to={`/insights/${item.slug}`}
-                    className="bg-paper border border-border rounded-lg p-5 flex flex-col justify-between hover:border-ember transition-colors group shadow-sm"
-                  >
-                    <div>
-                      <span className="text-xs font-body text-ember font-medium uppercase tracking-wider">{item.category}</span>
-                      <h3 className="font-display text-lg text-ink mt-2 group-hover:text-ember transition-colors line-clamp-2">
-                        {item.title}
-                      </h3>
-                      <p className="font-body text-xs text-ink/60 mt-2 line-clamp-2">{item.excerpt}</p>
-                    </div>
-                    <div className="font-body text-xs text-ink/40 mt-4 pt-4 border-t border-border/50 flex justify-between">
-                      <span>{item.date}</span>
-                      <span>{item.read_time}</span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
+        </div>
 
         {/* Global Mobile Anti-Overlap & Rich-Text Renderer Engine */}
         <style>{`

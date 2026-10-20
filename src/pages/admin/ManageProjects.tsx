@@ -9,11 +9,31 @@ import {
 type ActiveTab = "projects" | "products" | "designs";
 
 const DEFAULT_DESIGN_CATEGORIES = [
+  "Branding",
   "Logos & Brand Identity",
+  "Product Design",
+  "Printing",
+  "Print & Marketing Materials",
+  "Label & Package Design",
+  "Packaging Design",
+  "Pens & Promotional Items",
+  "Apparel & Merchandise",
+  "Posters & Flyers",
+  "Website & Digital Design",
+  "UI/UX Design",
+  "Social Media Design",
+  "Product Mockups",
+  "Illustration",
+  "Editorial & Publication Design",
+  "Signage & Large Format",
+  "Presentation Design",
   "Packaging & Labels",
   "Print & Marketing Flyers",
   "Social Media Campaigns",
   "Stationery & Corporate",
+  "Corporate Identity",
+  "Merchandise Design",
+  "Motion Graphics",
   "3D Architectural & Interior Renders",
 ];
 
@@ -37,6 +57,8 @@ export default function ManageProjects() {
     name: "", 
     sector: "Web Development", 
     description: "", 
+    full_description: "",
+    categories: "",
     live_url: "", 
     image: "", 
     images: [] as string[] 
@@ -54,6 +76,9 @@ export default function ManageProjects() {
     id: "", 
     title: "", 
     category: "Logos & Brand Identity", 
+    description: "",
+    full_description: "",
+    categories: "",
     image: "", 
     images: [] as string[] 
   });
@@ -90,7 +115,11 @@ export default function ManageProjects() {
   const upsertMutation = useMutation({
     mutationFn: async () => {
       if (activeTab === "projects") {
-        const payload = editingId ? { ...projectData, id: editingId } : projectData;
+        const payload = {
+          ...projectData,
+          categories: projectData.categories.split(",").map((category) => category.trim()).filter(Boolean),
+          ...(editingId ? { id: editingId } : {}),
+        };
         const { error } = await supabase.from("projects").upsert(payload);
         if (error) throw error;
       } else if (activeTab === "products") {
@@ -98,7 +127,11 @@ export default function ManageProjects() {
         const { error } = await supabase.from("products").upsert(payload);
         if (error) throw error;
       } else {
-        const payload = editingId ? { ...designData, id: editingId } : { ...designData, id: `des-${Date.now()}` };
+        const payload = {
+          ...designData,
+          categories: designData.categories.split(",").map((category) => category.trim()).filter(Boolean),
+          ...(editingId ? { id: editingId } : { id: `des-${Date.now()}` }),
+        };
         const { error } = await supabase.from("graphic_designs").upsert(payload);
         if (error) throw error;
       }
@@ -227,9 +260,9 @@ export default function ManageProjects() {
     setMutationError(null);
     setDragActive(false);
     dragCounter.current = 0;
-    setProjectData({ name: "", sector: "Web Development", description: "", live_url: "", image: "", images: [] });
+    setProjectData({ name: "", sector: "Web Development", description: "", full_description: "", categories: "", live_url: "", image: "", images: [] });
     setProductData({ name: "", category: "Design Templates", description: "", format: "Illustrator", status: "available", icon: "Palette", price: 0 });
-    setDesignData({ id: "", title: "", category: "Logos & Brand Identity", image: "", images: [] });
+    setDesignData({ id: "", title: "", category: "Logos & Brand Identity", description: "", full_description: "", categories: "", image: "", images: [] });
   };
 
   const openEditModal = (item: any) => {
@@ -242,6 +275,8 @@ export default function ManageProjects() {
         name: item.name || "", 
         sector: item.sector || "", 
         description: item.description || "", 
+        full_description: item.full_description || "",
+        categories: Array.isArray(item.categories) ? item.categories.join(", ") : "",
         live_url: item.live_url || "", 
         image: item.image || itemImages[0] || "",
         images: itemImages 
@@ -262,6 +297,9 @@ export default function ManageProjects() {
         id: item.id, 
         title: item.title || "", 
         category: item.category || "", 
+        description: item.description || "",
+        full_description: item.full_description || "",
+        categories: Array.isArray(item.categories) ? item.categories.join(", ") : "",
         image: item.image || itemImages[0] || "",
         images: itemImages 
       });
@@ -673,8 +711,28 @@ export default function ManageProjects() {
                     <input type="text" required value={projectData.sector} onChange={e => setProjectData({ ...projectData, sector: e.target.value })} className="w-full bg-[#FBF9F5] border border-[#524646]/20 rounded-lg p-2.5 text-[#524646]" />
                   </div>
                   <div>
+                    <label className="block font-bold text-[#524646] mb-1">Additional Categories</label>
+                    <input
+                      type="text"
+                      value={projectData.categories}
+                      onChange={e => setProjectData({ ...projectData, categories: e.target.value })}
+                      className="w-full bg-[#FBF9F5] border border-[#524646]/20 rounded-lg p-2.5 text-[#524646]"
+                      placeholder="Brand identity, Posters & Flyers, Website (comma separated)"
+                    />
+                  </div>
+                  <div>
                     <label className="block font-bold text-[#524646] mb-1">Description</label>
                     <textarea rows={3} required value={projectData.description} onChange={e => setProjectData({ ...projectData, description: e.target.value })} className="w-full bg-[#FBF9F5] border border-[#524646]/20 rounded-lg p-2.5 text-[#524646]" />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-[#524646] mb-1">Full Project Description</label>
+                    <textarea
+                      rows={7}
+                      value={projectData.full_description}
+                      onChange={e => setProjectData({ ...projectData, full_description: e.target.value })}
+                      className="w-full bg-[#FBF9F5] border border-[#524646]/20 rounded-lg p-2.5 text-[#524646]"
+                      placeholder="Describe the brief, work delivered, and the project outcomes. Use separate paragraphs where useful."
+                    />
                   </div>
                   <div>
                     <label className="block font-bold text-[#524646] mb-1">Live URL</label>
@@ -727,9 +785,48 @@ export default function ManageProjects() {
                   </div>
                   <div>
                     <label className="block font-bold text-[#524646] mb-1">Category</label>
-                    <select value={designData.category} onChange={e => setDesignData({ ...designData, category: e.target.value })} className="w-full bg-[#FBF9F5] border border-[#524646]/20 rounded-lg p-2.5 text-[#524646]">
-                      {DEFAULT_DESIGN_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <input
+                      type="text"
+                      list="design-category-options"
+                      required
+                      value={designData.category}
+                      onChange={e => setDesignData({ ...designData, category: e.target.value })}
+                      className="w-full bg-[#FBF9F5] border border-[#524646]/20 rounded-lg p-2.5 text-[#524646]"
+                      placeholder="Choose or enter a category"
+                    />
+                    <datalist id="design-category-options">
+                      {DEFAULT_DESIGN_CATEGORIES.map((category) => <option key={category} value={category} />)}
+                    </datalist>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-[#524646] mb-1">Additional Categories</label>
+                    <input
+                      type="text"
+                      value={designData.categories}
+                      onChange={e => setDesignData({ ...designData, categories: e.target.value })}
+                      className="w-full bg-[#FBF9F5] border border-[#524646]/20 rounded-lg p-2.5 text-[#524646]"
+                      placeholder="Pens, Apparel, Posters, Website, Mockups (comma separated)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-[#524646] mb-1">Short Description</label>
+                    <textarea
+                      rows={3}
+                      value={designData.description}
+                      onChange={e => setDesignData({ ...designData, description: e.target.value })}
+                      className="w-full bg-[#FBF9F5] border border-[#524646]/20 rounded-lg p-2.5 text-[#524646]"
+                      placeholder="A concise overview for the portfolio card."
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-bold text-[#524646] mb-1">Full Project Description</label>
+                    <textarea
+                      rows={7}
+                      value={designData.full_description}
+                      onChange={e => setDesignData({ ...designData, full_description: e.target.value })}
+                      className="w-full bg-[#FBF9F5] border border-[#524646]/20 rounded-lg p-2.5 text-[#524646]"
+                      placeholder="Describe the brief, concepts, deliverables, and project outcomes. Use separate paragraphs where useful."
+                    />
                   </div>
                 </>
               )}

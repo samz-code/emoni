@@ -1,0 +1,2 @@
+ALTER TABLE public.insights
+ADD COLUMN IF NOT EXISTS author text;

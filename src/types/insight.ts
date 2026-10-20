@@ -6,6 +6,7 @@ export interface Insight {
   read_time: string;
   excerpt: string;
   date: string;
+  author?: string;
   image?: string;
   body: string[];
   readers?: number;
@@ -16,3 +17,8 @@ export interface Insight {
   created_at?: string;
   updated_at?: string;
 }
+
+export type InsightPreview = Pick<
+  Insight,
+  "slug" | "title" | "category" | "read_time" | "excerpt" | "date" | "author" | "image" | "tags" | "featured"
+>;

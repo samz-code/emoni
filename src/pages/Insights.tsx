@@ -1,48 +1,37 @@
-import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
 import InsightCard from "@/components/InsightCard";
 import { supabase } from "@/lib/supabase";
-import type { Insight } from "@/types/insight";
-import { BookOpen, Users, TrendingUp, Filter, Loader2 } from "lucide-react";
+import type { InsightPreview } from "@/types/insight";
+import { Loader2 } from "lucide-react";
 
 const Insights = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [totalReaders, setTotalReaders] = useState(0);
-  const [insights, setInsights] = useState<Insight[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const {
+    data: insights = [],
+    isLoading: loading,
+    error: loadError,
+    refetch,
+  } = useQuery({
+    queryKey: ["public-insights"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("insights")
+        .select("slug,title,category,read_time,excerpt,date,author,image,tags,featured")
+        .eq("published", true)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-  useEffect(() => {
-    const fetchInsights = async () => {
-      setLoading(true);
-      setLoadError(null);
-      try {
-        const { data, error } = await supabase
-          .from("insights")
-          .select("*")
-          .eq("published", true)
-          .order("sort_order", { ascending: true })
-          .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as InsightPreview[];
+    },
+    staleTime: 60_000,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
 
-        if (error) throw error;
-
-        const fetched = (data || []) as Insight[];
-        setInsights(fetched);
-        setTotalReaders(fetched.reduce((sum, insight) => sum + (insight.readers || 0), 0));
-      } catch (err: any) {
-        console.error("Error fetching insights from database:", err);
-        setLoadError(err.message || "Failed to load articles from the database.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInsights();
-  }, []);
-
-  // Derive the real set of topics from the fetched articles (category + tags),
-  // instead of a hardcoded list. Falls back to just "All" while loading/empty.
   const categories = useMemo(() => {
     const unique = new Set<string>();
     insights.forEach((insight) => {
@@ -52,279 +41,143 @@ const Insights = () => {
     return ["All", ...Array.from(unique).sort((a, b) => a.localeCompare(b))];
   }, [insights]);
 
-  const filteredInsights = selectedCategory === "All"
-    ? insights
-    : insights.filter(insight => insight.category === selectedCategory || insight.tags?.includes(selectedCategory));
+  const filteredInsights =
+    selectedCategory === "All"
+      ? insights
+      : insights.filter(
+          (insight) => insight.category === selectedCategory || insight.tags?.includes(selectedCategory)
+        );
 
-  // Prefer an explicitly featured article; fall back to the first result.
-  const explicitFeatured = filteredInsights.find((i) => i.featured);
-  const featured = explicitFeatured || filteredInsights[0];
+  const featured = filteredInsights.find((i) => i.featured) || filteredInsights[0];
   const rest = filteredInsights.filter((i) => i.slug !== featured?.slug);
 
-  const dotPattern = `data:image/svg+xml,${encodeURIComponent('<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="#ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="4"/></g></g></svg>')}`;
-
-  // SEO dynamic values
+  // SEO
   const canonicalUrl = "https://www.emonisamuel.co.ke/insights";
-  const pageTitle = selectedCategory === "All" 
-    ? "Insights & Perspectives | Samuel A. Emoni" 
-    : `${selectedCategory} Articles & Insights | Samuel A. Emoni`;
-  const pageDescription = "Deep dives into digital systems, software architecture, emerging technologies, and building digital solutions in Africa and beyond.";
+  const pageTitle =
+    selectedCategory === "All"
+      ? "Insights & Perspectives | Samuel A. Emoni"
+      : `${selectedCategory} Articles & Insights | Samuel A. Emoni`;
+  const pageDescription =
+    "Deep dives into digital systems, software architecture, emerging technologies, and building digital solutions in Africa and beyond.";
   const ogImage = "https://www.emonisamuel.co.ke/og-image.jpg";
 
-  // CollectionPage Structured Data Schema
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    "name": pageTitle,
-    "description": pageDescription,
-    "url": canonicalUrl,
-    "publisher": {
-      "@type": "Person",
-      "name": "Samuel A. Emoni",
-      "url": "https://www.emonisamuel.co.ke"
-    },
-    "mainEntity": {
+    name: pageTitle,
+    description: pageDescription,
+    url: canonicalUrl,
+    publisher: { "@type": "Person", name: "Samuel A. Emoni", url: "https://www.emonisamuel.co.ke" },
+    mainEntity: {
       "@type": "ItemList",
-      "itemListElement": filteredInsights.map((item, index) => ({
+      itemListElement: filteredInsights.map((item, index) => ({
         "@type": "ListItem",
-        "position": index + 1,
-        "url": `https://www.emonisamuel.co.ke/insights/${item.slug}`,
-        "name": item.title
-      }))
-    }
+        position: index + 1,
+        url: `https://www.emonisamuel.co.ke/insights/${item.slug}`,
+        name: item.title,
+      })),
+    },
   };
 
   return (
     <>
       <Helmet>
-        {/* Core Meta Tags */}
         <title>{pageTitle}</title>
         <meta name="description" content={pageDescription} />
         <link rel="canonical" href={canonicalUrl} />
-
-        {/* Open Graph Tags */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:url" content={canonicalUrl} />
         <meta property="og:image" content={ogImage} />
-
-        {/* Twitter Card Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={ogImage} />
-
-        {/* Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify(collectionSchema)}
-        </script>
+        <script type="application/ld+json">{JSON.stringify(collectionSchema)}</script>
       </Helmet>
 
       <main className="bg-paper">
-        {/* Animated Banner */}
-        <div
-          className="relative overflow-hidden bg-[#E77E23] py-24"
-          style={{
-            backgroundImage: `linear-gradient(rgba(231, 126, 35, 0.9), rgba(231, 126, 35, 0.9)), url('/blog.png')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundBlendMode: 'multiply'
-          }}
-        >
-          <div
-            className="absolute inset-0 opacity-20"
-            style={{ backgroundImage: `url('${dotPattern}')` }}
-          />
-
-          {/* Floating Elements */}
-          <motion.div
-            className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full"
-            animate={{ y: [0, -20, 0], rotate: [0, 180, 360] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute bottom-10 right-10 w-16 h-16 bg-ember/20 rounded-full"
-            animate={{ y: [0, 20, 0], x: [0, -10, 0] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          />
-          <motion.div
-            className="absolute top-1/2 left-1/4 w-12 h-12 bg-olive/30 rounded-full"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          />
-
-          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="mb-8"
-            >
-              <motion.div
-                animate={{ rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="inline-block mb-4"
-              >
-                <BookOpen size={64} className="text-cream mx-auto" />
-              </motion.div>
-              <h1 className="font-display text-[48px] md:text-[64px] text-cream leading-tight">
-                Insights & Perspectives
-              </h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-                className="font-body text-xl text-cream/80 max-w-3xl mx-auto mt-6 leading-relaxed"
-              >
-                Deep dives into digital systems, emerging technologies, and building technology solutions in Africa and beyond.
-              </motion.p>
-            </motion.div>
-
-            {/* Stats Banner */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-wrap justify-center gap-8 mt-12"
-            >
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/20"
-              >
-                <div className="flex items-center gap-3">
-                  <BookOpen size={24} className="text-ember" />
-                  <div>
-                    <div className="text-2xl font-bold text-cream">{insights.length}</div>
-                    <div className="text-sm text-cream/70">Articles</div>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/20"
-              >
-                <div className="flex items-center gap-3">
-                  <Users size={24} className="text-ember" />
-                  <div>
-                    <div className="text-2xl font-bold text-cream">{totalReaders.toLocaleString()}</div>
-                    <div className="text-sm text-cream/70">Readers</div>
-                  </div>
-                </div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/20"
-              >
-                <div className="flex items-center gap-3">
-                  <TrendingUp size={24} className="text-ember" />
-                  <div>
-                    <div className="text-2xl font-bold text-cream">{categories.length - 1}</div>
-                    <div className="text-sm text-cream/70">Topics</div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
+        {/* Page header */}
+        <header className="border-b border-border bg-snow py-12 sm:py-16">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <h1 className="font-display text-4xl normal-case leading-tight text-ink sm:text-5xl">Insights</h1>
+            <p className="mt-4 max-w-2xl font-body text-base leading-relaxed text-[#4A4A4A] sm:text-lg">
+              Notes on digital systems, emerging technologies, and building technology solutions in Africa and beyond.
+            </p>
           </div>
-        </div>
+        </header>
 
-        {/* Content Section */}
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          {/* Category Filter */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-            className="mb-12"
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <Filter size={20} className="text-olive" />
-              <h2 className="font-display text-2xl text-ink">Explore Topics</h2>
-            </div>
+        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+          {/* Topic filter */}
+          <nav aria-label="Filter articles by topic" className="mb-10 flex gap-2 overflow-x-auto pb-2">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setSelectedCategory(category)}
+                aria-pressed={selectedCategory === category}
+                className={`shrink-0 rounded-full border px-4 py-2 font-body text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
+                  selectedCategory === category
+                    ? "border-forest bg-forest text-cream"
+                    : "border-border bg-snow text-ink hover:border-olive"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </nav>
 
-            <div className="flex flex-wrap gap-3">
-              {categories.map((category) => (
-                <motion.button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`px-4 py-2 rounded-full font-body text-sm transition-all ${
-                    selectedCategory === category
-                      ? "bg-ember text-cream shadow-lg"
-                      : "bg-snow border border-border text-ink hover:border-olive hover:bg-olive/5"
-                  }`}
-                >
-                  {category}
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Loading State */}
           {loading && (
-            <div className="text-center py-20">
-              <Loader2 size={40} className="animate-spin text-ember mx-auto mb-4" />
-              <p className="font-body text-ink/60 text-sm">Fetching articles from the database...</p>
+            <div className="py-20 text-center">
+              <Loader2 size={28} className="mx-auto mb-4 animate-spin text-ember" aria-hidden="true" />
+              <p className="font-body text-sm text-ink/60">Loading articles…</p>
             </div>
           )}
 
-          {/* Error State */}
           {!loading && loadError && (
-            <div className="text-center py-20">
-              <p className="font-body text-red-600 text-sm">{loadError}</p>
-              <p className="font-body text-ink/40 text-xs mt-2">Please refresh the page or try again shortly.</p>
+            <div className="py-16 text-center" role="alert">
+              <p className="font-body text-sm text-red-700">Articles could not be loaded. Please try again.</p>
+              <button
+                type="button"
+                onClick={() => void refetch()}
+                className="mt-4 rounded border border-border bg-snow px-4 py-2 font-body text-sm text-ink hover:border-olive focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+              >
+                Retry
+              </button>
             </div>
           )}
 
           {!loading && !loadError && (
             <>
-              {/* Featured Article */}
               {featured && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.7 }}
-                  className="mb-16"
-                >
-                  <h2 className="font-display text-3xl text-ink mb-8">Featured Article</h2>
+                <section aria-label="Featured article" className="mb-16">
                   <InsightCard insight={featured} featured />
-                </motion.div>
+                </section>
               )}
 
-              {/* Articles Grid */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-              >
-                <h2 className="font-display text-3xl text-ink mb-8">
-                  {selectedCategory === "All" ? "Latest Articles" : `${selectedCategory} Articles`}
-                </h2>
+              <section aria-labelledby="latest-heading">
+                <div className="mb-8 flex items-baseline justify-between border-b border-border pb-3">
+                  <h2 id="latest-heading" className="font-display text-xl text-ink">
+                    {selectedCategory === "All" ? "Latest articles" : `${selectedCategory} articles`}
+                  </h2>
+                  <span className="font-body text-sm text-ink/55">
+                    {filteredInsights.length} {filteredInsights.length === 1 ? "article" : "articles"}
+                  </span>
+                </div>
 
                 {rest.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {rest.map((insight, i) => (
-                      <motion.div
-                        key={insight.slug}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: 0.9 + i * 0.05 }}
-                      >
-                        <InsightCard insight={insight} />
-                      </motion.div>
+                  <div className="grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                    {rest.map((insight) => (
+                      <InsightCard key={insight.slug} insight={insight} />
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <BookOpen size={48} className="text-olive/40 mx-auto mb-4" />
-                    <p className="text-lg text-ink/60">No articles found in this category yet.</p>
-                    <p className="text-sm text-ink/40 mt-2">Check back soon for new content!</p>
-                  </div>
+                  <p className="py-12 text-center font-body text-base text-ink/70">
+                    {featured ? "That's the only article in this topic so far." : "No articles found in this topic."}
+                  </p>
                 )}
-              </motion.div>
+              </section>
             </>
           )}
         </div>
