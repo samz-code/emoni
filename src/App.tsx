@@ -4,7 +4,6 @@ import { BrowserRouter, Route, Routes, Navigate, Outlet } from "react-router-dom
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { ThemeProvider } from "@/components/ThemeProvider";
 
 // Layout & Navigation Components
 import Navbar from "@/components/Navbar";
@@ -136,62 +135,60 @@ function ProtectedAdminRoute() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            {/* Protected Administrative CMS Routes (no Navbar/Footer) */}
-            <Route path="/admin" element={<ProtectedAdminRoute />}>
-              <Route element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="content" element={<ManageContent />} />
-                <Route path="services" element={<ManageServices />} />
-                <Route path="services/new" element={<EditService />} />
-                <Route path="services/edit/:id" element={<EditService />} />
-                <Route path="courses" element={<ManageCourses />} />
-                <Route path="projects" element={<ManageProjects />} />
-                <Route path="about" element={<ManageAbout />} />
-                <Route path="process-steps" element={<ManageProcessSteps />} />
-                <Route path="ideal-for" element={<ManageIdealFor />} />
-                <Route path="insights" element={<ManageInsights />} />
-                <Route path="partners" element={<ManagePartners />} />
-              </Route>
+    <TooltipProvider>
+      <BrowserRouter>
+        <ScrollToTop />
+        <Routes>
+          {/* Protected Administrative CMS Routes (no Navbar/Footer) */}
+          <Route path="/admin" element={<ProtectedAdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="content" element={<ManageContent />} />
+              <Route path="services" element={<ManageServices />} />
+              <Route path="services/new" element={<EditService />} />
+              <Route path="services/edit/:id" element={<EditService />} />
+              <Route path="courses" element={<ManageCourses />} />
+              <Route path="projects" element={<ManageProjects />} />
+              <Route path="about" element={<ManageAbout />} />
+              <Route path="process-steps" element={<ManageProcessSteps />} />
+              <Route path="ideal-for" element={<ManageIdealFor />} />
+              <Route path="insights" element={<ManageInsights />} />
+              <Route path="partners" element={<ManagePartners />} />
             </Route>
+          </Route>
 
-            {/* Public Web Platform Routes (with Navbar/Footer) */}
-            <Route
-              path="*"
-              element={
-                <>
-                  <Navbar />
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/what-i-do" element={<WhatIDo />} />
-                    <Route path="/courses" element={<Courses />} />
-                    <Route path="/projects/:kind/:id" element={<ProjectDetail />} />
-                    <Route path="/projects" element={<Projects />} />
-                    <Route path="/partners" element={<Partners />} />
-                    <Route path="/insights" element={<Insights />} />
-                    <Route path="/insights/:slug" element={<InsightDetail />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/admin/login" element={<AdminLogin />} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/terms" element={<Terms />} />
-                    <Route path="/cookies" element={<Cookies />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                  <Footer />
-                  <FloatingWidgets />
-                  <BackToTop />
-                  <CookieConsent />
-                </>
-              }
-            />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+          {/* Public Web Platform Routes (with Navbar/Footer) */}
+          <Route
+            path="*"
+            element={
+              <>
+                <Navbar />
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/what-i-do" element={<WhatIDo />} />
+                  <Route path="/courses" element={<Courses />} />
+                  <Route path="/projects/:kind/:id" element={<ProjectDetail />} />
+                  <Route path="/projects" element={<Projects />} />
+                  <Route path="/partners" element={<Partners />} />
+                  <Route path="/insights" element={<Insights />} />
+                  <Route path="/insights/:slug" element={<InsightDetail />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/cookies" element={<Cookies />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Footer />
+                <FloatingWidgets />
+                <BackToTop />
+                <CookieConsent />
+              </>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

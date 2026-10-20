@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown, ArrowUpRight, LogIn, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import ThemeToggle from "@/components/ThemeToggle";
 
 const navLinks = [
   { label: "HOME", href: "/" },
@@ -173,9 +172,8 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Portal Login + Theme Toggle — desktop/laptop only */}
+        {/* Portal Login — desktop/laptop only */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
-          <ThemeToggle />
           <Link
             to="/admin/login"
             className="flex items-center gap-2 font-sans text-xs font-bold tracking-wider text-[hsl(var(--forest))] bg-[hsl(var(--cream))] py-2.5 px-5 rounded-full hover:bg-white transition-colors shadow-md hover:shadow-lg whitespace-nowrap"
