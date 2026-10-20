@@ -518,15 +518,15 @@ const Index = () => {
 
       {/* ABOUT */}
       {(aboutQ.isPending || aboutQ.isError || Boolean(aboutQ.data) || shoutoutsQ.isPending || shoutoutsQ.isError || (shoutoutsQ.data?.length ?? 0) > 0) && (
-        <section className="bg-snow py-16 dark:bg-[#141410] sm:py-20" aria-labelledby="home-about-heading">
+        <section className="bg-snow py-12 dark:bg-[#141410] sm:py-16 lg:py-20" aria-labelledby="home-about-heading">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-10 lg:grid-cols-12 lg:gap-14">
-              <div className="lg:col-span-5">
+            <div className="grid min-w-0 gap-8 sm:gap-10 lg:grid-cols-12 lg:gap-14">
+              <div className="min-w-0 lg:col-span-5">
                 <Eyebrow>About</Eyebrow>
                 {aboutQ.data?.profile_image_url && (
-                  <img src={aboutQ.data.profile_image_url} alt="Samuel A. Emoni" loading="lazy" decoding="async"                   className="mx-auto mt-5 h-36 w-36 rounded-full border-4 border-snow object-cover shadow-md dark:border-[#1A1A16]" />
+                  <img src={aboutQ.data.profile_image_url} alt="Samuel A. Emoni" loading="lazy" decoding="async" className="mx-auto mt-5 h-32 w-32 rounded-full border-4 border-snow object-cover shadow-md dark:border-[#1A1A16] sm:h-36 sm:w-36" />
                 )}
-                <h2 id="home-about-heading" className="mt-3 whitespace-nowrap font-display text-xl leading-tight text-ink dark:text-cream sm:text-2xl">
+                <h2 id="home-about-heading" className="mt-3 max-w-full whitespace-nowrap font-display text-[clamp(0.875rem,5.6vw,1.5rem)] leading-tight tracking-tight text-ink dark:text-cream">
                   A little about my journey
                 </h2>
                 {aboutQ.isPending ? (
@@ -534,13 +534,13 @@ const Index = () => {
                 ) : aboutQ.isError ? (
                   <p className="mt-5 font-body text-sm text-red-700" role="alert">About information could not be loaded.</p>
                 ) : aboutQ.data?.background ? (
-                  <p className="mt-5 whitespace-pre-line font-body text-base leading-relaxed text-[#4A4A4A] dark:text-cream/70">{aboutQ.data.background}</p>
+                  <p className="mt-5 whitespace-pre-line break-words font-body text-base leading-relaxed text-[#4A4A4A] dark:text-cream/70">{aboutQ.data.background}</p>
                 ) : (
                   <p className="mt-5 font-body text-sm text-[#4A4A4A] dark:text-cream/65">Background information will be added soon.</p>
                 )}
               </div>
 
-              <div className="space-y-6 lg:col-span-7">
+              <div className="min-w-0 space-y-6 lg:col-span-7">
                 <div className="border-l-2 border-olive pl-4">
                   <h3 className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><GraduationCap size={19} className="text-forest dark:text-olive" aria-hidden="true" />Education</h3>
                   {aboutQ.data?.education?.length ? (
@@ -551,7 +551,7 @@ const Index = () => {
                     </ul>
                   ) : <p className="mt-2 font-body text-sm text-ink/55 dark:text-cream/55">Education details coming soon.</p>}
                 </div>
-                <div className="grid gap-6 sm:grid-cols-2">
+                <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
                   <div className="border-l-2 border-ember pl-4">
                     <h3 className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><Heart size={18} className="text-ember" aria-hidden="true" />Soft skills</h3>
                     {aboutQ.data?.soft_skills?.length ? (
@@ -613,12 +613,12 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="mt-10 flex flex-col items-start justify-between gap-5 rounded-[4px] bg-forest p-6 text-cream dark:bg-[#20251D] sm:flex-row sm:items-center sm:p-8">
+            <div className="mt-8 flex flex-col items-stretch justify-between gap-5 rounded-[4px] bg-forest p-5 text-cream dark:bg-[#20251D] sm:mt-10 sm:flex-row sm:items-center sm:p-8">
               <div>
                 <p className="font-body text-xs uppercase tracking-[0.18em] text-olive">Have a project in mind?</p>
                 <p className="mt-2 font-display text-2xl sm:text-3xl">Let’s make it happen.</p>
               </div>
-              <Link to="/contact" className="inline-flex min-h-14 items-center justify-center gap-3 rounded-[4px] bg-olive px-7 py-4 font-body text-base font-semibold text-ink transition-colors hover:bg-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream sm:text-lg">
+              <Link to="/contact" className="inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-[4px] bg-olive px-5 py-4 font-body text-base font-semibold text-ink transition-colors hover:bg-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream sm:w-auto sm:px-7 sm:text-lg">
                 Discuss a project <ArrowRight size={19} aria-hidden="true" />
               </Link>
             </div>
