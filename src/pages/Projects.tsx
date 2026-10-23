@@ -5,12 +5,14 @@ import { Helmet } from "react-helmet-async";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import ProjectCard from "@/components/ProjectCard";
-import { Package, Palette, FileText, Megaphone, Code } from "lucide-react";
+import { Package, Palette, FileText, Megaphone, Code, ChevronDown } from "lucide-react";
 
 const iconMap = { Palette, FileText, Megaphone, Code };
 
 type Tab = "projects" | "design" | "products";
 const PROJECT_PAGE_SIZE = 12;
+// How many industry filters the Web Projects sidebar shows before "Show all".
+const VISIBLE_SECTOR_COUNT = 8;
 
 type SiteSettings = {
   projects_title?: string | null;
@@ -69,6 +71,24 @@ export default function Projects() {
   const [selectedDesignCategory, setSelectedDesignCategory] = useState(() =>
     requestedCategory && requestedTab === "design" ? requestedCategory : "All",
   );
+
+  // Web Projects sidebar: show only the first few industries until "Show all" is pressed.
+  const [showAllSectors, setShowAllSectors] = useState(false);
+
+  // Graphic Design sidebar accordion: which service groups are expanded.
+  // If a category was requested via the URL, its group starts open.
+  const [openGroups, setOpenGroups] = useState<string[]>(() => {
+    if (!requestedCategory || requestedTab !== "design") return [];
+    const match = DESIGN_CATEGORY_GROUPS.find((group) =>
+      group.categories.some((category) => category.toLocaleLowerCase() === requestedCategory.toLocaleLowerCase()),
+    );
+    return [match ? match.title : "More Services"];
+  });
+
+  const toggleGroup = (title: string) =>
+    setOpenGroups((current) =>
+      current.includes(title) ? current.filter((item) => item !== title) : [...current, title],
+    );
 
   // Fetch Web Projects from Supabase
   const {
@@ -213,6 +233,20 @@ export default function Projects() {
     dynamicSectors.push(selectedIndustry);
   }
 
+  // Sidebar list for Web Projects (everything except the "All" button).
+  const sectorOptions = dynamicSectors.filter((sector) => sector !== "All");
+  const hiddenSectorCount = Math.max(0, sectorOptions.length - VISIBLE_SECTOR_COUNT);
+  const visibleSectors = showAllSectors
+    ? sectorOptions
+    : (() => {
+        const firstFew = sectorOptions.slice(0, VISIBLE_SECTOR_COUNT);
+        // Never hide the currently selected industry.
+        if (selectedIndustry !== "All" && sectorOptions.includes(selectedIndustry) && !firstFew.includes(selectedIndustry)) {
+          firstFew.push(selectedIndustry);
+        }
+        return firstFew;
+      })();
+
   const availableDesignCategories = Array.from(new Set(
     designRows.flatMap((d: any) => [d.category, ...(Array.isArray(d.categories) ? d.categories : [])])
       .filter((category): category is string => typeof category === "string" && Boolean(category.trim())),
@@ -310,7 +344,13 @@ export default function Projects() {
       </Helmet>
 
       <main className="bg-paper py-14 sm:py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Web Projects and Graphic Design are widened on xl screens only, to make room for the
+            right-hand filter column while keeping the cards the same size. Products keeps max-w-6xl. */}
+        <div
+          className={`mx-auto px-4 sm:px-6 lg:px-8 ${
+            tab === "products" ? "max-w-6xl" : "max-w-6xl xl:max-w-[1440px]"
+          }`}
+        >
 
           {/* Dynamic Header */}
           <motion.header
@@ -346,70 +386,183 @@ export default function Projects() {
           {/* WEB PROJECTS TAB */}
           {tab === "projects" && (
             <section aria-label="Web development projects">
-              <div role="group" aria-label="Filter by industry" className="mt-6 flex flex-wrap gap-2.5">
-                {dynamicSectors.map((sec) => (
+              {/* Mobile/tablet: filter sits above the cards. xl+: two columns, cards left, filter right. */}
+              <div className="flex flex-col xl:grid xl:grid-cols-[minmax(0,1fr)_260px] xl:gap-8">
+
+                {/* Cards column (card sizes unchanged) */}
+                <div className="min-w-0">
+                  {loadingProjects ? (
+                    <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">Loading projects...</div>
+                  ) : projectsFailed ? (
+                    <div className="py-16 text-center" role="alert">
+                      <p className="font-body text-sm text-red-700">Projects could not be loaded.</p>
+                      <button type="button" onClick={() => void retryProjects()} className="mt-3 rounded border border-border px-4 py-2 font-body text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember">Retry</button>
+                    </div>
+                  ) : filteredWebProjects.length === 0 ? (
+                    <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">No web projects available.</div>
+                  ) : (
+                    <>
+                    <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        {filteredWebProjects.map((project: any) => (
+                          <div key={project.id || project.name}>
+                            <ProjectCard project={project} />
+                          </div>
+                        ))}
+                    </div>
+                    {hasNextPage && (
+                      <div className="mt-8 text-center">
+                        <button
+                          type="button"
+                          onClick={() => void fetchNextPage()}
+                          disabled={isFetchingNextPage}
+                          className="min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                        >
+                          {isFetchingNextPage ? "Loading more projects…" : "Load more projects"}
+                        </button>
+                      </div>
+                    )}
+                    </>
+                  )}
+                </div>
+
+                {/* Right-hand filter column */}
+                <aside
+                  aria-label="Browse web projects by industry"
+                  className="order-first mt-6 rounded-2xl border border-border bg-snow p-4 xl:order-none xl:mt-8 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:self-start xl:overflow-y-auto"
+                >
+                  <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-ink">
+                    Browse by industry
+                  </h2>
+
                   <button
-                    key={sec}
                     type="button"
-                    aria-pressed={selectedIndustry === sec}
-                    onClick={() => setSelectedIndustry(sec)}
-                    className={`min-h-11 border px-5 py-2.5 text-sm font-body transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
-                      selectedIndustry === sec
+                    aria-pressed={selectedIndustry === "All"}
+                    onClick={() => setSelectedIndustry("All")}
+                    className={`min-h-10 w-full rounded-xl border px-4 py-2 text-left font-body text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
+                      selectedIndustry === "All"
                         ? "border-ember bg-ember text-snow font-medium"
                         : "border-border bg-snow text-ink hover:border-ember"
                     }`}
                   >
-                    {sec}
+                    All Web Projects
                   </button>
-                ))}
-              </div>
 
-              {loadingProjects ? (
-                <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">Loading projects...</div>
-              ) : projectsFailed ? (
-                <div className="py-16 text-center" role="alert">
-                  <p className="font-body text-sm text-red-700">Projects could not be loaded.</p>
-                  <button type="button" onClick={() => void retryProjects()} className="mt-3 rounded border border-border px-4 py-2 font-body text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember">Retry</button>
-                </div>
-              ) : filteredWebProjects.length === 0 ? (
-                <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">No web projects available.</div>
-              ) : (
-                <>
-                <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredWebProjects.map((project: any) => (
-                      <div key={project.id || project.name}>
-                        <ProjectCard project={project} />
-                      </div>
-                    ))}
-                </div>
-                {hasNextPage && (
-                  <div className="mt-8 text-center">
+                  {sectorOptions.length > 0 && (
+                    <div role="group" aria-label="Filter by industry" className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
+                      {visibleSectors.map((sec) => (
+                        <button
+                          key={sec}
+                          type="button"
+                          aria-pressed={selectedIndustry === sec}
+                          onClick={() => setSelectedIndustry(sec)}
+                          className={`min-h-9 rounded-xl border px-3 py-1.5 font-body text-[13px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
+                            selectedIndustry === sec
+                              ? "border-ember bg-ember text-snow font-medium"
+                              : "border-border bg-snow text-ink hover:border-ember"
+                          }`}
+                        >
+                          {sec}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {hiddenSectorCount > 0 && (
                     <button
                       type="button"
-                      onClick={() => void fetchNextPage()}
-                      disabled={isFetchingNextPage}
-                      className="min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                      aria-expanded={showAllSectors}
+                      onClick={() => setShowAllSectors((current) => !current)}
+                      className="mt-3 inline-flex min-h-9 items-center gap-1.5 font-body text-xs font-semibold uppercase tracking-wider text-ink/65 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
                     >
-                      {isFetchingNextPage ? "Loading more projects…" : "Load more projects"}
+                      {showAllSectors ? "Show fewer" : `Show all (${sectorOptions.length})`}
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform ${showAllSectors ? "rotate-180" : ""}`}
+                      />
                     </button>
-                  </div>
-                )}
-                </>
-              )}
+                  )}
+                </aside>
+              </div>
             </section>
           )}
 
           {/* GRAPHIC DESIGN TAB */}
           {tab === "design" && (
             <section aria-label="Graphic design projects">
-              <div className="mt-6 space-y-5">
-                <div>
-                  <h2 className="mb-2 font-display text-sm font-semibold text-ink">Browse all services</h2>
+              {/* Mobile/tablet: filter sits above the cards. xl+: two columns, cards left, filter right. */}
+              <div className="flex flex-col xl:grid xl:grid-cols-[minmax(0,1fr)_260px] xl:gap-8">
+
+                {/* Cards column */}
+                <div className="min-w-0">
+                  {loadingDesigns ? (
+                    <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">Loading designs...</div>
+                  ) : designsFailed ? (
+                    <div className="py-16 text-center" role="alert">
+                      <p className="font-body text-sm text-red-700">Design work could not be loaded.</p>
+                      <button type="button" onClick={() => void retryDesigns()} className="mt-3 rounded border border-border px-4 py-2 font-body text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember">Retry</button>
+                    </div>
+                  ) : filteredDesignProjects.length === 0 ? (
+                    <div className="mt-8 rounded-2xl border border-border bg-snow px-6 py-10 text-center">
+                      <h2 className="font-display text-xl text-ink">
+                        {selectedDesignCategory === "All"
+                          ? "Graphic design work is being updated."
+                          : `Looking for ${selectedDesignCategory}?`}
+                      </h2>
+                      <p className="mx-auto mt-2 max-w-xl font-body text-sm leading-relaxed text-ink/65">
+                        {selectedDesignCategory === "All"
+                          ? "Please check back soon, or get in touch to discuss your design needs."
+                          : "Get in touch to discuss this service and how it can support your project."}
+                      </p>
+                      <Link
+                        to="/contact"
+                        className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-forest px-5 py-2.5 font-body text-sm font-medium text-cream hover:bg-forest/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                      >
+                        Ask about this service
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                    {/* 2 columns. Each card is held to a 736 x 900 proportion and never wider than 736px. */}
+                    <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                      {filteredDesignProjects.map((project: any) => (
+                        <div
+                          key={project.id || project.name}
+                          className="mx-auto aspect-[736/900] w-full max-w-[736px] overflow-hidden [&>*]:h-full"
+                        >
+                          <ProjectCard project={project} />
+                        </div>
+                      ))}
+                    </div>
+                    {hasNextDesignPage && (
+                      <div className="mt-8 text-center">
+                        <button
+                          type="button"
+                          onClick={() => void fetchNextDesignPage()}
+                          disabled={isFetchingNextDesignPage}
+                          className="min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                        >
+                          {isFetchingNextDesignPage ? "Loading more designs…" : "Load more designs"}
+                        </button>
+                      </div>
+                    )}
+                    </>
+                  )}
+                </div>
+
+                {/* Right-hand filter column */}
+                <aside
+                  aria-label="Browse all services"
+                  className="order-first mt-6 rounded-2xl border border-border bg-snow p-4 xl:order-none xl:mt-8 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:self-start xl:overflow-y-auto"
+                >
+                  <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-ink">
+                    Browse all services
+                  </h2>
+
                   <button
                     type="button"
                     aria-pressed={selectedDesignCategory === "All"}
                     onClick={() => setSelectedDesignCategory("All")}
-                    className={`min-h-10 rounded-xl border px-4 py-2 font-body text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
+                    className={`min-h-10 w-full rounded-xl border px-4 py-2 text-left font-body text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
                       selectedDesignCategory === "All"
                         ? "border-ember bg-ember text-snow font-medium"
                         : "border-border bg-snow text-ink hover:border-ember"
@@ -417,80 +570,68 @@ export default function Projects() {
                   >
                     All Graphic Design
                   </button>
-                </div>
-                {groupedDesignCategories.map((group) => (
-                  <div key={group.title}>
-                    <h3 className="mb-2 font-body text-xs font-semibold uppercase tracking-wider text-ink/65">{group.title}</h3>
-                    <div role="group" aria-label={`${group.title} categories`} className="flex flex-wrap gap-2">
-                      {group.categories.map((category) => (
-                        <button
-                          key={category}
-                          type="button"
-                          aria-pressed={selectedDesignCategory === category}
-                          onClick={() => setSelectedDesignCategory(category)}
-                          className={`min-h-10 rounded-xl border px-4 py-2 font-body text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
-                            selectedDesignCategory === category
-                              ? "border-ember bg-ember text-snow font-medium"
-                              : "border-border bg-snow text-ink hover:border-ember"
-                          }`}
-                        >
-                          {category}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
 
-              {loadingDesigns ? (
-                <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">Loading designs...</div>
-              ) : designsFailed ? (
-                <div className="py-16 text-center" role="alert">
-                  <p className="font-body text-sm text-red-700">Design work could not be loaded.</p>
-                  <button type="button" onClick={() => void retryDesigns()} className="mt-3 rounded border border-border px-4 py-2 font-body text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember">Retry</button>
-                </div>
-              ) : filteredDesignProjects.length === 0 ? (
-                <div className="mt-8 rounded-2xl border border-border bg-snow px-6 py-10 text-center">
-                  <h2 className="font-display text-xl text-ink">
-                    {selectedDesignCategory === "All"
-                      ? "Graphic design work is being updated."
-                      : `Looking for ${selectedDesignCategory}?`}
-                  </h2>
-                  <p className="mx-auto mt-2 max-w-xl font-body text-sm leading-relaxed text-ink/65">
-                    {selectedDesignCategory === "All"
-                      ? "Please check back soon, or get in touch to discuss your design needs."
-                      : "Get in touch to discuss this service and how it can support your project."}
-                  </p>
-                  <Link
-                    to="/contact"
-                    className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-forest px-5 py-2.5 font-body text-sm font-medium text-cream hover:bg-forest/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
-                  >
-                    Ask about this service
-                  </Link>
-                </div>
-              ) : (
-                <>
-                <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredDesignProjects.map((project: any) => (
-                    <div key={project.id || project.name}>
-                      <ProjectCard project={project} />
-                    </div>
-                  ))}
-                </div>
-                {hasNextDesignPage && (
-                  <div className="mt-8 text-center">
-                    <button
-                      type="button"
-                      onClick={() => void fetchNextDesignPage()}
-                      disabled={isFetchingNextDesignPage}
-                      className="min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
-                    >
-                      {isFetchingNextDesignPage ? "Loading more designs…" : "Load more designs"}
-                    </button>
+                  <div className="mt-3 divide-y divide-border border-t border-border">
+                    {groupedDesignCategories.map((group, index) => {
+                      const isOpen = openGroups.includes(group.title);
+                      const hasSelected = group.categories.some(
+                        (category) => category.toLocaleLowerCase() === selectedDesignCategory.toLocaleLowerCase(),
+                      );
+                      const panelId = `design-group-${index}`;
+
+                      return (
+                        <div key={group.title}>
+                          <button
+                            type="button"
+                            aria-expanded={isOpen}
+                            aria-controls={panelId}
+                            onClick={() => toggleGroup(group.title)}
+                            className="flex min-h-11 w-full items-center justify-between gap-2 py-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                          >
+                            <span className="font-body text-xs font-semibold uppercase tracking-wider text-ink/65">
+                              {group.title}
+                              <span className="ml-1.5 font-normal text-ink/40">({group.categories.length})</span>
+                            </span>
+                            <span className="flex items-center gap-2">
+                              {hasSelected && (
+                                <span className="h-2 w-2 rounded-full bg-ember" aria-label="Contains selected category" />
+                              )}
+                              <ChevronDown
+                                size={16}
+                                className={`text-ink/50 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                              />
+                            </span>
+                          </button>
+
+                          <div
+                            id={panelId}
+                            role="group"
+                            aria-label={`${group.title} categories`}
+                            hidden={!isOpen}
+                            className="flex flex-wrap gap-2 pb-3 pt-1"
+                          >
+                            {group.categories.map((category) => (
+                              <button
+                                key={category}
+                                type="button"
+                                aria-pressed={selectedDesignCategory === category}
+                                onClick={() => setSelectedDesignCategory(category)}
+                                className={`min-h-9 rounded-xl border px-3 py-1.5 font-body text-[13px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
+                                  selectedDesignCategory === category
+                                    ? "border-ember bg-ember text-snow font-medium"
+                                    : "border-border bg-snow text-ink hover:border-ember"
+                                }`}
+                              >
+                                {category}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-                </>
-              )}
+                </aside>
+              </div>
             </section>
           )}
 
