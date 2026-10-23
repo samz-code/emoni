@@ -53,6 +53,9 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
   const liveUrl = safeExternalUrl(project.liveUrl);
   const sectorName = project.sector || project.industry || "General";
 
+  // Logos keep their full artwork (contained + padded); everything else fills the frame edge to edge.
+  const isLogo = Boolean(project.squarePreview);
+
   const nextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
@@ -66,21 +69,21 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
   };
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden border border-border/80 bg-snow transition-colors hover:border-olive">
-      <div className={`relative overflow-hidden bg-[#eee9df] ${project.landscapePreview ? "aspect-video" : project.squarePreview ? "aspect-square" : "aspect-[736/900]"}`}>
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-snow transition-colors hover:border-olive">
+      <div className={`relative w-full overflow-hidden bg-[#eee9df] ${project.landscapePreview ? "aspect-video" : isLogo ? "aspect-square" : "aspect-[736/900]"}`}>
         {hasImages ? (
           <>
-            <div className="flex h-full w-full items-center justify-center p-5">
-              <img
-                src={imageList[currentImageIdx]}
-                alt={project.name}
-                onError={() => setImgError(true)}
-                loading="lazy"
-                decoding="async"
-                sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-              />
-            </div>
+            <img
+              src={imageList[currentImageIdx]}
+              alt={project.name}
+              onError={() => setImgError(true)}
+              loading="lazy"
+              decoding="async"
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              className={`absolute inset-0 h-full w-full transition-transform duration-300 group-hover:scale-[1.03] ${
+                isLogo ? "object-contain p-6" : "object-cover object-top"
+              }`}
+            />
 
             {isCarousel && (
               <>
@@ -90,7 +93,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
                   className="absolute left-2 top-1/2 -translate-y-1/2 z-10 min-h-11 min-w-11 rounded-full bg-snow/90 text-ink shadow-sm transition-opacity opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ember cursor-pointer"
                   aria-label="Previous Image"
                 >
-                  <ChevronLeft size={16} />
+                  <ChevronLeft size={16} className="mx-auto" />
                 </button>
                 <button
                   type="button"
@@ -98,7 +101,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
                   className="absolute right-2 top-1/2 -translate-y-1/2 z-10 min-h-11 min-w-11 rounded-full bg-snow/90 text-ink shadow-sm transition-opacity opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ember cursor-pointer"
                   aria-label="Next Image"
                 >
-                  <ChevronRight size={16} />
+                  <ChevronRight size={16} className="mx-auto" />
                 </button>
 
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex gap-1 px-2 py-1 rounded-full bg-black/40 backdrop-blur-xs">
@@ -161,7 +164,7 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         {project.detailUrl && (
           <Link
             to={project.detailUrl}
-            className="mt-3 inline-flex min-h-11 items-center border border-forest px-4 py-2 font-body text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+            className="mt-3 inline-flex min-h-11 items-center justify-center rounded-xl border border-forest px-4 py-2 font-body text-sm font-medium text-forest transition-colors hover:bg-forest hover:text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
           >
             View Details
           </Link>

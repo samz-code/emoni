@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -11,6 +11,11 @@ const iconMap = { Palette, FileText, Megaphone, Code };
 
 type Tab = "projects" | "design" | "products";
 const PROJECT_PAGE_SIZE = 12;
+
+type SiteSettings = {
+  projects_title?: string | null;
+  projects_subtitle?: string | null;
+};
 
 const tabs: { key: Tab; label: string }[] = [
   { key: "projects", label: "Web Projects" },
@@ -51,12 +56,19 @@ const cardVariants = {
 
 export default function Projects() {
   const [searchParams] = useSearchParams();
-  const [tab, setTab] = useState<Tab>(() => {
-    const requestedTab = searchParams.get("tab");
-    return requestedTab === "design" || requestedTab === "products" ? requestedTab : "projects";
-  });
-  const [selectedIndustry, setSelectedIndustry] = useState("All");
-  const [selectedDesignCategory, setSelectedDesignCategory] = useState("All");
+  const requestedTab = searchParams.get("tab");
+  const requestedCategory = searchParams.get("category");
+
+  const [tab, setTab] = useState<Tab>(() =>
+    requestedTab === "design" || requestedTab === "products" ? requestedTab : "projects",
+  );
+  // A category link from a project page (?tab=...&category=...) pre-selects the matching filter.
+  const [selectedIndustry, setSelectedIndustry] = useState(() =>
+    requestedCategory && requestedTab !== "design" && requestedTab !== "products" ? requestedCategory : "All",
+  );
+  const [selectedDesignCategory, setSelectedDesignCategory] = useState(() =>
+    requestedCategory && requestedTab === "design" ? requestedCategory : "All",
+  );
 
   // Fetch Web Projects from Supabase
   const {
@@ -172,8 +184,8 @@ export default function Projects() {
 
   const products = productPages?.pages.flat() ?? [];
 
-  // Fetch Dynamic Site Settings
-  const { data: siteSettings } = useQuery({
+  // Fetch Dynamic Site Settings (typed so projects_title / projects_subtitle resolve correctly)
+  const { data: siteSettings } = useQuery<SiteSettings>({
     queryKey: ["site-settings"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -181,15 +193,25 @@ export default function Projects() {
         .select("projects_title,projects_subtitle")
         .single();
       if (error && error.code !== "PGRST116") console.warn("Site settings notice:", error.message);
-      return data || {};
+      return (data as SiteSettings | null) ?? {};
     },
     staleTime: 60_000,
   });
 
-  const dynamicSectors = [
+  const dynamicSectors: string[] = [
     "All",
-    ...Array.from(new Set(webProjects.flatMap((p: any) => [p.sector, ...p.categories]).filter(Boolean))),
+    ...Array.from(
+      new Set(
+        webProjects
+          .flatMap((p: any) => [p.sector, ...p.categories])
+          .filter((value: unknown): value is string => typeof value === "string" && Boolean(value)),
+      ),
+    ),
   ];
+  // Keep the requested category visible even before its project page has loaded.
+  if (selectedIndustry !== "All" && !dynamicSectors.includes(selectedIndustry)) {
+    dynamicSectors.push(selectedIndustry);
+  }
 
   const availableDesignCategories = Array.from(new Set(
     designRows.flatMap((d: any) => [d.category, ...(Array.isArray(d.categories) ? d.categories : [])])
@@ -200,6 +222,13 @@ export default function Projects() {
   const additionalDesignCategories = availableDesignCategories.filter((category) =>
     !knownDesignCategories.has(category.toLocaleLowerCase()) && category.toLocaleLowerCase() !== "all",
   );
+  if (
+    selectedDesignCategory !== "All" &&
+    !knownDesignCategories.has(selectedDesignCategory.toLocaleLowerCase()) &&
+    !additionalDesignCategories.some((category) => category.toLocaleLowerCase() === selectedDesignCategory.toLocaleLowerCase())
+  ) {
+    additionalDesignCategories.push(selectedDesignCategory);
+  }
   if (additionalDesignCategories.length > 0) {
     groupedDesignCategories.push({ title: "More Services", categories: additionalDesignCategories });
   }
