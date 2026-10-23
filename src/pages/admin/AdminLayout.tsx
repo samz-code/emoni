@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import {
   Bell,
+  BriefcaseBusiness,
   ExternalLink,
   FileText,
   FolderKanban,
@@ -226,6 +227,7 @@ export default function AdminLayout() {
     { to: "/admin/about", label: "ABOUT & SHOUT-OUTS", icon: User },
     { to: "/admin/partners", label: "MANAGE PARTNERS", icon: Handshake, badge: newApplications },
     { to: "/admin/popups", label: "POPUPS & BANNERS", icon: Megaphone },
+    { to: "/admin/client-work", label: "CLIENT WORK", icon: BriefcaseBusiness },
   ];
 
   const isActiveLink = (to: string) =>

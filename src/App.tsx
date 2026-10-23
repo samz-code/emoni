@@ -44,6 +44,12 @@ import ManageInsights from "./pages/admin/ManageInsights";
 import ManageContent from "./pages/admin/ManageContent";
 import ManagePartners from "./pages/admin/ManagePartners";
 import ManagePopups from "./pages/admin/ManagePopups";
+import ManageClientWork from "./pages/admin/ManageClientWork";
+import {
+  ClientProposalPage,
+  WebsiteReviewClientPage,
+  WebsiteReviewRequestPage,
+} from "./pages/ClientDocuments";
 
 const queryClient = new QueryClient();
 
@@ -157,8 +163,13 @@ const App = () => (
               <Route path="insights" element={<ManageInsights />} />
               <Route path="partners" element={<ManagePartners />} />
               <Route path="popups" element={<ManagePopups />} />
+              <Route path="client-work" element={<ManageClientWork />} />
             </Route>
           </Route>
+
+          <Route path="/proposal/:token" element={<ClientProposalPage />} />
+          <Route path="/website-review" element={<WebsiteReviewRequestPage />} />
+          <Route path="/website-review/:token" element={<WebsiteReviewClientPage />} />
 
           {/* Public Web Platform Routes (with Navbar/Footer) */}
           <Route

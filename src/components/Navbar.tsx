@@ -28,11 +28,12 @@ const navLinks = [
       { label: "CONTENT CREATION",             href: "/what-i-do#content-creation" },
     ],
   },
-  { label: "COURSES",             href: "/courses" },
-  { label: "PROJECTS & PRODUCTS", href: "/projects" },
-  { label: "PARTNERS",            href: "/partners" },
-  { label: "INSIGHTS",            href: "/insights" },
-  { label: "CONTACT",             href: "/contact" },
+  { label: "COURSES",   href: "/courses" },
+  { label: "PROJECTS",  href: "/projects" },
+  { label: "PARTNERS",  href: "/partners" },
+  { label: "INSIGHTS",  href: "/insights" },
+  { label: "REVIEW",    href: "/website-review" },
+  { label: "CONTACT",   href: "/contact" },
 ];
 
 const Navbar = () => {
@@ -65,7 +66,10 @@ const Navbar = () => {
   // Close drawer on Escape key for accessibility
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMobileOpen(false);
+      if (e.key === "Escape") {
+        setMobileOpen(false);
+        setDropdownOpen(false);
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
@@ -84,18 +88,18 @@ const Navbar = () => {
           : "bg-[hsl(var(--forest))] border-b border-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-28">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 xl:px-8 flex items-center justify-between gap-6 h-20 xl:h-24">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center group shrink-0">
           <img
             src="/whitelogo.png"
             alt="Samuel Emoni Logo"
-            className="h-16 sm:h-20 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            className="h-12 sm:h-14 xl:h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
           />
         </Link>
 
-        {/* Navigation Links — desktop/laptop only */}
-        <div className="hidden lg:flex items-center gap-4 xl:gap-6">
+        {/* Navigation Links — wide desktop only (xl+) */}
+        <div className="hidden xl:flex flex-1 items-center justify-center gap-5 2xl:gap-7 min-w-0">
           {navLinks.map((link) =>
             link.dropdown ? (
               <div
@@ -107,7 +111,7 @@ const Navbar = () => {
                 <button
                   type="button"
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  className={`relative font-sans text-xs font-bold tracking-wider flex items-center gap-1 py-1 transition-colors ${
+                  className={`relative font-sans text-xs font-bold tracking-wider flex items-center gap-1 py-1 whitespace-nowrap transition-colors ${
                     isActive(link.href)
                       ? "text-[hsl(var(--cream))]"
                       : "text-white hover:text-[hsl(var(--cream))]"
@@ -118,7 +122,7 @@ const Navbar = () => {
                   {link.label}
                   <ChevronDown
                     size={14}
-                    className={`transition-transform duration-200 ${
+                    className={`shrink-0 transition-transform duration-200 ${
                       dropdownOpen ? "rotate-180 text-[hsl(var(--cream))]" : "text-white/70"
                     }`}
                   />
@@ -172,8 +176,8 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Portal Login — desktop/laptop only */}
-        <div className="hidden lg:flex items-center gap-3 shrink-0">
+        {/* Portal Login — wide desktop only (xl+) */}
+        <div className="hidden xl:flex items-center shrink-0">
           <Link
             to="/admin/login"
             className="flex items-center gap-2 font-sans text-xs font-bold tracking-wider text-[hsl(var(--forest))] bg-[hsl(var(--cream))] py-2.5 px-5 rounded-full hover:bg-white transition-colors shadow-md hover:shadow-lg whitespace-nowrap"
@@ -183,8 +187,8 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Mobile / Tablet: Portal Login + Hamburger */}
-        <div className="flex items-center gap-2 lg:hidden">
+        {/* Mobile / Tablet / small laptop: Portal Login + Hamburger */}
+        <div className="flex items-center gap-2 xl:hidden">
           <Link
             to="/admin/login"
             aria-label="Portal Login"
@@ -193,13 +197,13 @@ const Navbar = () => {
             <LogIn size={18} />
           </Link>
           <button
+            type="button"
             onClick={() => setMobileOpen(true)}
             className="text-white hover:text-[hsl(var(--cream))] p-2 -mr-2"
             aria-label="Open menu"
             aria-expanded={mobileOpen}
           >
-            <Menu size={24} className="sm:hidden" />
-            <Menu size={26} className="hidden sm:block" />
+            <Menu size={26} />
           </button>
         </div>
       </div>
@@ -230,6 +234,7 @@ const Navbar = () => {
                   className="h-10 w-auto object-contain"
                 />
                 <button
+                  type="button"
                   onClick={() => setMobileOpen(false)}
                   className="text-white hover:text-[hsl(var(--cream))] p-1"
                   aria-label="Close menu"
@@ -243,6 +248,7 @@ const Navbar = () => {
                   link.dropdown ? (
                     <div key={link.label}>
                       <button
+                        type="button"
                         onClick={() => setMobileAccordion(!mobileAccordion)}
                         className={`w-full flex items-center justify-between py-2.5 font-sans text-xs font-bold tracking-wider ${
                           isActive(link.href) ? "text-[hsl(var(--cream))]" : "text-white"
@@ -269,6 +275,7 @@ const Navbar = () => {
                                 <Link
                                   key={item.label}
                                   to={item.href}
+                                  onClick={() => setMobileOpen(false)}
                                   className="block py-1.5 font-sans text-xs font-bold tracking-wider text-white/80 hover:text-[hsl(var(--cream))]"
                                 >
                                   {item.label}
@@ -283,6 +290,7 @@ const Navbar = () => {
                     <Link
                       key={link.label}
                       to={link.href}
+                      onClick={() => setMobileOpen(false)}
                       className={`block py-2.5 font-sans text-xs font-bold tracking-wider ${
                         isActive(link.href) ? "text-[hsl(var(--cream))]" : "text-white"
                       }`}
