@@ -14,6 +14,7 @@ import {
   ListOrdered,
   LogOut,
   Menu,
+  Megaphone,
   Newspaper,
   Users,
   User,
@@ -224,6 +225,7 @@ export default function AdminLayout() {
     { to: "/admin/projects", label: "PROJECTS & CASE STUDIES", icon: FolderKanban },
     { to: "/admin/about", label: "ABOUT & SHOUT-OUTS", icon: User },
     { to: "/admin/partners", label: "MANAGE PARTNERS", icon: Handshake, badge: newApplications },
+    { to: "/admin/popups", label: "POPUPS & BANNERS", icon: Megaphone },
   ];
 
   const isActiveLink = (to: string) =>
@@ -232,7 +234,7 @@ export default function AdminLayout() {
   const currentPageLabel = navLinks.find((link) => isActiveLink(link.to))?.label ?? "ADMIN PORTAL";
 
   return (
-    <div className="flex min-h-screen bg-[#FBF9F5] font-body text-[#524646]">
+    <div className="flex h-screen overflow-hidden bg-[#FBF9F5] font-body text-[#524646]">
       {/* Mobile Backdrop Overlay */}
       {isSidebarOpen && (
         <div
@@ -324,8 +326,8 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Administrative Workplace */}
-      <div className="flex-1 flex flex-col min-h-screen w-full lg:w-auto overflow-hidden">
-        <header className="sticky top-0 z-20 flex items-center justify-between px-4 sm:px-8 lg:px-12 py-4 bg-[#FBF9F5]/90 backdrop-blur-md border-b border-[#524646]/10 shadow-[0_1px_0_0_rgba(82,70,70,0.04)]">
+      <div className="min-w-0 flex-1 flex flex-col h-full w-full lg:w-auto overflow-hidden">
+        <header className="sticky top-0 z-20 shrink-0 flex items-center justify-between px-4 sm:px-8 lg:px-12 py-4 bg-[#FBF9F5]/90 backdrop-blur-md border-b border-[#524646]/10 shadow-[0_1px_0_0_rgba(82,70,70,0.04)]">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => setIsSidebarOpen(true)}
@@ -362,7 +364,7 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-8 lg:p-12 overflow-y-auto">
+        <main className="min-h-0 min-w-0 flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto overscroll-contain">
           <Outlet />
         </main>
       </div>

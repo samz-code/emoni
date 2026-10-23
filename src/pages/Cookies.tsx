@@ -7,6 +7,10 @@ const CATEGORIES = [
     body: "These keep the website secure and working, and remember your cookie choice. They cannot be switched off.",
   },
   {
+    title: "Functional storage",
+    body: "With your permission, this remembers choices such as whether you have dismissed a popup.",
+  },
+  {
     title: "Analytics",
     body: "With your permission, these give us anonymous statistics about how visitors use the site so we can improve it.",
   },

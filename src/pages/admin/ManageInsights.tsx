@@ -293,7 +293,7 @@ const ManageInsights = () => {
   );
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto bg-paper min-h-screen">
+    <div className="w-full min-w-0 max-w-7xl mx-auto bg-paper min-h-full">
       {notification && (
         <div
           className={`fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-xl text-white font-body text-sm ${
@@ -348,8 +348,8 @@ const ManageInsights = () => {
         </div>
       ) : (
         <>
-          <div className="hidden md:block bg-snow border border-border rounded-lg overflow-hidden shadow-sm">
-            <table className="w-full text-left border-collapse">
+          <div className="hidden xl:block bg-snow border border-border rounded-lg overflow-x-auto shadow-sm">
+            <table className="w-full min-w-[760px] text-left border-collapse">
               <thead>
                 <tr className="bg-forest/5 border-b border-border font-body text-xs text-ink/70 uppercase tracking-wider">
                   <th className="p-4 w-12 text-center">Order</th>
@@ -429,7 +429,7 @@ const ManageInsights = () => {
             </table>
           </div>
 
-          <div className="block md:hidden space-y-4">
+          <div className="block xl:hidden space-y-4">
             {filteredInsights.map((item) => (
               <div key={item.id || item.slug} className="bg-snow border border-border rounded-lg p-4 shadow-sm space-y-3">
                 <div className="flex justify-between items-start gap-2">

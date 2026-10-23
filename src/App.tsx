@@ -12,6 +12,7 @@ import FloatingWidgets from "@/components/FloatingWidgets";
 import BackToTop from "@/components/BackToTop";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
+import PopupManager from "@/components/popups/PopupManager";
 
 // Public Agency Pages
 import Index from "./pages/Index";
@@ -42,6 +43,7 @@ import ManageIdealFor from "./pages/admin/ManageIdealFor";
 import ManageInsights from "./pages/admin/ManageInsights";
 import ManageContent from "./pages/admin/ManageContent";
 import ManagePartners from "./pages/admin/ManagePartners";
+import ManagePopups from "./pages/admin/ManagePopups";
 
 const queryClient = new QueryClient();
 
@@ -154,6 +156,7 @@ const App = () => (
               <Route path="ideal-for" element={<ManageIdealFor />} />
               <Route path="insights" element={<ManageInsights />} />
               <Route path="partners" element={<ManagePartners />} />
+              <Route path="popups" element={<ManagePopups />} />
             </Route>
           </Route>
 
@@ -182,6 +185,7 @@ const App = () => (
                 <Footer />
                 <FloatingWidgets />
                 <BackToTop />
+                <PopupManager />
                 <CookieConsent />
               </>
             }

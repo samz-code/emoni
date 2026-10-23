@@ -627,7 +627,7 @@ export default function ManageContent() {
     <div className="min-h-screen bg-[#FBF9F5]">
       {/* Header */}
       <div className="border-b border-[#E8E2D6] bg-white/80 backdrop-blur-sm sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-6 py-5">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5">
           <h1 className="font-display text-2xl text-[#1A1A16] tracking-tight">Manage Content</h1>
           <p className="font-body text-sm text-[#524646]/70 mt-0.5">
             Everything on the homepage is edited here — hero, partners, sections, copy and settings.
@@ -652,7 +652,7 @@ export default function ManageContent() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <AnimatePresence mode="wait">
           {/* ════════════ HERO ════════════ */}
           {activeTab === "hero" && (

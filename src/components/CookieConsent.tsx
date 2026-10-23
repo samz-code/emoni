@@ -8,14 +8,16 @@ import { Cookie, X } from "lucide-react";
    CONSENT STORAGE (import these anywhere to gate scripts)
 ═══════════════════════════════════════════════════════════ */
 const STORAGE_KEY = "cookie-consent";
-const CONSENT_VERSION = 1; // bump to ask every visitor again after a policy change
+const CONSENT_VERSION = 2;
 
 export const OPEN_COOKIE_SETTINGS_EVENT = "open-cookie-settings";
 export const COOKIE_CONSENT_CHANGE_EVENT = "cookie-consent-change";
+export const CONSENT_EVENT = COOKIE_CONSENT_CHANGE_EVENT;
 
 export type CookieConsent = {
   version: number;
   necessary: true;
+  functional: boolean;
   analytics: boolean;
   marketing: boolean;
   savedAt: string;
@@ -32,10 +34,19 @@ export function getCookieConsent(): CookieConsent | null {
   }
 }
 
-function saveConsent(analytics: boolean, marketing: boolean) {
+export function hasDecided() {
+  return getCookieConsent() !== null;
+}
+
+export function hasConsent(category: "functional" | "analytics" | "marketing") {
+  return getCookieConsent()?.[category] ?? false;
+}
+
+function saveConsent(functional: boolean, analytics: boolean, marketing: boolean) {
   const value: CookieConsent = {
     version: CONSENT_VERSION,
     necessary: true,
+    functional,
     analytics,
     marketing,
     savedAt: new Date().toISOString(),
@@ -59,6 +70,7 @@ export function openCookieSettings() {
 export default function CookieConsentBanner() {
   const [visible, setVisible] = useState(false);
   const [showPrefs, setShowPrefs] = useState(false);
+  const [functional, setFunctional] = useState(false);
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
 
@@ -68,6 +80,7 @@ export default function CookieConsentBanner() {
 
     const onOpen = () => {
       const current = getCookieConsent();
+      setFunctional(current?.functional ?? false);
       setAnalytics(current?.analytics ?? false);
       setMarketing(current?.marketing ?? false);
       setShowPrefs(true);
@@ -80,8 +93,8 @@ export default function CookieConsentBanner() {
     };
   }, []);
 
-  const commit = useCallback((a: boolean, m: boolean) => {
-    saveConsent(a, m);
+  const commit = useCallback((f: boolean, a: boolean, m: boolean) => {
+    saveConsent(f, a, m);
     setVisible(false);
     setShowPrefs(false);
   }, []);
@@ -125,13 +138,13 @@ export default function CookieConsentBanner() {
                   Customize
                 </button>
                 <button
-                  onClick={() => commit(false, false)}
+                  onClick={() => commit(false, false, false)}
                   className="px-4 py-2 rounded-lg border border-[#E8E2D6] text-sm font-medium text-[#524646] hover:bg-[#FBF9F5] transition-colors"
                 >
                   Reject non-essential
                 </button>
                 <button
-                  onClick={() => commit(true, true)}
+                  onClick={() => commit(true, true, true)}
                   className="px-4 py-2 rounded-lg bg-[#007979] text-[#FFE2AF] text-sm font-medium hover:bg-[#24B1B1] transition-colors"
                 >
                   Accept all
@@ -159,6 +172,12 @@ export default function CookieConsentBanner() {
                   disabled
                 />
                 <PrefRow
+                  title="Functional storage"
+                  description="Remember choices such as whether you have dismissed a popup."
+                  checked={functional}
+                  onChange={setFunctional}
+                />
+                <PrefRow
                   title="Analytics"
                   description="Help us understand which pages are useful, using anonymous statistics."
                   checked={analytics}
@@ -174,13 +193,13 @@ export default function CookieConsentBanner() {
 
               <div className="mt-4 flex justify-end gap-2">
                 <button
-                  onClick={() => commit(false, false)}
+                  onClick={() => commit(false, false, false)}
                   className="px-4 py-2 rounded-lg border border-[#E8E2D6] text-sm font-medium hover:bg-[#FBF9F5] transition-colors"
                 >
                   Reject non-essential
                 </button>
                 <button
-                  onClick={() => commit(analytics, marketing)}
+                  onClick={() => commit(functional, analytics, marketing)}
                   className="px-4 py-2 rounded-lg bg-[#007979] text-[#FFE2AF] text-sm font-medium hover:bg-[#24B1B1] transition-colors"
                 >
                   Save choices
