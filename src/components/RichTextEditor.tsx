@@ -31,6 +31,8 @@ import {
   Frame,
   Columns,
   Sparkles,
+  Code,
+  Braces,
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -174,6 +176,15 @@ const sanitizeHtml = (html: string) => {
   return doc.body.innerHTML;
 };
 
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+const isCaretInsidePre = () => {
+  const node = window.getSelection()?.anchorNode;
+  const el = node instanceof Element ? node : node?.parentElement;
+  return Boolean(el?.closest("pre"));
+};
+
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value,
   onChange,
@@ -279,6 +290,24 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
     const text = e.clipboardData.getData("text/plain");
+
+    // Inside a code block: always insert as literal text, never as HTML
+    if (isCaretInsidePre()) {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const node = document.createTextNode(text);
+        range.insertNode(node);
+        range.setStartAfter(node);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        handleInput();
+      }
+      return;
+    }
+
     const looksLikeHtml = /^\s*<([a-z][a-z0-9]*)\b[^>]*>[\s\S]*<\/\1>/i.test(text.trim());
 
     if (looksLikeHtml) {
@@ -356,6 +385,20 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const handleInsertLayout = (template: LayoutTemplateConfig) => {
     insertHtmlAtCaret(template.generateHtml());
     setShowLayoutMenu(false);
+  };
+
+  const insertCodeBlock = () => {
+    focusEditor();
+    const sel = window.getSelection();
+    const text = sel && !sel.isCollapsed ? sel.toString() : "// Paste your code here";
+    insertHtmlAtCaret(`<pre><code>${escapeHtml(text)}</code></pre><p><br></p>`);
+  };
+
+  const insertInlineCode = () => {
+    focusEditor();
+    const sel = window.getSelection();
+    const text = sel && !sel.isCollapsed ? sel.toString() : "code";
+    insertHtmlAtCaret(`<code>${escapeHtml(text)}</code>&nbsp;`);
   };
 
   const closeAllMenus = () => {
@@ -736,6 +779,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         <ToolbarButton onClick={() => exec("formatBlock", "BLOCKQUOTE")} title="Quote Block" disabled={showHtmlView}>
           <Quote size={15} />
         </ToolbarButton>
+        <ToolbarButton onClick={insertInlineCode} title="Inline Code" disabled={showHtmlView}>
+          <Code size={15} />
+        </ToolbarButton>
+        <ToolbarButton onClick={insertCodeBlock} title="Code Block" disabled={showHtmlView}>
+          <Braces size={15} />
+        </ToolbarButton>
 
         <ToolbarDivider />
 
@@ -808,6 +857,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             suppressContentEditableWarning
             onInput={handleInput}
             onPaste={handlePaste}
+            onKeyDown={(e) => {
+              if (e.key === "Tab" && isCaretInsidePre()) {
+                e.preventDefault();
+                document.execCommand("insertText", false, "  ");
+              }
+            }}
             onKeyUp={updateActiveStates}
             onMouseUp={updateActiveStates}
             data-placeholder={placeholder}
@@ -827,6 +882,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         .rte-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
         .rte-content th, .rte-content td { border: 1px solid #d1d5db; padding: 8px 12px; }
         .rte-content th { background-color: #f3f4f6; }
+        .rte-content pre { background:#17221c; color:#e9f5eb; border-left:4px solid #b45309; border-radius:0.5rem; padding:0.9rem 1rem; margin:0.9rem 0; overflow-x:auto; white-space:pre; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:0.8rem; line-height:1.6; }
+        .rte-content pre code { background:transparent; color:inherit; padding:0; border:0; }
+        .rte-content :not(pre) > code { background:rgba(180,83,9,0.1); color:#9a3412; border:1px solid rgba(180,83,9,0.25); border-radius:0.25rem; padding:0.1rem 0.35rem; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:0.875em; }
       `}</style>
     </div>
   );

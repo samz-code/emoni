@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
@@ -50,6 +50,13 @@ const InsightDetail = () => {
   const [related, setRelated] = useState<RelatedInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  const richHtml = useMemo(() => {
+    const b = insight?.body || [];
+    return b.length === 1 && looksLikeHtml(b[0]) ? sanitizeArticleHtml(b[0]) : "";
+  }, [insight]);
 
   useEffect(() => {
     let active = true;
@@ -145,6 +152,36 @@ const InsightDetail = () => {
       active = false;
     };
   }, [slug]);
+
+  // Wrap each <pre> in a .code-block container and add a Copy button
+  useEffect(() => {
+    const root = bodyRef.current;
+    if (!root) return;
+
+    root.querySelectorAll("pre").forEach((pre) => {
+      if (pre.parentElement?.classList.contains("code-block")) return;
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "code-block";
+      pre.parentNode?.insertBefore(wrapper, pre);
+      wrapper.appendChild(pre);
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "code-copy-btn";
+      btn.textContent = "Copy";
+      btn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(pre.textContent || "");
+          btn.textContent = "Copied!";
+        } catch {
+          btn.textContent = "Failed";
+        }
+        setTimeout(() => (btn.textContent = "Copy"), 1800);
+      });
+      wrapper.appendChild(btn);
+    });
+  }, [richHtml]);
 
   if (loading) {
     return (
@@ -309,8 +346,9 @@ const InsightDetail = () => {
 
               {isRichHtmlBody ? (
                 <div
+                  ref={bodyRef}
                   className="insight-body font-body text-sm sm:text-base text-ink/90 leading-relaxed overflow-hidden"
-                  dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(body[0]) }}
+                  dangerouslySetInnerHTML={{ __html: richHtml }}
                 />
               ) : (
                 <div className="space-y-6">
@@ -431,6 +469,76 @@ const InsightDetail = () => {
           .insight-body ol { list-style: decimal; padding-left: 1.25rem; margin: 0 0 1.1rem; }
           .insight-body li { margin: 0.35rem 0; word-break: break-word; }
           .insight-body a { color: #b45309; text-decoration: underline; word-break: break-all; }
+
+          /* ===== CODE: clearly different from normal text ===== */
+          .insight-body pre {
+            background: #17221c;
+            color: #e9f5eb;
+            border-left: 4px solid #b45309;
+            border-radius: 0.5rem;
+            padding: 2.25rem 1rem 1rem;
+            margin: 1.25rem 0;
+            max-width: 100%;
+            overflow-x: auto;
+            white-space: pre;
+            word-break: normal;
+            overflow-wrap: normal;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+            font-size: 0.8125rem;
+            line-height: 1.65;
+            tab-size: 2;
+            -webkit-overflow-scrolling: touch;
+          }
+          .insight-body pre code {
+            background: transparent;
+            color: inherit;
+            border: 0;
+            padding: 0;
+            font-size: inherit;
+            font-family: inherit;
+            white-space: pre;
+            word-break: normal;
+            overflow-wrap: normal;
+          }
+          /* inline code inside sentences */
+          .insight-body :not(pre) > code {
+            background: rgba(180, 83, 9, 0.1);
+            color: #9a3412;
+            border: 1px solid rgba(180, 83, 9, 0.25);
+            border-radius: 0.25rem;
+            padding: 0.1rem 0.35rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 0.875em;
+            overflow-wrap: anywhere;
+          }
+          .insight-body .code-block { position: relative; margin: 1.25rem 0; }
+          .insight-body .code-block pre { margin: 0; }
+          .insight-body .code-block::before {
+            content: "CODE";
+            position: absolute;
+            top: 0.55rem;
+            left: 1rem;
+            z-index: 1;
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            font-weight: 700;
+            color: rgba(233, 245, 235, 0.55);
+            pointer-events: none;
+          }
+          .insight-body .code-copy-btn {
+            position: absolute;
+            top: 0.4rem;
+            right: 0.5rem;
+            z-index: 1;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.25rem;
+            background: rgba(255, 255, 255, 0.12);
+            color: #e9f5eb;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+          }
+          .insight-body .code-copy-btn:hover { background: rgba(255, 255, 255, 0.25); }
 
           /* Blockquotes / Callouts */
           .insight-body blockquote {
