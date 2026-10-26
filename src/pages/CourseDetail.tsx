@@ -64,11 +64,112 @@ const STATUS: Record<string, { label: string; cta: string; dot: string; availabi
   },
 };
 
-const toParagraphs = (text: string) =>
+// "Week 1: Title. Rest of text" -> bold label + normal text
+const LABEL = /^((?:week|module|step|phase|day|part|stage)\s+\d+\s*:[^.\n]*\.?)\s*([\s\S]*)$/i;
+const BULLET = /^\s*(?:[-•*✓✔]\s+)/;
+
+const splitParagraphs = (text: string) =>
   text
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean);
+
+/**
+ * Renders a long description:
+ * - "Week 1: Title." style openings are bolded
+ * - short single-line paragraphs without a full stop become sub-headings
+ * - paragraphs where every line starts with -, • or * become tick lists
+ */
+function RichParagraphs({ text }: { text: string }) {
+  return (
+    <>
+      {splitParagraphs(text).map((paragraph, index) => {
+        const lines = paragraph.split("\n").map((l) => l.trim()).filter(Boolean);
+
+        if (lines.length > 0 && lines.every((l) => BULLET.test(l))) {
+          return (
+            <ul key={index} className="space-y-2">
+              {lines.map((line, i) => (
+                <li key={i} className="flex gap-3 font-body text-base leading-relaxed text-ink/85">
+                  <CheckCircle2 size={18} aria-hidden="true" className="mt-1 shrink-0 text-ember" />
+                  <span className="min-w-0 break-words">{line.replace(BULLET, "")}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        const match = paragraph.match(LABEL);
+        if (match) {
+          return (
+            <p
+              key={index}
+              className="whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/85"
+            >
+              <strong className="font-semibold text-ink">{match[1]}</strong>
+              {match[2] ? ` ${match[2]}` : ""}
+            </p>
+          );
+        }
+
+        if (lines.length === 1 && paragraph.length <= 70 && !/[.!?]$/.test(paragraph)) {
+          return (
+            <h3 key={index} className="pt-2 font-display text-xl text-ink">
+              {paragraph}
+            </h3>
+          );
+        }
+
+        return (
+          <p
+            key={index}
+            className="whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/85"
+          >
+            {paragraph}
+          </p>
+        );
+      })}
+    </>
+  );
+}
+
+/**
+ * Renders a curriculum module description, one tick per line.
+ * Lines starting with "Project N:" are bold.
+ */
+function ModuleLines({ text }: { text: string }) {
+  const lines = text
+    .split("\n")
+    .map((l) => l.replace(BULLET, "").trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) return null;
+
+  return (
+    <ul className="mt-3 space-y-2">
+      {lines.map((line, i) => {
+        const isProject = /^project\s*\d*\s*:/i.test(line);
+        return (
+          <li
+            key={i}
+            className={`flex gap-2.5 font-body text-sm leading-relaxed sm:text-base ${
+              isProject ? "font-semibold text-ink" : "text-ink/75"
+            }`}
+          >
+            <CheckCircle2
+              size={17}
+              aria-hidden="true"
+              className={`mt-0.5 shrink-0 ${isProject ? "text-forest" : "text-ember"}`}
+            />
+            <span className="min-w-0 break-words">{line}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+const hasText = (text: string) => text.trim().length > 0;
 
 const readModules = (value: unknown): { title: string; description: string }[] =>
   Array.isArray(value)
@@ -184,8 +285,7 @@ const CourseDetail = () => {
   const projectCount = toNumber(course.project_count);
   const description = (course.description || "").trim();
   const longDescription = (course.long_description || "").trim();
-  const longParagraphs = toParagraphs(longDescription);
-  const banner = (course.banner_url || "").trim();
+    const banner = (course.banner_url || "").trim();
   const path = `/courses/${course.id}`;
   const url = `${SITE_URL}${path}`;
   const contactHref = `/contact?course=${encodeURIComponent(course.id)}`;
@@ -410,21 +510,14 @@ const CourseDetail = () => {
             />
           )}
 
-          {longParagraphs.length > 0 && (
+          {hasText(longDescription) && (
             <section aria-labelledby="course-about">
               <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">About this course</p>
               <h2 id="course-about" className="mt-2 font-display text-2xl text-ink sm:text-3xl">
                 What the course covers
               </h2>
               <div className="mt-6 max-w-3xl space-y-5">
-                {longParagraphs.map((paragraph, index) => (
-                  <p
-                    key={index}
-                    className="whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/85"
-                  >
-                    {paragraph}
-                  </p>
-                ))}
+                <RichParagraphs text={longDescription} />
               </div>
             </section>
           )}
@@ -467,11 +560,7 @@ const CourseDetail = () => {
                     </span>
                     <div className="min-w-0">
                       <h3 className="break-words font-display text-lg text-ink sm:text-xl">{module.title}</h3>
-                      {module.description && (
-                        <p className="mt-2 whitespace-pre-line break-words font-body text-sm leading-relaxed text-ink/75 sm:text-base">
-                          {module.description}
-                        </p>
-                      )}
+                      {module.description && <ModuleLines text={module.description} />}
                     </div>
                   </li>
                 ))}

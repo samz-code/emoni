@@ -42,11 +42,76 @@ interface ProcessStepRow {
   description: string;
 }
 
-const toParagraphs = (text: string) =>
+// "Week 1: Title. Rest of text" -> bold label + normal text
+const LABEL = /^((?:week|module|step|phase|day|part|stage)\s+\d+\s*:[^.\n]*\.?)\s*([\s\S]*)$/i;
+const BULLET = /^\s*(?:[-•*✓✔]\s+)/;
+
+const splitParagraphs = (text: string) =>
   text
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean);
+
+/**
+ * Renders a long description:
+ * - "Week 1: Title." style openings are bolded
+ * - short single-line paragraphs without a full stop become sub-headings
+ * - paragraphs where every line starts with -, • or * become tick lists
+ */
+function RichParagraphs({ text }: { text: string }) {
+  return (
+    <>
+      {splitParagraphs(text).map((paragraph, index) => {
+        const lines = paragraph.split("\n").map((l) => l.trim()).filter(Boolean);
+
+        if (lines.length > 0 && lines.every((l) => BULLET.test(l))) {
+          return (
+            <ul key={index} className="space-y-2">
+              {lines.map((line, i) => (
+                <li key={i} className="flex gap-3 font-body text-base leading-relaxed text-ink/85">
+                  <CheckCircle2 size={18} aria-hidden="true" className="mt-1 shrink-0 text-ember" />
+                  <span className="min-w-0 break-words">{line.replace(BULLET, "")}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        const match = paragraph.match(LABEL);
+        if (match) {
+          return (
+            <p
+              key={index}
+              className="whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/85"
+            >
+              <strong className="font-semibold text-ink">{match[1]}</strong>
+              {match[2] ? ` ${match[2]}` : ""}
+            </p>
+          );
+        }
+
+        if (lines.length === 1 && paragraph.length <= 70 && !/[.!?]$/.test(paragraph)) {
+          return (
+            <h3 key={index} className="pt-2 font-display text-xl text-ink">
+              {paragraph}
+            </h3>
+          );
+        }
+
+        return (
+          <p
+            key={index}
+            className="whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/85"
+          >
+            {paragraph}
+          </p>
+        );
+      })}
+    </>
+  );
+}
+
+const hasText = (text: string) => text.trim().length > 0;
 
 const readFaqs = (value: unknown): FaqItem[] =>
   Array.isArray(value)
@@ -174,8 +239,7 @@ const ServiceDetail = () => {
   const customFaqs = readFaqs(service.faqs);
   const shortDescription = (service.short_description || "").trim();
   const longDescription = (service.long_description || "").trim();
-  const longParagraphs = toParagraphs(longDescription);
-  const problem = (service.problem || "").trim();
+    const problem = (service.problem || "").trim();
   const solution = (service.solution || "").trim();
   const outcome = (service.outcome || "").trim();
   const idealFor = (service.ideal_for || "").trim();
@@ -367,21 +431,14 @@ const ServiceDetail = () => {
             />
           )}
 
-          {longParagraphs.length > 0 && (
+          {hasText(longDescription) && (
             <section aria-labelledby="service-about">
               <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">About this service</p>
               <h2 id="service-about" className="mt-2 font-display text-2xl text-ink sm:text-3xl">
                 What is involved
               </h2>
               <div className="mt-6 max-w-3xl space-y-5">
-                {longParagraphs.map((paragraph, index) => (
-                  <p
-                    key={index}
-                    className="whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/85"
-                  >
-                    {paragraph}
-                  </p>
-                ))}
+                <RichParagraphs text={longDescription} />
               </div>
             </section>
           )}
