@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  AlertTriangle, ArrowRight, ArrowUpRight, CheckCircle2, Loader2,
-  Target, Users, Wand2,
+  AlertTriangle, ArrowRight, ArrowUpRight, CheckCircle2, Clock, Loader2,
+  Tag, Target, Users, Wand2, Wrench,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import SEO, { SITE_URL } from "@/components/SEO";
@@ -17,11 +17,19 @@ interface ServiceRow {
   name: string;
   category?: string | null;
   icon?: string | null;
+  short_description?: string | null;
+  long_description?: string | null;
   problem?: string | null;
   solution?: string | null;
   outcome?: string | null;
   deliverables?: unknown;
+  tools?: unknown;
+  timeline?: string | null;
+  starting_from?: string | null;
   ideal_for?: string | null;
+  banner_url?: string | null;
+  gallery_urls?: unknown;
+  faqs?: unknown;
 }
 
 type ServiceTeaser = Pick<ServiceRow, "id" | "name" | "category" | "icon" | "outcome">;
@@ -33,6 +41,22 @@ interface ProcessStepRow {
   title: string;
   description: string;
 }
+
+const toParagraphs = (text: string) =>
+  text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+const readFaqs = (value: unknown): FaqItem[] =>
+  Array.isArray(value)
+    ? (value
+        .map((f: any) => ({
+          question: String(f?.question ?? "").trim(),
+          answer: String(f?.answer ?? "").trim(),
+        }))
+        .filter((f) => f.question && f.answer) as FaqItem[])
+    : [];
 
 const ServiceDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -145,14 +169,24 @@ const ServiceDetail = () => {
   // ---- Derived content (all editable from the admin panel) ----
   const Icon = resolveIcon(service.icon);
   const deliverables = asList(service.deliverables);
+  const tools = asList(service.tools);
+  const gallery = asList(service.gallery_urls);
+  const customFaqs = readFaqs(service.faqs);
+  const shortDescription = (service.short_description || "").trim();
+  const longDescription = (service.long_description || "").trim();
+  const longParagraphs = toParagraphs(longDescription);
   const problem = (service.problem || "").trim();
   const solution = (service.solution || "").trim();
   const outcome = (service.outcome || "").trim();
   const idealFor = (service.ideal_for || "").trim();
+  const timeline = (service.timeline || "").trim();
+  const startingFrom = (service.starting_from || "").trim();
+  const banner = (service.banner_url || "").trim();
   const path = `/what-i-do/${service.id}`;
   const url = `${SITE_URL}${path}`;
   const contactHref = `/contact?service=${encodeURIComponent(service.id)}`;
   const label = categoryLabel || service.category || "";
+  const heroText = shortDescription || problem;
 
   const crumbs: Crumb[] = [
     { label: "Home", to: "/" },
@@ -160,7 +194,7 @@ const ServiceDetail = () => {
     { label: service.name },
   ];
 
-  const faqs: FaqItem[] = [
+  const generatedFaqs: FaqItem[] = [
     problem && {
       question: `What problem does ${service.name} solve?`,
       answer: problem,
@@ -173,6 +207,14 @@ const ServiceDetail = () => {
       question: `What will I receive with ${service.name}?`,
       answer: `You receive:\n${deliverables.map((item) => `• ${item}`).join("\n")}`,
     },
+    timeline && {
+      question: `How long does ${service.name} take?`,
+      answer: `A typical ${service.name} project takes ${timeline}.`,
+    },
+    startingFrom && {
+      question: `How much does ${service.name} cost?`,
+      answer: `${service.name} starts from ${startingFrom}. Send a message for a quote based on your exact needs.`,
+    },
     idealFor && {
       question: `Who is ${service.name} best suited for?`,
       answer: idealFor,
@@ -184,14 +226,22 @@ const ServiceDetail = () => {
     },
   ].filter(Boolean) as FaqItem[];
 
+  const customQuestions = new Set(customFaqs.map((f) => f.question.toLowerCase()));
+  const faqs: FaqItem[] = [
+    ...customFaqs,
+    ...generatedFaqs.filter((f) => !customQuestions.has(f.question.toLowerCase())),
+  ];
+
   const serviceSchema = {
     "@context": "https://schema.org",
     "@type": "Service",
     "@id": `${url}#service`,
     name: service.name,
-    description: truncate(solution || problem || outcome, 300) || service.name,
+    description:
+      truncate(shortDescription || longDescription || solution || problem || outcome, 300) || service.name,
     serviceType: label || service.name,
     url,
+    image: banner || undefined,
     provider: {
       "@type": "ProfessionalService",
       name: "Emoni Digital Solutions",
@@ -210,7 +260,7 @@ const ServiceDetail = () => {
       <SEO
         title={`${service.name} Services in Kenya | Samuel A. Emoni`}
         description={
-          truncate(solution || problem || outcome, 155) ||
+          truncate(shortDescription || solution || problem || outcome, 155) ||
           `${service.name} by Samuel A. Emoni, serving businesses across Kenya and Africa.`
         }
         canonical={path}
@@ -250,10 +300,29 @@ const ServiceDetail = () => {
                   {service.name}
                 </h1>
 
-                {problem && (
+                {heroText && (
                   <p className="mt-6 max-w-2xl whitespace-pre-line break-words font-body text-base leading-relaxed text-cream/80 sm:text-lg">
-                    {truncate(problem, 220)}
+                    {truncate(heroText, 220)}
                   </p>
+                )}
+
+                {(timeline || startingFrom) && (
+                  <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 font-body text-sm">
+                    {timeline && (
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} aria-hidden="true" className="text-olive" />
+                        <dt className="sr-only">Typical timeline</dt>
+                        <dd className="font-semibold">{timeline}</dd>
+                      </div>
+                    )}
+                    {startingFrom && (
+                      <div className="flex items-center gap-2">
+                        <Tag size={16} aria-hidden="true" className="text-olive" />
+                        <dt className="sr-only">Starting from</dt>
+                        <dd className="font-semibold">From {startingFrom}</dd>
+                      </div>
+                    )}
+                  </dl>
                 )}
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -289,6 +358,34 @@ const ServiceDetail = () => {
 
         {/* ============ BODY ============ */}
         <div className="mx-auto max-w-6xl space-y-16 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+          {banner && (
+            <img
+              src={banner}
+              alt={service.name}
+              loading="lazy"
+              className="aspect-[16/9] w-full rounded-2xl border border-border object-cover"
+            />
+          )}
+
+          {longParagraphs.length > 0 && (
+            <section aria-labelledby="service-about">
+              <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">About this service</p>
+              <h2 id="service-about" className="mt-2 font-display text-2xl text-ink sm:text-3xl">
+                What is involved
+              </h2>
+              <div className="mt-6 max-w-3xl space-y-5">
+                {longParagraphs.map((paragraph, index) => (
+                  <p
+                    key={index}
+                    className="whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/85"
+                  >
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </section>
+          )}
+
           {(problem || solution) && (
             <section aria-labelledby="service-story" className="grid gap-6 md:grid-cols-2">
               <h2 id="service-story" className="sr-only">
@@ -337,6 +434,24 @@ const ServiceDetail = () => {
             </section>
           )}
 
+          {tools.length > 0 && (
+            <section aria-labelledby="service-tools" className="rounded-2xl border border-border bg-snow p-6 sm:p-8">
+              <h2 id="service-tools" className="flex items-center gap-2 font-display text-xl text-ink">
+                <Wrench size={20} aria-hidden="true" className="text-ember" /> Tools &amp; technologies
+              </h2>
+              <ul className="mt-5 flex flex-wrap gap-2">
+                {tools.map((tool, index) => (
+                  <li
+                    key={`${tool}-${index}`}
+                    className="rounded-full border border-border bg-paper px-3.5 py-1.5 font-body text-sm text-ink"
+                  >
+                    {tool}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {idealFor && (
             <section
               aria-labelledby="service-ideal"
@@ -346,6 +461,26 @@ const ServiceDetail = () => {
                 <Users size={22} aria-hidden="true" className="text-ember" /> Ideal for
               </h2>
               <p className="break-words font-body text-base font-semibold leading-relaxed text-ink">{idealFor}</p>
+            </section>
+          )}
+
+          {gallery.length > 0 && (
+            <section aria-labelledby="service-gallery">
+              <h2 id="service-gallery" className="font-display text-2xl text-ink sm:text-3xl">
+                Selected work
+              </h2>
+              <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+                {gallery.map((src, index) => (
+                  <li key={`${src}-${index}`} className="overflow-hidden rounded-xl border border-border bg-snow">
+                    <img
+                      src={src}
+                      alt={`${service.name} example ${index + 1}`}
+                      loading="lazy"
+                      className="aspect-[4/3] w-full object-cover"
+                    />
+                  </li>
+                ))}
+              </ul>
             </section>
           )}
         </div>

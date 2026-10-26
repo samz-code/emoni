@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ArrowRight, ArrowUpRight, Award, CheckCircle2, Clock, FolderOpen,
-  Gift, LifeBuoy, Loader2, Users, Wrench,
+  ArrowRight, ArrowUpRight, Award, BookOpen, CalendarDays, CheckCircle2, ClipboardCheck,
+  Clock, FolderOpen, Gift, LifeBuoy, Loader2, Monitor, Signal, Users, Wrench,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import SEO, { SITE_URL } from "@/components/SEO";
@@ -17,13 +17,22 @@ interface CourseRow {
   category?: string | null;
   icon?: string | null;
   description?: string | null;
+  long_description?: string | null;
+  banner_url?: string | null;
+  gallery_urls?: unknown;
   audience?: string | null;
+  level?: string | null;
+  format?: string | null;
   duration?: string | null;
+  start_date?: string | null;
   price?: number | string | null;
   status?: string | null;
   highlights?: unknown;
+  curriculum?: unknown;
   tools?: unknown;
+  requirements?: unknown;
   bonuses?: unknown;
+  faqs?: unknown;
   certificate?: boolean | null;
   live_support?: boolean | null;
   project_count?: number | string | null;
@@ -54,6 +63,32 @@ const STATUS: Record<string, { label: string; cta: string; dot: string; availabi
     availability: "https://schema.org/PreOrder",
   },
 };
+
+const toParagraphs = (text: string) =>
+  text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+const readModules = (value: unknown): { title: string; description: string }[] =>
+  Array.isArray(value)
+    ? value
+        .map((m: any) => ({
+          title: String(m?.title ?? "").trim(),
+          description: String(m?.description ?? "").trim(),
+        }))
+        .filter((m) => m.title)
+    : [];
+
+const readFaqs = (value: unknown): FaqItem[] =>
+  Array.isArray(value)
+    ? (value
+        .map((f: any) => ({
+          question: String(f?.question ?? "").trim(),
+          answer: String(f?.answer ?? "").trim(),
+        }))
+        .filter((f) => f.question && f.answer) as FaqItem[])
+    : [];
 
 const CourseDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -139,17 +174,27 @@ const CourseDetail = () => {
   const Icon = resolveIcon(course.icon);
   const highlights = asList(course.highlights);
   const tools = asList(course.tools);
+  const requirements = asList(course.requirements);
   const bonuses = asList(course.bonuses);
+  const gallery = asList(course.gallery_urls);
+  const modules = readModules(course.curriculum);
+  const customFaqs = readFaqs(course.faqs);
   const priceNumber = toNumber(course.price);
   const priceLabel = formatUsd(course.price);
   const projectCount = toNumber(course.project_count);
   const description = (course.description || "").trim();
+  const longDescription = (course.long_description || "").trim();
+  const longParagraphs = toParagraphs(longDescription);
+  const banner = (course.banner_url || "").trim();
   const path = `/courses/${course.id}`;
   const url = `${SITE_URL}${path}`;
   const contactHref = `/contact?course=${encodeURIComponent(course.id)}`;
 
   const facts = [
     course.duration && { icon: Clock, label: "Duration", value: course.duration },
+    course.level && { icon: Signal, label: "Level", value: course.level },
+    course.format && { icon: Monitor, label: "Format", value: course.format },
+    course.start_date && { icon: CalendarDays, label: "Next start", value: course.start_date },
     course.audience && { icon: Users, label: "Who it's for", value: course.audience },
     projectCount > 0 && {
       icon: FolderOpen,
@@ -166,12 +211,12 @@ const CourseDetail = () => {
     { label: course.name },
   ];
 
-  const faqs: FaqItem[] = [
-    description && {
+  const generatedFaqs: FaqItem[] = [
+    (description || longDescription) && {
       question: `What will I learn in ${course.name}?`,
       answer: highlights.length
-        ? `${description}\n\nYou get: ${highlights.join("; ")}.`
-        : description,
+        ? `${description || truncate(longDescription, 300)}\n\nYou get: ${highlights.join("; ")}.`
+        : description || truncate(longDescription, 300),
     },
     course.duration && {
       question: `How long is ${course.name}?`,
@@ -180,6 +225,10 @@ const CourseDetail = () => {
     course.audience && {
       question: `Who is ${course.name} for?`,
       answer: course.audience,
+    },
+    requirements.length > 0 && {
+      question: `What do I need to take ${course.name}?`,
+      answer: `You need:\n${requirements.map((r) => `• ${r}`).join("\n")}`,
     },
     {
       question: `How much does ${course.name} cost?`,
@@ -204,15 +253,23 @@ const CourseDetail = () => {
     },
   ].filter(Boolean) as FaqItem[];
 
+  // Custom FAQs from the admin come first; skip generated ones with the same question.
+  const customQuestions = new Set(customFaqs.map((f) => f.question.toLowerCase()));
+  const faqs: FaqItem[] = [
+    ...customFaqs,
+    ...generatedFaqs.filter((f) => !customQuestions.has(f.question.toLowerCase())),
+  ];
+
   const courseSchema = {
     "@context": "https://schema.org",
     "@type": "Course",
     "@id": `${url}#course`,
     name: course.name,
-    description: truncate(description, 300) || course.name,
+    description: truncate(longDescription || description, 300) || course.name,
     url,
+    image: banner || undefined,
     inLanguage: "en",
-    educationalLevel: course.audience || undefined,
+    educationalLevel: course.level || course.audience || undefined,
     teaches: highlights.length ? highlights : undefined,
     provider: {
       "@type": "Organization",
@@ -238,7 +295,7 @@ const CourseDetail = () => {
       <SEO
         title={`${course.name} | Course by Samuel A. Emoni`}
         description={
-          truncate(description, 155) ||
+          truncate(description || longDescription, 155) ||
           `Learn ${course.name} with practical, project-based training from Samuel A. Emoni.`
         }
         canonical={path}
@@ -344,6 +401,34 @@ const CourseDetail = () => {
 
         {/* ============ BODY ============ */}
         <div className="mx-auto max-w-6xl space-y-16 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+          {banner && (
+            <img
+              src={banner}
+              alt={course.name}
+              loading="lazy"
+              className="aspect-[16/9] w-full rounded-2xl border border-border object-cover"
+            />
+          )}
+
+          {longParagraphs.length > 0 && (
+            <section aria-labelledby="course-about">
+              <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">About this course</p>
+              <h2 id="course-about" className="mt-2 font-display text-2xl text-ink sm:text-3xl">
+                What the course covers
+              </h2>
+              <div className="mt-6 max-w-3xl space-y-5">
+                {longParagraphs.map((paragraph, index) => (
+                  <p
+                    key={index}
+                    className="whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/85"
+                  >
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </section>
+          )}
+
           {highlights.length > 0 && (
             <section aria-labelledby="course-highlights">
               <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">What you get</p>
@@ -361,6 +446,36 @@ const CourseDetail = () => {
                   </li>
                 ))}
               </ul>
+            </section>
+          )}
+
+          {modules.length > 0 && (
+            <section aria-labelledby="course-curriculum">
+              <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">Curriculum</p>
+              <h2 id="course-curriculum" className="mt-2 flex items-center gap-3 font-display text-2xl text-ink sm:text-3xl">
+                <BookOpen size={26} aria-hidden="true" className="text-ember" />
+                {modules.length} module{modules.length === 1 ? "" : "s"}, step by step
+              </h2>
+              <ol className="mt-6 space-y-4">
+                {modules.map((module, index) => (
+                  <li
+                    key={`${module.title}-${index}`}
+                    className="flex gap-4 rounded-2xl border border-border bg-snow p-5 sm:p-6"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-forest font-display text-lg text-cream">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="break-words font-display text-lg text-ink sm:text-xl">{module.title}</h3>
+                      {module.description && (
+                        <p className="mt-2 whitespace-pre-line break-words font-body text-sm leading-relaxed text-ink/75 sm:text-base">
+                          {module.description}
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </section>
           )}
 
@@ -395,6 +510,45 @@ const CourseDetail = () => {
                 </section>
               )}
             </div>
+          )}
+
+          {requirements.length > 0 && (
+            <section aria-labelledby="course-requirements" className="rounded-2xl border border-border bg-snow p-6 sm:p-8">
+              <h2 id="course-requirements" className="flex items-center gap-2 font-display text-xl text-ink">
+                <ClipboardCheck size={20} aria-hidden="true" className="text-ember" /> Requirements
+              </h2>
+              <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+                {requirements.map((item, index) => (
+                  <li
+                    key={`${item}-${index}`}
+                    className="flex gap-3 font-body text-sm text-ink/85 sm:text-base"
+                  >
+                    <CheckCircle2 size={18} aria-hidden="true" className="mt-0.5 shrink-0 text-forest" />
+                    <span className="min-w-0 break-words">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {gallery.length > 0 && (
+            <section aria-labelledby="course-gallery">
+              <h2 id="course-gallery" className="font-display text-2xl text-ink sm:text-3xl">
+                Course gallery
+              </h2>
+              <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+                {gallery.map((src, index) => (
+                  <li key={`${src}-${index}`} className="overflow-hidden rounded-xl border border-border bg-snow">
+                    <img
+                      src={src}
+                      alt={`${course.name} preview ${index + 1}`}
+                      loading="lazy"
+                      className="aspect-[4/3] w-full object-cover"
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
 
           {bonuses.length > 0 && (
