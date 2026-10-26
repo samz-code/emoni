@@ -518,62 +518,75 @@ const Index = () => {
 
       {/* ABOUT */}
       {(aboutQ.isPending || aboutQ.isError || Boolean(aboutQ.data) || shoutoutsQ.isPending || shoutoutsQ.isError || (shoutoutsQ.data?.length ?? 0) > 0) && (
-        <section className="bg-snow py-12 dark:bg-[#141410] sm:py-16 lg:py-20" aria-labelledby="home-about-heading">
+        <section className="overflow-hidden bg-snow py-10 dark:bg-[#141410] sm:py-16 lg:py-20" aria-labelledby="home-about-heading">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-            <div className="grid min-w-0 gap-8 sm:gap-10 lg:grid-cols-12 lg:gap-14">
+            <div className="grid min-w-0 grid-cols-1 gap-5 sm:gap-8 lg:grid-cols-12 lg:gap-10">
+              {/* Profile card */}
               <div className="min-w-0 lg:col-span-5">
-                <Eyebrow>About</Eyebrow>
-                {aboutQ.data?.profile_image_url && (
-                  <img src={aboutQ.data.profile_image_url} alt="Samuel A. Emoni" loading="lazy" decoding="async" className="mx-auto mt-5 h-32 w-32 rounded-full border-4 border-snow object-cover shadow-md dark:border-[#1A1A16] sm:h-36 sm:w-36" />
-                )}
-                <h2 id="home-about-heading" className="mt-3 max-w-full whitespace-nowrap font-display text-[clamp(0.875rem,5.6vw,1.5rem)] leading-tight tracking-tight text-ink dark:text-cream">
-                  A little about my journey
-                </h2>
-                {aboutQ.isPending ? (
-                  <Skel className="mt-5 h-24 w-full" />
-                ) : aboutQ.isError ? (
-                  <p className="mt-5 font-body text-sm text-red-700" role="alert">About information could not be loaded.</p>
-                ) : aboutQ.data?.background ? (
-                  <p className="mt-5 whitespace-pre-line break-words font-body text-base leading-relaxed text-[#4A4A4A] dark:text-cream/70">{aboutQ.data.background}</p>
-                ) : (
-                  <p className="mt-5 font-body text-sm text-[#4A4A4A] dark:text-cream/65">Background information will be added soon.</p>
-                )}
+                <div className="h-full rounded-2xl border border-[#E0DAD0] bg-paper p-4 shadow-sm dark:border-olive/20 dark:bg-[#1A1A16] sm:p-6">
+                  <Eyebrow>About</Eyebrow>
+                  {aboutQ.data?.profile_image_url && (
+                    <img
+                      src={aboutQ.data.profile_image_url}
+                      alt="Samuel A. Emoni"
+                      loading="lazy"
+                      decoding="async"
+                      className="mt-4 h-56 w-full rounded-2xl border border-[#E0DAD0] object-cover object-top shadow-md dark:border-olive/20 sm:mt-5 sm:h-72 lg:h-64 xl:h-72"
+                    />
+                  )}
+                  <h2 id="home-about-heading" className="mt-5 break-words font-display text-xl leading-tight tracking-tight text-ink dark:text-cream sm:text-2xl">
+                    A little about my journey
+                  </h2>
+                  {aboutQ.isPending ? (
+                    <Skel className="mt-4 h-24 w-full" />
+                  ) : aboutQ.isError ? (
+                    <p className="mt-4 font-body text-sm text-red-700" role="alert">About information could not be loaded.</p>
+                  ) : aboutQ.data?.background ? (
+                    <p className="mt-4 whitespace-pre-line break-words font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70 sm:text-base">{aboutQ.data.background}</p>
+                  ) : (
+                    <p className="mt-4 font-body text-sm text-[#4A4A4A] dark:text-cream/65">Background information will be added soon.</p>
+                  )}
+                </div>
               </div>
 
-              <div className="min-w-0 space-y-6 lg:col-span-7">
-                <div className="border-l-2 border-olive pl-4">
-                  <h3 className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><GraduationCap size={19} className="text-forest dark:text-olive" aria-hidden="true" />Education</h3>
+              {/* Content cards */}
+              <div className="min-w-0 space-y-4 sm:space-y-5 lg:col-span-7">
+                <div className="rounded-2xl border border-[#E0DAD0] border-t-4 border-t-olive bg-paper p-4 shadow-sm dark:border-olive/20 dark:border-t-olive dark:bg-[#1A1A16] sm:p-6">
+                  <h3 className="flex items-center gap-2 font-display text-base text-ink dark:text-cream sm:text-lg"><GraduationCap size={19} className="shrink-0 text-forest dark:text-olive" aria-hidden="true" />Education</h3>
                   {aboutQ.data?.education?.length ? (
-                    <ul className="mt-2 space-y-1">
+                    <ul className="mt-3 space-y-1.5">
                       {aboutQ.data.education.map((education: string, index: number) => (
-                        <li key={`${education}-${index}`} className="font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70">— {education}</li>
+                        <li key={`${education}-${index}`} className="break-words font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70">— {education}</li>
                       ))}
                     </ul>
-                  ) : <p className="mt-2 font-body text-sm text-ink/55 dark:text-cream/55">Education details coming soon.</p>}
+                  ) : <p className="mt-3 font-body text-sm text-ink/55 dark:text-cream/55">Education details coming soon.</p>}
                 </div>
-                <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
-                  <div className="border-l-2 border-ember pl-4">
-                    <h3 className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><Heart size={18} className="text-ember" aria-hidden="true" />Soft skills</h3>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                  <div className="min-w-0 rounded-2xl border border-[#E0DAD0] border-t-4 border-t-ember bg-paper p-4 shadow-sm dark:border-olive/20 dark:border-t-ember dark:bg-[#1A1A16] sm:p-6">
+                    <h3 className="flex items-center gap-2 font-display text-base text-ink dark:text-cream sm:text-lg"><Heart size={18} className="shrink-0 text-ember" aria-hidden="true" />Soft skills</h3>
                     {aboutQ.data?.soft_skills?.length ? (
-                      <ul className="mt-2 space-y-1">
+                      <ul className="mt-3 space-y-1.5">
                         {aboutQ.data.soft_skills.map((skill: string) => (
-                          <li key={skill} className="font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70">— {skill}</li>
+                          <li key={skill} className="break-words font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70">— {skill}</li>
                         ))}
                       </ul>
-                    ) : <p className="mt-2 font-body text-sm text-ink/55 dark:text-cream/55">Skills will be listed soon.</p>}
+                    ) : <p className="mt-3 font-body text-sm text-ink/55 dark:text-cream/55">Skills will be listed soon.</p>}
                   </div>
-                  <div className="border-l-2 border-forest pl-4 dark:border-olive">
-                    <h3 className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><Wrench size={18} className="text-forest dark:text-olive" aria-hidden="true" />Hard skills</h3>
+
+                  <div className="min-w-0 rounded-2xl border border-[#E0DAD0] border-t-4 border-t-forest bg-paper p-4 shadow-sm dark:border-olive/20 dark:border-t-olive dark:bg-[#1A1A16] sm:p-6">
+                    <h3 className="flex items-center gap-2 font-display text-base text-ink dark:text-cream sm:text-lg"><Wrench size={18} className="shrink-0 text-forest dark:text-olive" aria-hidden="true" />Hard skills</h3>
                     {aboutQ.data?.hard_skills?.length ? (
-                      <ul className="mt-2 space-y-1">
+                      <ul className="mt-3 space-y-1.5">
                         {aboutQ.data.hard_skills.map((skill: string) => (
-                          <li key={skill} className="font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70">— {skill}</li>
+                          <li key={skill} className="break-words font-body text-sm leading-relaxed text-[#4A4A4A] dark:text-cream/70">— {skill}</li>
                         ))}
                       </ul>
-                    ) : <p className="mt-2 font-body text-sm text-ink/55 dark:text-cream/55">Hard skills will be listed soon.</p>}
+                    ) : <p className="mt-3 font-body text-sm text-ink/55 dark:text-cream/55">Hard skills will be listed soon.</p>}
                   </div>
-                  <div className="border-l-2 border-forest pl-4 dark:border-olive sm:col-span-2">
-                    <h3 id="home-software-heading" className="flex items-center gap-2 font-display text-lg text-ink dark:text-cream"><Monitor size={18} className="text-forest dark:text-olive" aria-hidden="true" />Software & tools</h3>
+
+                  <div className="min-w-0 rounded-2xl border border-[#E0DAD0] border-t-4 border-t-forest bg-paper p-4 shadow-sm dark:border-olive/20 dark:border-t-olive dark:bg-[#1A1A16] sm:col-span-2 sm:p-6">
+                    <h3 id="home-software-heading" className="flex items-center gap-2 font-display text-base text-ink dark:text-cream sm:text-lg"><Monitor size={18} className="shrink-0 text-forest dark:text-olive" aria-hidden="true" />Software & tools</h3>
                     {Array.isArray(aboutQ.data?.software) && aboutQ.data.software.length > 0 ? (
                       <>
                         <style>{`
@@ -593,13 +606,13 @@ const Index = () => {
                             .homepage-software-marquee { overflow-x: auto; }
                           }
                         `}</style>
-                        <div className="homepage-software-marquee mt-2 overflow-hidden" aria-labelledby="home-software-heading">
+                        <div className="homepage-software-marquee mt-3 overflow-hidden" aria-labelledby="home-software-heading">
                           <div className="homepage-software-marquee-track flex w-max">
                             {[0, 1].map((copy) => (
-                              <ul key={copy} className={`flex shrink-0 gap-4 pr-4 ${copy === 1 ? "homepage-software-marquee-duplicate" : ""}`} aria-hidden={copy === 1}>
+                              <ul key={copy} className={`flex shrink-0 gap-3 pr-3 sm:gap-4 sm:pr-4 ${copy === 1 ? "homepage-software-marquee-duplicate" : ""}`} aria-hidden={copy === 1}>
                                 {aboutQ.data.software.map((tool: { id?: string; icon_url?: string }, index: number) => (
-                                  <li key={tool.id || `software-${index}`} className="flex h-14 w-14 items-center justify-center">
-                                    {tool.icon_url ? <img src={tool.icon_url} alt="" title="Software tool" loading="lazy" className="h-11 w-11 object-contain" /> : <Code2 size={26} aria-hidden="true" />}
+                                  <li key={tool.id || `software-${index}`} className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#E0DAD0] bg-snow dark:border-olive/20 dark:bg-[#141410] sm:h-14 sm:w-14">
+                                    {tool.icon_url ? <img src={tool.icon_url} alt="" title="Software tool" loading="lazy" className="h-8 w-8 object-contain sm:h-9 sm:w-9" /> : <Code2 size={22} aria-hidden="true" />}
                                   </li>
                                 ))}
                               </ul>
@@ -607,43 +620,43 @@ const Index = () => {
                           </div>
                         </div>
                       </>
-                    ) : <p className="mt-2 font-body text-sm text-ink/55 dark:text-cream/55">Software and tools will be listed soon.</p>}
+                    ) : <p className="mt-3 font-body text-sm text-ink/55 dark:text-cream/55">Software and tools will be listed soon.</p>}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col items-stretch justify-between gap-5 rounded-[4px] bg-forest p-5 text-cream dark:bg-[#20251D] sm:mt-10 sm:flex-row sm:items-center sm:p-8">
-              <div>
+            <div className="mt-6 flex flex-col items-stretch justify-between gap-4 rounded-2xl bg-forest p-5 text-cream dark:bg-[#20251D] sm:mt-10 sm:flex-row sm:items-center sm:gap-5 sm:p-8">
+              <div className="min-w-0">
                 <p className="font-body text-xs uppercase tracking-[0.18em] text-olive">Have a project in mind?</p>
-                <p className="mt-2 font-display text-2xl sm:text-3xl">Let’s make it happen.</p>
+                <p className="mt-2 font-display text-xl sm:text-3xl">Let’s make it happen.</p>
               </div>
-              <Link to="/contact" className="inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-[4px] bg-olive px-5 py-4 font-body text-base font-semibold text-ink transition-colors hover:bg-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream sm:w-auto sm:px-7 sm:text-lg">
+              <Link to="/contact" className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-olive px-5 py-3 font-body text-sm font-semibold text-ink transition-colors hover:bg-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream sm:min-h-14 sm:w-auto sm:gap-3 sm:px-7 sm:py-4 sm:text-lg">
                 Discuss a project <ArrowRight size={19} aria-hidden="true" />
               </Link>
             </div>
 
             {shoutoutsQ.isError ? (
-              <p className="mt-10 font-body text-sm text-red-700" role="alert">Acknowledgements could not be loaded.</p>
+              <p className="mt-8 font-body text-sm text-red-700" role="alert">Acknowledgements could not be loaded.</p>
             ) : (shoutoutsQ.data?.length ?? 0) > 0 ? (
-              <div className="mt-12 border-t border-[#E0DAD0] pt-8 dark:border-olive/20">
-                <h3 className="font-display text-2xl text-ink dark:text-cream">People I appreciate</h3>
+              <div className="mt-10 border-t border-[#E0DAD0] pt-6 dark:border-olive/20 sm:mt-12 sm:pt-8">
+                <h3 className="font-display text-xl text-ink dark:text-cream sm:text-2xl">People I appreciate</h3>
                 <p className="mt-2 font-body text-sm text-[#4A4A4A] dark:text-cream/65">A shout-out to people who have shared knowledge, encouragement, or collaboration along the way.</p>
-                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-5 grid grid-cols-1 gap-4 sm:mt-6 sm:grid-cols-2 lg:grid-cols-3">
                   {shoutoutsQ.data.map((person) => {
                     const profileUrl = safeWebUrl(person.profile_url);
                     return (
-                      <article key={person.id} className="flex gap-4 border border-[#E0DAD0] bg-paper p-4 dark:border-olive/20 dark:bg-[#1A1A16]">
+                      <article key={person.id} className="flex min-w-0 gap-3 rounded-2xl border border-[#E0DAD0] bg-paper p-3 shadow-sm dark:border-olive/20 dark:bg-[#1A1A16] sm:gap-4 sm:p-4">
                         {person.image_url ? (
-                          <img src={person.image_url} alt="" loading="lazy" className="h-16 w-20 shrink-0 rounded-lg object-cover" />
+                          <img src={person.image_url} alt="" loading="lazy" className="h-16 w-20 shrink-0 rounded-xl object-cover" />
                         ) : (
-                          <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-lg bg-olive/15 font-display text-lg text-forest dark:text-olive">{person.name.slice(0, 1)}</div>
+                          <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-xl bg-olive/15 font-display text-lg text-forest dark:text-olive">{person.name.slice(0, 1)}</div>
                         )}
                         <div className="min-w-0">
-                          <h4 className="font-display text-base text-ink dark:text-cream">{person.name}</h4>
-                          {person.role && <p className="mt-0.5 font-body text-xs text-ember">{person.role}</p>}
-                          {person.information && <p className="mt-2 line-clamp-3 font-body text-xs leading-relaxed text-[#4A4A4A] dark:text-cream/65">{person.information}</p>}
-                          {profileUrl && <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex font-body text-xs font-medium text-forest underline dark:text-olive">Website / social profile <ArrowRight size={12} className="ml-1" aria-hidden="true" /></a>}
+                          <h4 className="break-words font-display text-base text-ink dark:text-cream">{person.name}</h4>
+                          {person.role && <p className="mt-0.5 break-words font-body text-xs text-ember">{person.role}</p>}
+                          {person.information && <p className="mt-2 line-clamp-3 break-words font-body text-xs leading-relaxed text-[#4A4A4A] dark:text-cream/65">{person.information}</p>}
+                          {profileUrl && <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center font-body text-xs font-medium text-forest underline dark:text-olive">Website / social profile <ArrowRight size={12} className="ml-1 shrink-0" aria-hidden="true" /></a>}
                         </div>
                       </article>
                     );
@@ -654,7 +667,6 @@ const Index = () => {
           </div>
         </section>
       )}
-
       {/* TRUSTED BY — managed in Admin → Manage Content → Partners */}
       <TrustedBy
         eyebrow={s?.trusted_eyebrow}
