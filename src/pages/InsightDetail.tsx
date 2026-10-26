@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet-async";
 import { ArrowLeft, Loader2, Clock, Eye, Calendar, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Insight } from "@/types/insight";
+import SEO, { SITE_URL } from "@/components/SEO";
 
 const sanitizeArticleHtml = (html: string) => {
   const doc = new DOMParser().parseFromString(html, "text/html");
@@ -42,6 +42,13 @@ const sanitizeArticleHtml = (html: string) => {
 };
 
 const looksLikeHtml = (text: string) => /<[a-z][\s\S]*>/i.test(text);
+
+/** Converts any parseable date string to ISO 8601, or undefined if invalid. */
+const toIso = (value?: string | null): string | undefined => {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+};
 type RelatedInsight = Pick<Insight, "slug" | "title" | "category" | "read_time" | "excerpt" | "date" | "image">;
 
 const InsightDetail = () => {
@@ -195,10 +202,11 @@ const InsightDetail = () => {
   if (!insight) {
     return (
       <>
-        <Helmet>
-          <title>Article Not Found | Samuel A. Emoni</title>
-          <meta name="robots" content="noindex, follow" />
-        </Helmet>
+        <SEO
+          title="Article Not Found | Samuel A. Emoni"
+          description="This article could not be found."
+          noindex
+        />
         <main className="bg-paper min-h-screen py-24 px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="font-display text-3xl md:text-4xl text-ink">Article Not Found</h1>
@@ -218,60 +226,59 @@ const InsightDetail = () => {
   const isRichHtmlBody = body.length === 1 && looksLikeHtml(body[0]);
 
   // SEO dynamic values
-  const canonicalUrl = `https://www.emonisamuel.co.ke/insights/${insight.slug}`;
+  const record = insight as Insight & { created_at?: string | null; updated_at?: string | null };
+  const canonicalUrl = `${SITE_URL}/insights/${insight.slug}`;
   const pageTitle = `${insight.title} | Samuel A. Emoni`;
-  const pageDescription = insight.excerpt || "Read technical insights, architecture patterns, and software development guides by Samuel A. Emoni.";
-  const articleImage = insight.image || "https://www.emonisamuel.co.ke/og-image.jpg";
+  const pageDescription =
+    insight.excerpt ||
+    "Read insights on design, software development and digital strategy by Samuel A. Emoni.";
+  const articleImage = insight.image || `${SITE_URL}/og-image.jpg`;
+  const publishedIso = toIso(insight.date) ?? toIso(record.created_at);
+  const modifiedIso = toIso(record.updated_at) ?? publishedIso;
 
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    "headline": insight.title,
-    "description": pageDescription,
-    "url": canonicalUrl,
-    "image": articleImage,
-    "datePublished": insight.date,
-    "dateModified": insight.date,
-    "author": {
+    "@id": `${canonicalUrl}#article`,
+    mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
+    headline: insight.title,
+    description: pageDescription,
+    url: canonicalUrl,
+    image: [articleImage],
+    datePublished: publishedIso,
+    dateModified: modifiedIso,
+    inLanguage: "en-KE",
+    author: {
       "@type": "Person",
-      "name": insight.author || "Samuel A. Emoni",
-      ...(insight.author ? {} : { "url": "https://www.emonisamuel.co.ke" })
+      name: insight.author || "Samuel A. Emoni",
+      url: SITE_URL,
     },
-    "publisher": {
-      "@type": "Person",
-      "name": "Samuel A. Emoni",
-      "url": "https://www.emonisamuel.co.ke"
+    publisher: {
+      "@type": "Organization",
+      name: "Emoni Digital Solutions",
+      url: SITE_URL,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
     },
-    "articleSection": insight.category,
-    "keywords": insight.tags ? insight.tags.join(", ") : undefined
+    articleSection: insight.category,
+    keywords: insight.tags && insight.tags.length > 0 ? insight.tags.join(", ") : undefined,
   };
 
   const hasTags = Boolean(insight.tags && insight.tags.length > 0);
 
   return (
     <>
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        <link rel="canonical" href={canonicalUrl} />
-
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content={articleImage} />
-        <meta property="article:published_time" content={insight.date} />
-        <meta property="article:section" content={insight.category} />
-
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content={articleImage} />
-
-        <script type="application/ld+json">
-          {JSON.stringify(articleSchema)}
-        </script>
-      </Helmet>
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        canonical={canonicalUrl}
+        image={articleImage}
+        type="article"
+        keywords={insight.tags && insight.tags.length > 0 ? insight.tags.join(", ") : undefined}
+        publishedTime={publishedIso}
+        modifiedTime={modifiedIso}
+        section={insight.category}
+        schema={articleSchema}
+      />
 
       <main className="bg-paper min-h-screen overflow-x-hidden">
         {/* HERO: title + meta on the left, cover image on the right (stacks on mobile) */}

@@ -1,9 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { BrowserRouter, Route, Routes, Navigate, Outlet } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+
+// SEO
+import SEO from "@/components/SEO";
+import RouteSEO from "@/components/RouteSEO";
 
 // Layout & Navigation Components
 import Navbar from "@/components/Navbar";
@@ -18,6 +23,8 @@ import PopupManager from "@/components/popups/PopupManager";
 import Index from "./pages/Index";
 import WhatIDo from "./pages/WhatIDo";
 import Courses from "./pages/Courses";
+import CourseDetail from "./pages/CourseDetail";
+import ServiceDetail from "./pages/ServiceDetail";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Partners from "./pages/Partners";
@@ -52,6 +59,17 @@ import {
 } from "./pages/ClientDocuments";
 
 const queryClient = new QueryClient();
+
+/** Keeps private pages out of search results and AI indexes. */
+function NoIndex() {
+  return (
+    <SEO
+      title="Private | Emoni Digital Solutions"
+      description="Private page."
+      noindex
+    />
+  );
+}
 
 function ProtectedAdminRoute() {
   const [session, setSession] = useState<Session | null>(null);
@@ -111,9 +129,12 @@ function ProtectedAdminRoute() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FBF9F5] font-display text-[#007979] text-sm tracking-widest uppercase">
-        VERIFYING PORTAL ACCESS PRIVILEGES...
-      </div>
+      <>
+        <NoIndex />
+        <div className="min-h-screen flex items-center justify-center bg-[#FBF9F5] font-display text-[#007979] text-sm tracking-widest uppercase">
+          VERIFYING PORTAL ACCESS PRIVILEGES...
+        </div>
+      </>
     );
   }
 
@@ -123,88 +144,126 @@ function ProtectedAdminRoute() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FBF9F5] font-body text-[#524646] p-6 text-center">
-        <h2 className="font-display text-3xl font-bold text-[#EC5B38]">UNAUTHORIZED ACCESS</h2>
-        <p className="mt-2 text-sm max-w-md text-[#524646]/80">
-          Your account (<strong>{session.user.email}</strong>) is authenticated but does not hold administrator authority.
-        </p>
-        <button
-          onClick={() => supabase.auth.signOut()}
-          className="mt-6 px-6 py-2.5 bg-[#007979] text-[#FFE2AF] rounded-lg font-display text-sm font-bold hover:bg-[#24B1B1] transition-colors"
-        >
-          SIGN OUT & RETURN
-        </button>
-      </div>
+      <>
+        <NoIndex />
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#FBF9F5] font-body text-[#524646] p-6 text-center">
+          <h2 className="font-display text-3xl font-bold text-[#EC5B38]">UNAUTHORIZED ACCESS</h2>
+          <p className="mt-2 text-sm max-w-md text-[#524646]/80">
+            Your account (<strong>{session.user.email}</strong>) is authenticated but does not hold administrator authority.
+          </p>
+          <button
+            onClick={() => supabase.auth.signOut()}
+            className="mt-6 px-6 py-2.5 bg-[#007979] text-[#FFE2AF] rounded-lg font-display text-sm font-bold hover:bg-[#24B1B1] transition-colors"
+          >
+            SIGN OUT & RETURN
+          </button>
+        </div>
+      </>
     );
   }
 
-  return <Outlet />;
+  return (
+    <>
+      <NoIndex />
+      <Outlet />
+    </>
+  );
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
-          {/* Protected Administrative CMS Routes (no Navbar/Footer) */}
-          <Route path="/admin" element={<ProtectedAdminRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route index element={<AdminDashboard />} />
-              <Route path="content" element={<ManageContent />} />
-              <Route path="services" element={<ManageServices />} />
-              <Route path="services/new" element={<EditService />} />
-              <Route path="services/edit/:id" element={<EditService />} />
-              <Route path="courses" element={<ManageCourses />} />
-              <Route path="projects" element={<ManageProjects />} />
-              <Route path="about" element={<ManageAbout />} />
-              <Route path="process-steps" element={<ManageProcessSteps />} />
-              <Route path="ideal-for" element={<ManageIdealFor />} />
-              <Route path="insights" element={<ManageInsights />} />
-              <Route path="partners" element={<ManagePartners />} />
-              <Route path="popups" element={<ManagePopups />} />
-              <Route path="client-work" element={<ManageClientWork />} />
+  <HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes>
+            {/* Protected Administrative CMS Routes (no Navbar/Footer) */}
+            <Route path="/admin" element={<ProtectedAdminRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="content" element={<ManageContent />} />
+                <Route path="services" element={<ManageServices />} />
+                <Route path="services/new" element={<EditService />} />
+                <Route path="services/edit/:id" element={<EditService />} />
+                <Route path="courses" element={<ManageCourses />} />
+                <Route path="projects" element={<ManageProjects />} />
+                <Route path="about" element={<ManageAbout />} />
+                <Route path="process-steps" element={<ManageProcessSteps />} />
+                <Route path="ideal-for" element={<ManageIdealFor />} />
+                <Route path="insights" element={<ManageInsights />} />
+                <Route path="partners" element={<ManagePartners />} />
+                <Route path="popups" element={<ManagePopups />} />
+                <Route path="client-work" element={<ManageClientWork />} />
+              </Route>
             </Route>
-          </Route>
 
-          <Route path="/proposal/:token" element={<ClientProposalPage />} />
-          <Route path="/website-review" element={<WebsiteReviewRequestPage />} />
-          <Route path="/website-review/:token" element={<WebsiteReviewClientPage />} />
+            {/* Private client documents (never indexed) */}
+            <Route
+              path="/proposal/:token"
+              element={
+                <>
+                  <NoIndex />
+                  <ClientProposalPage />
+                </>
+              }
+            />
+            <Route
+              path="/website-review"
+              element={
+                <>
+                  <NoIndex />
+                  <WebsiteReviewRequestPage />
+                </>
+              }
+            />
+            <Route
+              path="/website-review/:token"
+              element={
+                <>
+                  <NoIndex />
+                  <WebsiteReviewClientPage />
+                </>
+              }
+            />
 
-          {/* Public Web Platform Routes (with Navbar/Footer) */}
-          <Route
-            path="*"
-            element={
-              <>
-                <Navbar />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/what-i-do" element={<WhatIDo />} />
-                  <Route path="/courses" element={<Courses />} />
-                  <Route path="/projects/:kind/:id" element={<ProjectDetail />} />
-                  <Route path="/projects" element={<Projects />} />
-                  <Route path="/partners" element={<Partners />} />
-                  <Route path="/insights" element={<Insights />} />
-                  <Route path="/insights/:slug" element={<InsightDetail />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/admin/login" element={<AdminLogin />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/cookies" element={<Cookies />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Footer />
-                <FloatingWidgets />
-                <BackToTop />
-                <PopupManager />
-                <CookieConsent />
-              </>
-            }
-          />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+            {/* Public Web Platform Routes (with Navbar/Footer) */}
+            <Route
+              path="*"
+              element={
+                <>
+                  <RouteSEO />
+                  <Navbar />
+                  <Routes>
+                    <Route path="/" element={<Index />} />
+                    <Route path="/what-i-do/:id" element={<ServiceDetail />} />
+                    <Route path="/what-i-do" element={<WhatIDo />} />
+                    <Route path="/courses/:id" element={<CourseDetail />} />
+                    <Route path="/courses" element={<Courses />} />
+                    <Route path="/projects/:kind/:id" element={<ProjectDetail />} />
+                    <Route path="/projects" element={<Projects />} />
+                    <Route path="/partners" element={<Partners />} />
+                    <Route path="/insights" element={<Insights />} />
+                    <Route path="/insights/:slug" element={<InsightDetail />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/terms" element={<Terms />} />
+                    <Route path="/cookies" element={<Cookies />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                  <Footer />
+                  <FloatingWidgets />
+                  <BackToTop />
+                  <PopupManager />
+                  <CookieConsent />
+                </>
+              }
+            />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;

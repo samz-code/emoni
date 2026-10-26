@@ -1,158 +1,148 @@
-import { useState } from "react";
-import {
-  FiZap, FiLayers, FiMonitor, FiCreditCard, FiSettings, FiLink2, FiTool,
-  FiTrendingUp, FiTarget, FiCompass, FiRadio, FiBarChart2, FiLayout,
-  FiSearch, FiShare2, FiEdit3,
-} from "react-icons/fi";
-import { IoColorPaletteOutline } from "react-icons/io5";
+import { Link } from "react-router-dom";
 import { FaWhatsapp } from "react-icons/fa";
-import { CheckCircle2, Users } from "lucide-react";
-import type { IconType } from "react-icons";
 
-// Types matching Supabase database structure
 export interface Service {
   id: string;
   category: string;
-  icon: string;
   name: string;
+  short_description?: string | null;
   problem: string;
   solution: string;
+  long_description?: string | null;
   outcome: string;
   deliverables: string[];
+  tools?: string[];
+  timeline?: string | null;
+  starting_from?: string | null;
   ideal_for: string;
+  banner_url?: string | null;
+  gallery_urls?: string[];
+  faqs?: { question: string; answer: string }[];
   published: boolean;
   sort_order?: number;
+  [key: string]: any;
 }
 
-const iconMap: Record<string, IconType> = {
-  Zap: FiZap,
-  Layers: FiLayers,
-  Monitor: FiMonitor,
-  Palette: IoColorPaletteOutline,
-  CreditCard: FiCreditCard,
-  Workflow: FiSettings,
-  Link: FiLink2,
-  Wrench: FiTool,
-  TrendingUp: FiTrendingUp,
-  Target: FiTarget,
-  Compass: FiCompass,
-  Radio: FiRadio,
-  BarChart2: FiBarChart2,
-  Layout: FiLayout,
-  Search: FiSearch,
-  Share2: FiShare2,
-  Edit3: FiEdit3,
-};
-
-const outcomeColors: Record<string, string> = {
-  "digital-consultancy":    "#F59E0B",
-  "system-design":          "#0EA5E9",
-  "web-development":        "#10B981",
-  "graphic-design":         "#EC4899",
-  "payment-integrations":   "#8B5CF6",
-  "process-automation":     "#F97316",
-  "api-integration":        "#06B6D4",
-  "it-support":             "#F43F5E",
-  "digital-marketing":      "#EA580C",
-  "marketing-plan":         "#CA8A04",
-  "brand-strategy":         "#DB2777",
-  "traditional-marketing":  "#78716C",
-  "media-buying":           "#4F46E5",
-  "web-design":             "#14B8A6",
-  "seo":                    "#2563EB",
-  "social-media":           "#E11D48",
-  "content-creation":       "#9333EA",
-};
-
-const DEFAULT_ICON_COLOR = "#6B7280";
 const WHATSAPP_NUMBER = "254727492545";
+const MAX_DELIVERABLES = 5;
 
 const buildWhatsAppLink = (serviceName: string) => {
   const message = `Hi Samuel, I'd like to book the ${serviceName} service.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 };
 
-const ServiceCard = ({ service }: { service: Service }) => {
-  const Icon = iconMap[service.icon] || FiZap;
-  const hoverColor = outcomeColors[service.id] || DEFAULT_ICON_COLOR;
-  const [hovered, setHovered] = useState(false);
+const initialsOf = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w.charAt(0).toUpperCase())
+    .join("");
 
+const BannerFallback = ({ name }: { name: string }) => (
+  <div
+    className="absolute inset-0 flex items-center justify-center bg-forest"
+    style={{
+      backgroundImage:
+        "repeating-linear-gradient(135deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 14px)",
+    }}
+    aria-hidden="true"
+  >
+    <span className="font-display text-6xl tracking-wide text-cream/80">{initialsOf(name)}</span>
+  </div>
+);
+
+const ServiceCard = ({ service }: { service: Service }) => {
   const deliverablesList = Array.isArray(service.deliverables) ? service.deliverables : [];
+  const visibleDeliverables = deliverablesList.slice(0, MAX_DELIVERABLES);
+  const extraCount = deliverablesList.length - visibleDeliverables.length;
+  const summary = service.short_description || service.solution || service.problem;
 
   return (
-    <div
+    <article
       id={service.id}
-      className="group bg-snow border border-border border-l-4 border-l-ember rounded-[4px] p-6 scroll-mt-24 flex flex-col h-full transition-shadow duration-300 hover:shadow-md"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="group bg-snow border border-border rounded-2xl overflow-hidden scroll-mt-24 w-full max-w-[736px] mx-auto h-full flex flex-col lg:min-h-[900px] transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
-      {/* Icon */}
-      <div className="mb-3">
-        <Icon
-          size={26}
-          style={{ color: hovered ? hoverColor : DEFAULT_ICON_COLOR, transition: "color 0.3s ease" }}
-        />
-      </div>
-
-      {/* Title */}
-      <h3 className="font-display text-[22px] text-ink">{service.name}</h3>
-
-      {/* Problem */}
-      <p className="font-body text-[10px] uppercase tracking-widest text-ember mt-4 mb-1 font-semibold">
-        THE PROBLEM
-      </p>
-      <p className="font-body text-sm text-[#4A4A4A] leading-relaxed">{service.problem}</p>
-
-      {/* Solution */}
-      <p className="font-body text-[10px] uppercase tracking-widest text-olive mt-4 mb-1 font-semibold">
-        HOW I SOLVE IT
-      </p>
-      <p className="font-body text-sm text-[#4A4A4A] leading-relaxed">{service.solution}</p>
-
-      {/* Deliverables */}
-      <p className="font-body text-[10px] uppercase tracking-widest text-[#9A9A9A] mt-5 mb-2 font-semibold">
-        WHAT YOU GET
-      </p>
-      <ul className="space-y-1.5 flex-1">
-        {deliverablesList.map((d, index) => (
-          <li key={index} className="flex items-start gap-2 font-body text-sm text-ink">
-            <CheckCircle2 size={14} className="text-olive flex-shrink-0 mt-1" />
-            <span>{d}</span>
-          </li>
-        ))}
-      </ul>
-
-      {/* Footer */}
-      <div className="mt-5 pt-5 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* Ideal For */}
-        {service.ideal_for && (
-          <div className="flex items-start gap-2">
-            <Users size={13} className="text-[#9A9A9A] flex-shrink-0 mt-[3px]" />
-            <p className="font-body text-sm text-ink font-bold leading-snug">
-              {service.ideal_for}
-            </p>
-          </div>
+      {/* Banner: 736 x 420 */}
+      <Link
+        to={`/what-i-do/${service.id}`}
+        tabIndex={-1}
+        aria-hidden="true"
+        className="relative block aspect-[736/420] overflow-hidden bg-forest"
+      >
+        {service.banner_url ? (
+          <img
+            src={service.banner_url}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          />
+        ) : (
+          <BannerFallback name={service.name} />
         )}
-
-        {/* Outcome badge */}
         {service.outcome && (
-          <span className="self-start sm:self-auto inline-block bg-forest text-cream text-xs rounded-[4px] px-2 py-1 font-body whitespace-nowrap flex-shrink-0">
+          <span className="absolute left-4 bottom-4 max-w-[calc(100%-2rem)] bg-snow/95 text-ink text-xs font-semibold rounded-full px-3 py-1 font-body leading-tight">
             {service.outcome}
           </span>
         )}
-      </div>
+      </Link>
 
-      {/* Book on WhatsApp */}
-      <a
-        href={buildWhatsAppLink(service.name)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 flex items-center justify-center gap-2 bg-[#25D366] text-white font-body text-sm font-bold tracking-wide py-2.5 rounded-[4px] hover:bg-[#1FB855] transition-colors"
-      >
-        <FaWhatsapp size={16} />
-        <span>Book on WhatsApp</span>
-      </a>
-    </div>
+      {/* Body */}
+      <div className="flex flex-col flex-1 p-6 sm:p-8">
+        <h3 className="font-display text-[24px] sm:text-[28px] text-ink leading-snug">{service.name}</h3>
+
+        {summary && (
+          <p className="font-body text-base text-[#4A4A4A] leading-relaxed mt-3 line-clamp-4">
+            {summary}
+          </p>
+        )}
+
+        {visibleDeliverables.length > 0 && (
+          <ul className="mt-5 space-y-2 flex-1">
+            {visibleDeliverables.map((d, index) => (
+              <li key={index} className="flex items-start gap-3 font-body text-[15px] text-ink">
+                <span className="mt-[9px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ember" aria-hidden="true" />
+                <span className="line-clamp-2">{d}</span>
+              </li>
+            ))}
+            {extraCount > 0 && (
+              <li className="font-body text-sm text-[#9A9A9A] pl-[18px]">+{extraCount} more included</li>
+            )}
+          </ul>
+        )}
+
+        {(service.timeline || service.starting_from) && (
+          <p className="mt-5 font-body text-sm text-[#6B6B6B]">
+            {[service.timeline, service.starting_from && `From ${service.starting_from}`]
+              .filter(Boolean)
+              .join("  ·  ")}
+          </p>
+        )}
+
+        {/* Actions: always one row */}
+        <div className="mt-5 pt-5 border-t border-border flex items-stretch gap-3">
+          <Link
+            to={`/what-i-do/${service.id}`}
+            aria-label={`View details for ${service.name}`}
+            className="flex-1 inline-flex min-h-12 items-center justify-center rounded-xl border border-forest px-4 font-body text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+          >
+            View details
+          </Link>
+
+          <a
+            href={buildWhatsAppLink(service.name)}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Book ${service.name} on WhatsApp`}
+            className="flex-1 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 font-body text-sm font-bold text-white transition-colors hover:bg-[#1FB855] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1FB855]"
+          >
+            <FaWhatsapp size={17} aria-hidden="true" />
+            <span>Book now</span>
+          </a>
+        </div>
+      </div>
+    </article>
   );
 };
 

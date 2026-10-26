@@ -1,9 +1,9 @@
 import { Fragment, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Helmet } from "react-helmet-async";
 import { ArrowLeft, ArrowUpRight, ImageOff } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import SEO, { SITE_URL } from "@/components/SEO";
 
 type ProjectKind = "web" | "design";
 
@@ -189,6 +189,18 @@ export default function ProjectDetail() {
   const pageTitle = project ? `${project.title} | Samuel A. Emoni` : "Project Details | Samuel A. Emoni";
   const pageDescription = project?.description || project?.fullDescription.slice(0, 155) || "Project case study and portfolio gallery.";
   const liveUrl = safeExternalUrl(project?.liveUrl ?? null);
+  const projectSchema = project
+    ? {
+        "@context": "https://schema.org",
+        "@type": "CreativeWork",
+        name: project.title,
+        description: pageDescription,
+        genre: project.category,
+        url: `${SITE_URL}/projects/${projectKind}/${id}`,
+        image: project.images.slice(0, 6),
+        author: { "@type": "Person", name: "Samuel A. Emoni", url: SITE_URL },
+      }
+    : undefined;
   const blocks = parseDescription(project?.fullDescription || project?.description || "");
   const allCategories = project
     ? Array.from(new Set([project.category, ...project.categories].filter(Boolean)))
@@ -203,13 +215,15 @@ export default function ProjectDetail() {
 
   return (
     <>
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        {project?.image && <meta property="og:image" content={project.image} />}
-      </Helmet>
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        canonical={`/projects/${projectKind}/${id}`}
+        image={project?.image ?? undefined}
+        type="article"
+        noindex={Boolean(error)}
+        schema={projectSchema}
+      />
 
       <main className="min-h-screen bg-paper py-10 sm:py-14">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">

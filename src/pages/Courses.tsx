@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 import CourseCard from "@/components/CourseCard";
 import { supabase } from "@/lib/supabase";
 import { Loader2, AlertCircle } from "lucide-react";
@@ -55,67 +55,52 @@ const Courses = () => {
       ? courses
       : courses.filter((c) => c.category?.toLowerCase() === active.toLowerCase());
 
-  const canonicalUrl = "https://www.emonisamuel.co.ke/courses";
   const pageTitle = "Practical Tech & Design Courses | Samuel A. Emoni";
-  const pageDescription = "Explore practical courses in Web Development, Graphic Design, Video Editing, and Digital Marketing built from real-world client experience.";
+  const pageDescription =
+    "Explore practical courses in Web Development, Graphic Design, Video Editing, and Digital Marketing built from real-world client experience.";
 
   // Dynamic Course Schema JSON-LD
   const coursesSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": "Courses by Samuel A. Emoni",
-    "description": pageDescription,
-    "itemListElement": courses.map((course, index) => ({
+    name: "Courses by Samuel A. Emoni",
+    description: pageDescription,
+    itemListElement: courses.map((course, index) => ({
       "@type": "ListItem",
-      "position": index + 1,
-      "item": {
+      position: index + 1,
+      item: {
         "@type": "Course",
-        "name": course.name,
-        "description": course.description,
-        "provider": {
+        url: `https://www.emonisamuel.co.ke/courses/${course.id}`,
+        name: course.name,
+        description: course.description,
+        image: course.banner_url || undefined,
+        provider: {
           "@type": "Person",
-          "name": "Samuel A. Emoni",
-          "url": "https://www.emonisamuel.co.ke"
-        }
-      }
-    }))
+          name: "Samuel A. Emoni",
+          url: "https://www.emonisamuel.co.ke",
+        },
+      },
+    })),
   };
 
   return (
     <>
-      <Helmet>
-        {/* Core Meta Tags */}
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDescription} />
-        <link rel="canonical" href={canonicalUrl} />
-
-        {/* Open Graph Tags */}
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:image" content="https://www.emonisamuel.co.ke/og-image.jpg" />
-
-        {/* Twitter Card Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        <meta name="twitter:description" content={pageDescription} />
-        <meta name="twitter:image" content="https://www.emonisamuel.co.ke/og-image.jpg" />
-
-        {/* Structured Data / Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify(coursesSchema)}
-        </script>
-      </Helmet>
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        canonical="/courses"
+        keywords="graphic design course Kenya, web development course Nairobi, video editing course Kenya, digital marketing course Africa"
+        schema={coursesSchema}
+      />
 
       <main className="bg-paper py-24 min-h-screen">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="font-display text-[42px] text-ink">Learn From the Field</h1>
+            <h1 className="font-display text-[34px] sm:text-[42px] text-ink">Learn From the Field</h1>
             <p className="font-body text-lg text-[#4A4A4A] max-w-2xl mt-3">
               Practical courses built from 6+ years of real client work — not theory.
             </p>
@@ -161,15 +146,16 @@ const Courses = () => {
             </div>
           )}
 
-          {/* Courses Grid */}
+          {/* Courses Grid: 2 per row on desktop */}
           {!loading && !error && filtered.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-12">
               {filtered.map((course, i) => (
                 <motion.div
                   key={course.id || course.name}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: i * 0.05 }}
+                  className="h-full"
                 >
                   <CourseCard course={course} />
                 </motion.div>

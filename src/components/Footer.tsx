@@ -12,13 +12,15 @@ import {
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
+// Each service links to its detail page: /what-i-do/:id
 const services = [
-  { label: "Digital Consultancy",     href: "/what-i-do#digital-consultancy" },
-  { label: "System Architecture",     href: "/what-i-do#system-design" },
-  { label: "Web Development",         href: "/what-i-do#web-development" },
-  { label: "Payment Integrations",    href: "/what-i-do#payment-integrations" },
-  { label: "Process Automation",      href: "/what-i-do#process-automation" },
-  { label: "IT Support & Consulting", href: "/what-i-do#it-support" },
+  { label: "Digital Consultancy",     href: "/what-i-do/digital-consultancy" },
+  { label: "System Architecture",     href: "/what-i-do/system-design" },
+  { label: "Web Development",         href: "/what-i-do/web-development" },
+  { label: "Payment Integrations",    href: "/what-i-do/payment-integrations" },
+  { label: "Process Automation",      href: "/what-i-do/process-automation" },
+  { label: "IT Support & Consulting", href: "/what-i-do/it-support" },
+  { label: "View all services",       href: "/what-i-do" },
 ];
 
 const explore = [
@@ -26,7 +28,9 @@ const explore = [
   { label: "What I Do",           href: "/what-i-do" },
   { label: "Courses",             href: "/courses" },
   { label: "Projects & Products", href: "/projects" },
+  { label: "Partners",            href: "/partners" },
   { label: "Insights",            href: "/insights" },
+  { label: "Website Review",      href: "/website-review" },
   { label: "Contact",             href: "/contact" },
 ];
 
@@ -78,14 +82,12 @@ const LinkList = ({ items }: { items: { label: string; href: string }[] }) => (
       <li key={link.label}>
         <Link
           to={link.href}
-          className="group inline-flex items-center gap-1.5 font-body text-[15px] text-cream/65 hover:text-ember transition-colors duration-200"
+          className="group inline-flex items-center gap-1.5 font-body text-[15px] text-cream/65 hover:text-ember"
         >
-          <span className="transition-transform duration-200 group-hover:translate-x-1">
-            {link.label}
-          </span>
+          <span>{link.label}</span>
           <ArrowUpRight
             size={13}
-            className="opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200"
+            className="opacity-0 group-hover:opacity-100"
           />
         </Link>
       </li>
@@ -101,21 +103,12 @@ const Footer = () => {
   return (
     <footer className="relative bg-forest text-cream overflow-hidden">
 
-      {/* Ambient corner glow */}
-      <div
-        className="pointer-events-none absolute -top-40 -right-40 w-[520px] h-[520px] rounded-full opacity-40 blur-3xl"
-        style={{ background: "radial-gradient(circle, rgba(231,126,35,0.28) 0%, transparent 70%)" }}
-      />
-
       {/* Top accent rule */}
-      <div
-        className="relative h-px w-full"
-        style={{ background: "linear-gradient(90deg, transparent, #E77E23 30%, #E77E23 70%, transparent)" }}
-      />
+      <div className="h-px w-full bg-ember" />
 
       {/* ── CTA strip ── */}
       <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pt-20 pb-14">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 border-b border-cream/8 pb-14">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 border-b border-cream/10 pb-14">
           <div>
             <p className="font-body text-[11px] font-semibold uppercase tracking-[0.24em] text-ember mb-4">
               Let's build something
@@ -129,13 +122,10 @@ const Footer = () => {
 
           <Link
             to="/contact"
-            className="group inline-flex items-center gap-3 self-start rounded-full bg-ember px-8 py-4 font-body text-[15px] font-bold text-black transition-all duration-200 hover:bg-cream hover:shadow-[0_0_30px_rgba(231,126,35,0.4)]"
+            className="inline-flex items-center gap-3 self-start rounded-full bg-ember px-8 py-4 font-body text-[15px] font-bold text-black hover:bg-cream"
           >
             Start a conversation
-            <ArrowUpRight
-              size={18}
-              className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
+            <ArrowUpRight size={18} />
           </Link>
         </div>
       </div>
@@ -155,9 +145,9 @@ const Footer = () => {
             <div className="flex flex-col gap-3.5">
               <a
                 href="mailto:emonisamuel54@gmail.com"
-                className="flex items-center gap-3.5 font-body text-[15px] text-cream/55 hover:text-ember transition-colors duration-200 group"
+                className="flex items-center gap-3.5 font-body text-[15px] text-cream/55 hover:text-ember group"
               >
-                <span className="w-9 h-9 rounded-lg border border-cream/12 flex items-center justify-center group-hover:border-ember/40 transition-colors flex-shrink-0">
+                <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center group-hover:border-ember/40 flex-shrink-0">
                   <Mail size={15} className="text-ember" />
                 </span>
                 emonisamuel54@gmail.com
@@ -165,16 +155,16 @@ const Footer = () => {
 
               <a
                 href="tel:+254727492545"
-                className="flex items-center gap-3.5 font-body text-[15px] text-cream/55 hover:text-ember transition-colors duration-200 group"
+                className="flex items-center gap-3.5 font-body text-[15px] text-cream/55 hover:text-ember group"
               >
-                <span className="w-9 h-9 rounded-lg border border-cream/12 flex items-center justify-center group-hover:border-ember/40 transition-colors flex-shrink-0">
+                <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center group-hover:border-ember/40 flex-shrink-0">
                   <Phone size={15} className="text-ember" />
                 </span>
                 +254 727 492 545
               </a>
 
               <div className="flex items-center gap-3.5 font-body text-[15px] text-cream/55">
-                <span className="w-9 h-9 rounded-lg border border-cream/12 flex items-center justify-center flex-shrink-0">
+                <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center flex-shrink-0">
                   <MapPin size={15} className="text-ember" />
                 </span>
                 Nairobi, Kenya · EAT (UTC+3)
@@ -208,14 +198,14 @@ const Footer = () => {
                   rel={isOfficialProfile ? "me noopener noreferrer" : "noopener noreferrer"}
                   aria-label={`Samuel A. Emoni on ${label}`}
                   title={`Samuel A. Emoni on ${label}`}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-cream/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-cream/20 transition-all duration-200 group"
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-cream/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-cream/20 group"
                 >
                   <Icon
                     size={18}
                     style={{ color }}
-                    className="flex-shrink-0 group-hover:scale-110 transition-transform duration-200"
+                    className="flex-shrink-0"
                   />
-                  <span className="font-body text-[13px] font-medium text-cream/55 group-hover:text-cream/90 transition-colors leading-tight truncate">
+                  <span className="font-body text-[13px] font-medium text-cream/55 group-hover:text-cream/90 leading-tight truncate">
                     {label}
                   </span>
                 </a>
@@ -239,10 +229,12 @@ const Footer = () => {
           <p className="font-body text-[13px] font-bold text-black">
             © {year} Samuel A. Emoni. All rights reserved.
           </p>
-          <div className="flex items-center gap-5 font-body text-[13px] font-bold text-black">
-            <Link to="/privacy" className="hover:text-white transition-colors duration-150">Privacy Policy</Link>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 font-body text-[13px] font-bold text-black">
+            <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
             <span className="text-black/35">·</span>
-            <Link to="/terms" className="hover:text-white transition-colors duration-150">Terms & Conditions</Link>
+            <Link to="/terms" className="hover:text-white">Terms & Conditions</Link>
+            <span className="text-black/35">·</span>
+            <Link to="/cookies" className="hover:text-white">Cookies</Link>
           </div>
         </div>
       </div>
