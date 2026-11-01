@@ -94,16 +94,18 @@ export default function OfferCarousel({ offers }: { offers: Offer[] }) {
           </OfferArtworkLink>
         </div>
 
-        {slides.length > 1 && hasScrolled && (
+        {slides.length > 1 && (
           <>
-            <button
-              type="button"
-              aria-label="Previous offer"
-              onClick={() => move(-1)}
-              className="absolute left-0 top-1/2 z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#333]/20 bg-white text-[#25232A] shadow-sm transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007979] sm:h-10 sm:w-10"
-            >
-              <ChevronLeft size={18} aria-hidden="true" />
-            </button>
+            {hasScrolled && (
+              <button
+                type="button"
+                aria-label="Previous offer"
+                onClick={() => move(-1)}
+                className="absolute left-0 top-1/2 z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#333]/20 bg-white text-[#25232A] shadow-sm transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007979] sm:h-10 sm:w-10"
+              >
+                <ChevronLeft size={18} aria-hidden="true" />
+              </button>
+            )}
             <div className="absolute bottom-3 left-1/2 z-10 flex max-w-[calc(100%-5rem)] -translate-x-1/2 items-center justify-center gap-1.5 overflow-hidden rounded-full bg-white/55 px-1.5 py-1 sm:bottom-4 sm:gap-1.5 sm:px-2" role="group" aria-label="Choose offer">
               {slides.map((slide, index) => (
                 <button
@@ -118,14 +120,16 @@ export default function OfferCarousel({ offers }: { offers: Offer[] }) {
                 />
               ))}
             </div>
-            <button
-              type="button"
-              aria-label="Next offer"
-              onClick={() => move(1)}
-              className="absolute right-0 top-1/2 z-10 flex h-9 w-9 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#333]/20 bg-white text-[#25232A] shadow-sm transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007979] sm:h-10 sm:w-10"
-            >
-              <ChevronRight size={18} aria-hidden="true" />
-            </button>
+            {hasScrolled && (
+              <button
+                type="button"
+                aria-label="Next offer"
+                onClick={() => move(1)}
+                className="absolute right-0 top-1/2 z-10 flex h-9 w-9 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#333]/20 bg-white text-[#25232A] shadow-sm transition hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#007979] sm:h-10 sm:w-10"
+              >
+                <ChevronRight size={18} aria-hidden="true" />
+              </button>
+            )}
           </>
         )}
       </div>
