@@ -74,14 +74,14 @@ export default function OfferCarousel({ offers }: { offers: Offer[] }) {
         <div className={`relative overflow-hidden rounded-xl bg-[#17151B] shadow-sm ${
           current.banner_format === "flyer"
             ? "aspect-[4/5] max-h-[min(72vh,720px)]"
-            : "aspect-[16/5]"
+            : "aspect-[2/1] sm:aspect-[16/5]"
         }`}>
           <OfferArtworkLink key={current.id} offer={current}>
             <img
               src={current.banner_image_url || ""}
               alt={current.banner_alt || current.title}
               loading="eager"
-              className="h-full w-full object-contain"
+              className={`h-full w-full ${current.banner_format === "flyer" ? "object-contain" : "object-cover sm:object-contain"}`}
             />
           </OfferArtworkLink>
         </div>
