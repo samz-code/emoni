@@ -81,15 +81,17 @@ async function validateArtwork(file: File, format: "banner" | "flyer") {
       image.onerror = () => reject(new Error("This image could not be opened. Try another file."));
       image.src = objectUrl;
     });
-    const ratio = dimensions.width / dimensions.height;
     const isBanner = format === "banner";
-    const minWidth = isBanner ? 1280 : 800;
-    const minHeight = isBanner ? 400 : 1000;
-    const targetRatio = isBanner ? 3.2 : 0.8;
-    if (dimensions.width < minWidth || dimensions.height < minHeight || Math.abs(ratio - targetRatio) > 0.15) {
+    const ratio = dimensions.width / dimensions.height;
+    const validBannerSize =
+      (dimensions.width >= 1280 && dimensions.height >= 400 && Math.abs(ratio - 3.2) <= 0.15) ||
+      (dimensions.width >= 1200 && dimensions.height >= 600 && Math.abs(ratio - 2) <= 0.15);
+    const validFlyerSize =
+      dimensions.width >= 800 && dimensions.height >= 1000 && Math.abs(ratio - 0.8) <= 0.15;
+    if (isBanner ? !validBannerSize : !validFlyerSize) {
       throw new Error(
         isBanner
-          ? "Use a landscape banner around 1920 × 600 px (minimum 1280 × 400 px)."
+          ? "Use a wide banner around 1920 × 600 px (minimum 1280 × 400 px), or a 2:1 banner around 1200 × 600 px."
           : "Use a portrait flyer around 1080 × 1350 px (minimum 800 × 1000 px).",
       );
     }
@@ -451,11 +453,11 @@ export default function ManageOffers() {
                         }))}
                         className="mt-1.5 w-full rounded-md border border-slate-200 bg-white p-2.5 font-normal"
                       >
-                        <option value="banner">Wide banner — 1920 × 600 px</option>
+                        <option value="banner">Wide banner — 1920 × 600 px or 1200 × 600 px</option>
                         <option value="flyer">Portrait flyer — 1080 × 1350 px</option>
                       </select>
                       <span className="mt-1 block text-xs font-normal text-slate-500">
-                        We check the artwork proportions and minimum resolution. The recommended dimensions are shown above.
+                        Wide format: 1920 × 600 px (minimum 1280 × 400 px). Mobile-friendly 2:1 format: 1200 × 600 px. Portrait flyers: 1080 × 1350 px.
                       </span>
                     </label>
                     <div
