@@ -56,7 +56,7 @@ export default function Industries() {
       />
 
       {/* Compact hero */}
-      <section className="relative isolate overflow-hidden bg-[#123B36] text-white">
+      <section className="patterned-surface relative isolate overflow-hidden bg-[#123B36] text-white">
         <div
           aria-hidden="true"
           className="absolute inset-0 -z-10 opacity-20 [background-image:linear-gradient(to_right,#ffffff18_1px,transparent_1px),linear-gradient(to_bottom,#ffffff18_1px,transparent_1px)] [background-size:40px_40px]"
@@ -278,7 +278,7 @@ export default function Industries() {
       </section>
 
       {/* CTA */}
-      <section className="bg-[#123B36] text-white">
+      <section className="patterned-surface bg-[#123B36] text-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-10 sm:px-8 sm:py-12 md:flex-row md:items-center md:justify-between">
           <div className="max-w-2xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#E7C99A]">Have a specific challenge?</p>

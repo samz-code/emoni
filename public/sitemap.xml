@@ -2,43 +2,47 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.emonisamuel.co.ke/</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/what-i-do</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/projects</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries</loc>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/courses</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/partners</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/insights</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/contact</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/privacy</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/terms</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/cookies</loc>
-    <lastmod>2026-10-26</lastmod>
+    <lastmod>2026-11-01</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/insights/how-much-does-a-website-cost-in-kenya-in-2026-complete-pricing-guide</loc>
@@ -53,12 +57,16 @@
     <lastmod>2026-10-24</lastmod>
   </url>
   <url>
+    <loc>https://www.emonisamuel.co.ke/insights/ai-in-graphic-design-creative-identity</loc>
+    <lastmod>2026-10-25</lastmod>
+  </url>
+  <url>
     <loc>https://www.emonisamuel.co.ke/insights/ux-design-psychology</loc>
     <lastmod>2026-08-24</lastmod>
   </url>
   <url>
-    <loc>https://www.emonisamuel.co.ke/insights/ai-in-graphic-design-creative-identity</loc>
-    <lastmod>2026-10-25</lastmod>
+    <loc>https://www.emonisamuel.co.ke/insights/startup-growth-strategies-kenya</loc>
+    <lastmod>2026-09-11</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/insights/ai-automation-business-growth</loc>
@@ -69,7 +77,11 @@
     <lastmod>2026-08-24</lastmod>
   </url>
   <url>
-    <loc>https://www.emonisamuel.co.ke/insights/startup-growth-strategies-kenya</loc>
+    <loc>https://www.emonisamuel.co.ke/insights/why-africa-needs-more-software-developers</loc>
+    <lastmod>2026-10-30</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/insights/remote-work-productivity-guide</loc>
     <lastmod>2026-09-11</lastmod>
   </url>
   <url>
@@ -78,10 +90,6 @@
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/insights/sustainable-business-practices-kenya</loc>
-    <lastmod>2026-09-11</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/insights/remote-work-productivity-guide</loc>
     <lastmod>2026-09-11</lastmod>
   </url>
   <url>
@@ -257,18 +265,6 @@
     <lastmod>2026-10-23</lastmod>
   </url>
   <url>
-    <loc>https://www.emonisamuel.co.ke/courses/after-effects-animation</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/courses/canva-design-essentials</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/courses/complete-adobe-creative-suite</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
     <loc>https://www.emonisamuel.co.ke/courses/adobe-photoshop-mastery</loc>
     <lastmod>2026-08-23</lastmod>
   </url>
@@ -281,6 +277,14 @@
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
+    <loc>https://www.emonisamuel.co.ke/courses/canva-design-essentials</loc>
+    <lastmod>2026-08-23</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/courses/ai-tools-for-creators-consultants</loc>
+    <lastmod>2026-08-23</lastmod>
+  </url>
+  <url>
     <loc>https://www.emonisamuel.co.ke/courses/m-pesa-payment-integration-masterclass</loc>
     <lastmod>2026-08-23</lastmod>
   </url>
@@ -289,11 +293,7 @@
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
-    <loc>https://www.emonisamuel.co.ke/courses/ai-tools-for-creators-consultants</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/courses/ui-ux-design-with-figma</loc>
+    <loc>https://www.emonisamuel.co.ke/courses/video-editing-with-adobe-premiere-pro</loc>
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
@@ -301,11 +301,19 @@
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
-    <loc>https://www.emonisamuel.co.ke/courses/video-editing-with-adobe-premiere-pro</loc>
+    <loc>https://www.emonisamuel.co.ke/courses/after-effects-animation</loc>
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/courses/freelance-to-agency-scale-your-practice</loc>
+    <lastmod>2026-08-23</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/courses/complete-adobe-creative-suite</loc>
+    <lastmod>2026-08-23</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/courses/ui-ux-design-with-figma</loc>
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
@@ -314,10 +322,6 @@
   </url>
   <url>
     <loc>https://www.emonisamuel.co.ke/what-i-do/brand-strategy</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/what-i-do/system-design</loc>
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
@@ -341,31 +345,11 @@
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
+    <loc>https://www.emonisamuel.co.ke/what-i-do/system-design</loc>
+    <lastmod>2026-08-23</lastmod>
+  </url>
+  <url>
     <loc>https://www.emonisamuel.co.ke/what-i-do/graphic-design</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/what-i-do/digital-marketing</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/what-i-do/media-buying</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/what-i-do/web-design</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/what-i-do/seo</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/what-i-do/social-media</loc>
-    <lastmod>2026-08-23</lastmod>
-  </url>
-  <url>
-    <loc>https://www.emonisamuel.co.ke/what-i-do/content-creation</loc>
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
@@ -373,7 +357,55 @@
     <lastmod>2026-08-23</lastmod>
   </url>
   <url>
-    <loc>https://www.emonisamuel.co.ke/what-i-do/traditional-marketing</loc>
+    <loc>https://www.emonisamuel.co.ke/what-i-do/seo</loc>
     <lastmod>2026-08-23</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/what-i-do/web-design</loc>
+    <lastmod>2026-08-23</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/real-estate</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/healthcare</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/logistics-transport</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/startups-smes</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/schools-education</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/political-campaigns-leaders</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/corporate-branding</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/construction-engineering</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/hotels-restaurants</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/ngos-nonprofits</loc>
+    <lastmod>2026-11-01</lastmod>
+  </url>
+  <url>
+    <loc>https://www.emonisamuel.co.ke/industries/law-firms-advocates</loc>
+    <lastmod>2026-11-01</lastmod>
   </url>
 </urlset>

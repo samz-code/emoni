@@ -97,7 +97,7 @@ const Terms = () => {
 
       <main className="bg-paper min-h-screen selection:bg-ember/20 selection:text-ember">
         {/* Header Hero Banner */}
-        <section className="bg-forest border-b border-border/20 py-16 sm:py-20 md:py-28 text-cream relative overflow-hidden">
+        <section className="patterned-surface bg-forest border-b border-border/20 py-16 sm:py-20 md:py-28 text-cream relative overflow-hidden">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-3xl">
               <span className="inline-block bg-ember/15 border border-ember/30 text-ember px-3.5 py-1.5 rounded-full font-body text-xs font-semibold uppercase tracking-wider mb-6">
@@ -381,7 +381,7 @@ const Terms = () => {
               </section>
 
               {/* Direct Contact Card */}
-              <section id="contact" className="scroll-mt-28 bg-forest text-cream p-6 sm:p-8 rounded-xl shadow-lg relative overflow-hidden">
+              <section id="contact" className="patterned-surface scroll-mt-28 bg-forest text-cream p-6 sm:p-8 rounded-xl shadow-lg relative overflow-hidden">
                 <h2 className="font-display text-2xl font-bold text-cream mb-4">14. Contact & Inquiries</h2>
                 <p className="text-cream/80 mb-6 text-sm">
                   Questions regarding these commercial terms or requesting custom contract terms? Reach out directly:

@@ -98,7 +98,7 @@ const Privacy = () => {
 
       <main className="bg-paper min-h-screen selection:bg-ember/20 selection:text-ember">
         {/* Header Hero Banner */}
-        <section className="bg-forest border-b border-border/20 py-16 sm:py-20 md:py-28 text-cream relative overflow-hidden">
+        <section className="patterned-surface bg-forest border-b border-border/20 py-16 sm:py-20 md:py-28 text-cream relative overflow-hidden">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-3xl">
               <span className="inline-block bg-ember/15 border border-ember/30 text-ember px-3.5 py-1.5 rounded-full font-body text-xs font-semibold uppercase tracking-wider mb-6">
@@ -392,7 +392,7 @@ const Privacy = () => {
               </section>
 
               {/* Direct Contact & Controller Section */}
-              <section id="contact" className="scroll-mt-28 bg-forest text-cream p-6 sm:p-8 rounded-xl shadow-lg relative overflow-hidden">
+              <section id="contact" className="patterned-surface scroll-mt-28 bg-forest text-cream p-6 sm:p-8 rounded-xl shadow-lg relative overflow-hidden">
                 <h2 className="font-heading text-2xl font-bold text-cream mb-4">11. Contact & Data Controller</h2>
                 <p className="text-cream/80 mb-6 text-sm">
                   For formal data privacy inquiries, statutory rights requests, or technical credential management questions, contact the Data Controller directly:

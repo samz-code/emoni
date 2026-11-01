@@ -218,7 +218,7 @@ const WhatIDo = () => {
 
         {/* Process */}
         {processSteps.length > 0 && (
-          <section className="bg-forest py-24">
+          <section className="patterned-surface bg-forest py-24">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
               <motion.div
                 variants={fadeLeft}

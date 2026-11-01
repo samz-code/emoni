@@ -49,7 +49,7 @@ export default function IndustryDetail() {
         keywords={`${industry.name}, digital solutions Kenya, web development Nairobi`}
         image={industry.hero_image_url || undefined}
       />
-      <section className="relative overflow-hidden bg-[#123B36] text-white">
+      <section className="patterned-surface relative overflow-hidden bg-[#123B36] text-white">
         {industry.hero_image_url && (
           <>
             <img src={industry.hero_image_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-25" />
@@ -112,7 +112,7 @@ export default function IndustryDetail() {
               </ul>
             ) : <p className="mt-5 text-sm text-[#524646]/70">We’ll identify the priorities that matter most to your organisation.</p>}
           </div>
-          <div className="rounded-xl bg-[#123B36] p-6 text-white sm:p-9">
+          <div className="patterned-surface rounded-xl bg-[#123B36] p-6 text-white sm:p-9">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#E7C99A]">How we help</p>
             <h2 className="mt-3 font-display text-3xl font-semibold">Practical, considered solutions</h2>
             {industry.solutions.length ? (
@@ -208,7 +208,7 @@ export default function IndustryDetail() {
           </div>
         </section>
       )}
-      <section className="bg-[#123B36] text-white">
+      <section className="patterned-surface bg-[#123B36] text-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-14 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-16">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#E7C99A]">Next step</p>

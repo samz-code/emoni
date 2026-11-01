@@ -419,7 +419,7 @@ export default function ProjectDetail() {
                 )}
               </section>
 
-              <section className="mt-16 overflow-hidden rounded-2xl bg-forest px-6 py-10 text-cream sm:px-10 sm:py-12" aria-labelledby="project-cta-heading">
+              <section className="patterned-surface mt-16 overflow-hidden rounded-2xl bg-forest px-6 py-10 text-cream sm:px-10 sm:py-12" aria-labelledby="project-cta-heading">
                 <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
                   <div className="max-w-2xl">
                     <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-cream/70">Let’s work together</p>

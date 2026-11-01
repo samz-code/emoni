@@ -417,7 +417,7 @@ const CourseDetail = () => {
 
       <main className="bg-paper">
         {/* ============ HERO ============ */}
-        <section className="relative overflow-hidden bg-forest text-cream">
+        <section className="patterned-surface relative overflow-hidden bg-forest text-cream">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-ember/20 blur-3xl"
@@ -660,7 +660,7 @@ const CourseDetail = () => {
           )}
 
           {bonuses.length > 0 && (
-            <section aria-labelledby="course-bonuses" className="rounded-2xl bg-forest p-6 text-cream sm:p-10">
+            <section aria-labelledby="course-bonuses" className="patterned-surface rounded-2xl bg-forest p-6 text-cream sm:p-10">
               <h2 id="course-bonuses" className="flex items-center gap-3 font-display text-2xl sm:text-3xl">
                 <Gift size={26} aria-hidden="true" className="text-olive" /> Bonuses included
               </h2>

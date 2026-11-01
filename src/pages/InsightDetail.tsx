@@ -282,7 +282,7 @@ const InsightDetail = () => {
 
       <main className="bg-paper min-h-screen overflow-x-hidden">
         {/* HERO: title + meta on the left, cover image on the right (stacks on mobile) */}
-        <section className="bg-forest py-8 sm:py-12 lg:py-14">
+        <section className="patterned-surface bg-forest py-8 sm:py-12 lg:py-14">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

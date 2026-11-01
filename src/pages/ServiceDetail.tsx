@@ -512,7 +512,7 @@ const ServiceDetail = () => {
 
       <main className="bg-paper">
         {/* ============ HERO ============ */}
-        <section className="relative overflow-hidden bg-forest text-cream">
+        <section className="patterned-surface relative overflow-hidden bg-forest text-cream">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-ember/20 blur-3xl"
@@ -984,7 +984,7 @@ const ServiceDetail = () => {
 
         {/* ============ PROCESS ============ */}
         {processSteps.length > 0 && (
-          <section aria-labelledby="service-process" className="bg-forest py-16 sm:py-24">
+          <section aria-labelledby="service-process" className="patterned-surface bg-forest py-16 sm:py-24">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
               <h2 id="service-process" className="font-display text-3xl leading-tight text-cream sm:text-5xl">
                 {processHeading}

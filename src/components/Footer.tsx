@@ -101,7 +101,7 @@ const Footer = () => {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative bg-forest text-cream overflow-hidden">
+    <footer className="patterned-surface relative bg-forest text-cream overflow-hidden">
 
       {/* Top accent rule */}
       <div className="h-px w-full bg-ember" />

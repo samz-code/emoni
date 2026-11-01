@@ -634,7 +634,7 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col items-stretch justify-between gap-4 rounded-2xl bg-forest p-5 text-cream dark:bg-[#20251D] sm:mt-10 sm:flex-row sm:items-center sm:gap-5 sm:p-8">
+            <div className="patterned-surface mt-6 flex flex-col items-stretch justify-between gap-4 rounded-2xl bg-forest p-5 text-cream dark:bg-[#20251D] sm:mt-10 sm:flex-row sm:items-center sm:gap-5 sm:p-8">
               <div className="min-w-0">
                 <p className="font-body text-xs uppercase tracking-[0.18em] text-olive">Have a project in mind?</p>
                 <p className="mt-2 font-display text-xl sm:text-3xl">Let’s make it happen.</p>
@@ -685,13 +685,13 @@ const Index = () => {
 
       {/* BANNER */}
       {settingsLoading ? (
-        <section className="bg-forest py-8 sm:py-10 border-y border-olive/30">
+        <section className="patterned-surface bg-forest py-8 sm:py-10 border-y border-olive/30">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <Skel dark className="h-8 w-full max-w-xl" />
           </div>
         </section>
       ) : s?.banner_text ? (
-        <section className="bg-forest py-8 sm:py-10 border-y border-olive/30">
+        <section className="patterned-surface bg-forest py-8 sm:py-10 border-y border-olive/30">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
               <p className="font-display text-cream text-lg sm:text-xl md:text-2xl max-w-xl leading-snug">
@@ -934,7 +934,7 @@ const Index = () => {
 
       {/* PROCESS STEPS */}
       {(processQ.isPending || processSteps.length > 0) && (
-        <section className="bg-forest py-16 sm:py-24">
+        <section className="patterned-surface bg-forest py-16 sm:py-24">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
               <div className="lg:col-span-5">
