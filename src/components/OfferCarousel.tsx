@@ -81,7 +81,7 @@ export default function OfferCarousel({ offers }: { offers: Offer[] }) {
               src={current.banner_image_url || ""}
               alt={current.banner_alt || current.title}
               loading="eager"
-              className="h-full w-full object-contain"
+              className="h-full w-full object-cover"
             />
           </OfferArtworkLink>
         </div>
