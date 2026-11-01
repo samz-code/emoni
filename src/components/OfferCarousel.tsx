@@ -81,7 +81,7 @@ export default function OfferCarousel({ offers }: { offers: Offer[] }) {
               src={current.banner_image_url || ""}
               alt={current.banner_alt || current.title}
               loading="eager"
-              className={`h-full w-full ${current.banner_format === "flyer" ? "object-contain" : "object-cover sm:object-contain"}`}
+              className="h-full w-full object-contain"
             />
           </OfferArtworkLink>
         </div>
