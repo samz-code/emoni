@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import CourseCard from "@/components/CourseCard";
 import { supabase } from "@/lib/supabase";
 import { Loader2, AlertCircle } from "lucide-react";
+import { applicableOffer, useOffers } from "@/lib/servicePricing";
 
 export interface Course {
   id: string;
@@ -25,6 +26,7 @@ const Courses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const offersQuery = useOffers();
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -157,7 +159,14 @@ const Courses = () => {
                   transition={{ duration: 0.4, delay: i * 0.05 }}
                   className="h-full"
                 >
-                  <CourseCard course={course} />
+                  <CourseCard
+                    course={course}
+                    offer={applicableOffer(offersQuery.data, {
+                      type: "course",
+                      id: course.id,
+                      currency: "USD",
+                    })}
+                  />
                 </motion.div>
               ))}
             </div>

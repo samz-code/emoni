@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { FaWhatsapp } from "react-icons/fa";
+import { formatKes, quotePrice, type Offer } from "@/lib/servicePricing";
 
 export interface Service {
   id: string;
@@ -14,6 +15,8 @@ export interface Service {
   tools?: string[];
   timeline?: string | null;
   starting_from?: string | null;
+  starting_price?: number | string | null;
+  price_unit?: string | null;
   ideal_for: string;
   banner_url?: string | null;
   gallery_urls?: string[];
@@ -52,11 +55,17 @@ const BannerFallback = ({ name }: { name: string }) => (
   </div>
 );
 
-const ServiceCard = ({ service }: { service: Service }) => {
+const ServiceCard = ({ service, offer }: { service: Service; offer?: Offer | null }) => {
   const deliverablesList = Array.isArray(service.deliverables) ? service.deliverables : [];
   const visibleDeliverables = deliverablesList.slice(0, MAX_DELIVERABLES);
   const extraCount = deliverablesList.length - visibleDeliverables.length;
   const summary = service.short_description || service.solution || service.problem;
+  const startingPrice = service.starting_price === null || service.starting_price === undefined
+    ? null
+    : Number(service.starting_price);
+  const priceQuote = startingPrice !== null && Number.isFinite(startingPrice)
+    ? quotePrice(startingPrice, offer)
+    : null;
 
   return (
     <article
@@ -112,9 +121,11 @@ const ServiceCard = ({ service }: { service: Service }) => {
           </ul>
         )}
 
-        {(service.timeline || service.starting_from) && (
+        {(service.timeline || service.starting_from || priceQuote) && (
           <p className="mt-5 font-body text-sm text-[#6B6B6B]">
-            {[service.timeline, service.starting_from && `From ${service.starting_from}`]
+            {[service.timeline, priceQuote
+              ? `From ${priceQuote.savings > 0 ? `${formatKes(priceQuote.original)} to ` : ""}${formatKes(priceQuote.discounted)}${service.price_unit ? ` ${service.price_unit}` : ""}`
+              : service.starting_from && `From ${service.starting_from}`]
               .filter(Boolean)
               .join("  ·  ")}
           </p>

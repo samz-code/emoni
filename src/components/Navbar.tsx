@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown, ArrowUpRight, LogIn, Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useIndustries } from "@/lib/industries";
 
 const navLinks = [
   { label: "HOME", href: "/" },
@@ -28,6 +29,7 @@ const navLinks = [
       { label: "CONTENT CREATION",             href: "/what-i-do#content-creation" },
     ],
   },
+  { label: "INDUSTRIES", href: "/industries", dropdown: [] },
   { label: "COURSES",   href: "/courses" },
   { label: "PROJECTS",  href: "/projects" },
   { label: "PARTNERS",  href: "/partners" },
@@ -38,15 +40,17 @@ const navLinks = [
 
 const Navbar = () => {
   const location = useLocation();
+  const industriesQuery = useIndustries();
+  const industries = industriesQuery.data ?? [];
   const [mobileOpen, setMobileOpen]           = useState(false);
-  const [dropdownOpen, setDropdownOpen]       = useState(false);
-  const [mobileAccordion, setMobileAccordion] = useState(false);
+  const [dropdownOpen, setDropdownOpen]       = useState<string | null>(null);
+  const [mobileAccordion, setMobileAccordion] = useState<string | null>(null);
   const [scrolled, setScrolled]               = useState(false);
 
   useEffect(() => {
     setMobileOpen(false);
-    setDropdownOpen(false);
-    setMobileAccordion(false);
+    setDropdownOpen(null);
+    setMobileAccordion(null);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -68,7 +72,8 @@ const Navbar = () => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMobileOpen(false);
-        setDropdownOpen(false);
+        setDropdownOpen(null);
+        setMobileAccordion(null);
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -79,6 +84,11 @@ const Navbar = () => {
     if (href === "/") return location.pathname === "/";
     return location.pathname.startsWith(href.split("#")[0]);
   };
+
+  const dropdownItems = (label: string, fallback: { label: string; href: string }[]) =>
+    label === "INDUSTRIES"
+      ? industries.map((industry) => ({ label: industry.name, href: `/industries/${industry.slug}` }))
+      : fallback;
 
   return (
     <nav
@@ -105,25 +115,25 @@ const Navbar = () => {
               <div
                 key={link.label}
                 className="relative"
-                onMouseEnter={() => setDropdownOpen(true)}
-                onMouseLeave={() => setDropdownOpen(false)}
+                onMouseEnter={() => setDropdownOpen(link.label)}
+                onMouseLeave={() => setDropdownOpen(null)}
               >
                 <button
                   type="button"
-                  onClick={() => setDropdownOpen((prev) => !prev)}
+                  onClick={() => setDropdownOpen(link.label)}
                   className={`relative font-sans text-xs font-bold tracking-wider flex items-center gap-1 py-1 whitespace-nowrap transition-colors ${
                     isActive(link.href)
                       ? "text-[hsl(var(--cream))]"
                       : "text-white hover:text-[hsl(var(--cream))]"
                   }`}
-                  aria-expanded={dropdownOpen}
+                  aria-expanded={dropdownOpen === link.label}
                   aria-haspopup="true"
                 >
                   {link.label}
                   <ChevronDown
                     size={14}
                     className={`shrink-0 transition-transform duration-200 ${
-                      dropdownOpen ? "rotate-180 text-[hsl(var(--cream))]" : "text-white/70"
+                      dropdownOpen === link.label ? "rotate-180 text-[hsl(var(--cream))]" : "text-white/70"
                     }`}
                   />
                   {isActive(link.href) && (
@@ -132,20 +142,47 @@ const Navbar = () => {
                 </button>
 
                 <AnimatePresence>
-                  {dropdownOpen && (
+                  {dropdownOpen === link.label && (
                     <motion.div
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 pt-3 max-w-[90vw]"
+                      className={`absolute top-full ${link.label === "INDUSTRIES" ? "left-1/2 -translate-x-1/2 pt-3" : "left-0 pt-3"} max-w-[92vw]`}
                     >
+                      {link.label === "INDUSTRIES" ? (
+                        <div className="grid w-[min(620px,92vw)] grid-cols-[minmax(0,1.35fr)_minmax(160px,0.65fr)] overflow-hidden rounded-b-2xl bg-white shadow-2xl">
+                          <div className="grid max-h-[70vh] grid-cols-2 content-start gap-x-2 gap-y-1 overflow-y-auto p-3">
+                            {dropdownItems(link.label, link.dropdown).map((item) => (
+                              <Link
+                                key={item.href}
+                                to={item.href}
+                                onClick={() => setDropdownOpen(null)}
+                                className="flex min-h-12 items-center justify-between gap-2 rounded-lg px-3 py-2 font-sans text-xs font-semibold leading-5 text-[#1A1A16] transition-colors hover:bg-[#F4F1EB] hover:text-[#007979]"
+                              >
+                                <span>{item.label}</span>
+                                <ArrowUpRight size={13} className="shrink-0 text-[#007979]/70" />
+                              </Link>
+                            ))}
+                          </div>
+                          <div className="flex flex-col justify-between bg-[#1D1D1B] p-5 text-white sm:p-6">
+                            <p className="text-sm leading-6 text-white/70">Every industry has different customers and challenges. We build around yours.</p>
+                            <Link
+                              to="/industries"
+                              onClick={() => setDropdownOpen(null)}
+                              className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-[#E7C99A]"
+                            >
+                              All industries <ArrowUpRight size={15} />
+                            </Link>
+                          </div>
+                        </div>
+                      ) : (
                       <div className="w-[min(560px,90vw)] rounded-xl bg-[hsl(var(--forest))] border border-[hsl(var(--cream))/0.2] shadow-2xl overflow-hidden py-2 grid grid-cols-1 sm:grid-cols-2 gap-x-1 max-h-[70vh] overflow-y-auto">
-                        {link.dropdown.map((item) => (
+                        {dropdownItems(link.label, link.dropdown).map((item) => (
                           <Link
                             key={item.label}
                             to={item.href}
-                            onClick={() => setDropdownOpen(false)}
+                            onClick={() => setDropdownOpen(null)}
                             className="flex items-center justify-between px-4 py-2.5 font-sans text-xs font-bold tracking-wider text-white hover:text-[hsl(var(--cream))] hover:bg-white/10 transition-colors"
                           >
                             <span>{item.label}</span>
@@ -153,6 +190,7 @@ const Navbar = () => {
                           </Link>
                         ))}
                       </div>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -249,20 +287,20 @@ const Navbar = () => {
                     <div key={link.label}>
                       <button
                         type="button"
-                        onClick={() => setMobileAccordion(!mobileAccordion)}
+                        onClick={() => setMobileAccordion((current) => current === link.label ? null : link.label)}
                         className={`w-full flex items-center justify-between py-2.5 font-sans text-xs font-bold tracking-wider ${
                           isActive(link.href) ? "text-[hsl(var(--cream))]" : "text-white"
                         }`}
-                        aria-expanded={mobileAccordion}
+                        aria-expanded={mobileAccordion === link.label}
                       >
                         {link.label}
                         <ChevronDown
                           size={14}
-                          className={`transition-transform duration-200 ${mobileAccordion ? "rotate-180" : ""}`}
+                          className={`transition-transform duration-200 ${mobileAccordion === link.label ? "rotate-180" : ""}`}
                         />
                       </button>
                       <AnimatePresence>
-                        {mobileAccordion && (
+                        {mobileAccordion === link.label && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
@@ -271,7 +309,16 @@ const Navbar = () => {
                             className="overflow-hidden"
                           >
                             <div className="pl-3 border-l border-[hsl(var(--cream))/0.3] my-1 space-y-2">
-                              {link.dropdown.map((item) => (
+                              {link.label === "INDUSTRIES" && (
+                                <Link
+                                  to="/industries"
+                                  onClick={() => setMobileOpen(false)}
+                                  className="block py-1.5 font-sans text-xs font-bold tracking-wider text-white hover:text-[hsl(var(--cream))]"
+                                >
+                                  ALL INDUSTRIES
+                                </Link>
+                              )}
+                              {dropdownItems(link.label, link.dropdown).map((item) => (
                                 <Link
                                   key={item.label}
                                   to={item.href}

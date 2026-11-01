@@ -5,6 +5,7 @@ import SEO from "@/components/SEO";
 import ServiceCard from "@/components/ServiceCard";
 import ProcessStep from "@/components/ProcessStep";
 import { supabase } from "@/lib/supabase";
+import { applicableOffer, useOffers } from "@/lib/servicePricing";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -27,6 +28,7 @@ const WhatIDo = () => {
   const [processSteps, setProcessSteps] = useState<any[]>([]);
   const [idealFor, setIdealFor] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const offersQuery = useOffers();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,6 +61,10 @@ const WhatIDo = () => {
       el?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [hash, loading]);
+
+  useEffect(() => {
+    if (offersQuery.error) console.error("Could not load service offers:", offersQuery.error);
+  }, [offersQuery.error]);
 
   const pageTitle = "Software Engineering, Web Development & Branding Services | Samuel A. Emoni";
   const pageDescription =
@@ -152,7 +158,14 @@ const WhatIDo = () => {
                         custom={i}
                         className="h-full"
                       >
-                        <ServiceCard service={service} />
+                        <ServiceCard
+                          service={service}
+                          offer={applicableOffer(offersQuery.data, {
+                            type: "service",
+                            id: service.id,
+                            currency: "KES",
+                          })}
+                        />
                       </motion.div>
                     ))}
                   </div>

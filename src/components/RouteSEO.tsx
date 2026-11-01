@@ -18,7 +18,8 @@ export default function RouteSEO() {
     path.startsWith("/projects/") ||
     path.startsWith("/insights/") ||
     path.startsWith("/courses/") ||
-    path.startsWith("/what-i-do/")
+    path.startsWith("/what-i-do/") ||
+    path.startsWith("/industries/")
   ) {
     return null;
   }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Copy, ExternalLink, Plus, RefreshCw, Save } from "lucide-react";
+import { Copy, ExternalLink, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
   formatKes,
@@ -26,6 +26,13 @@ const newProposal = () => ({
   validity_days: 30,
 });
 
+const newReview = () => ({
+  client_name: "",
+  client_email: "",
+  website_url: "",
+  goals: "",
+});
+
 const inputClass = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-teal-700";
 
 function LabelField({ label, children }: { label: string; children: React.ReactNode }) {
@@ -38,6 +45,7 @@ export default function ManageClientWork() {
   const [reviews, setReviews] = useState<WebsiteReview[]>([]);
   const [proposalForm, setProposalForm] = useState<ReturnType<typeof newProposal> | null>(null);
   const [editingProposalId, setEditingProposalId] = useState<string | null>(null);
+  const [reviewForm, setReviewForm] = useState<ReturnType<typeof newReview> | null>(null);
   const [editingReview, setEditingReview] = useState<WebsiteReview | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -154,6 +162,63 @@ export default function ManageClientWork() {
     }
   };
 
+  const createReview = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!reviewForm) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("website_review_requests").insert({
+        client_name: reviewForm.client_name.trim(),
+        client_email: reviewForm.client_email.trim().toLowerCase(),
+        website_url: reviewForm.website_url.trim(),
+        goals: reviewForm.goals.trim(),
+      });
+      if (error) throw error;
+      setReviewForm(null);
+      setNotice("Website review request created. Open it below to prepare the report and copy its private link.");
+      await load();
+    } catch (error) {
+      setNotice(`Could not create review request: ${getErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteProposal = async (proposal: ClientProposal) => {
+    if (!window.confirm(`Permanently delete the proposal "${proposal.title}" for ${proposal.client_name}?`)) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("client_proposals").delete().eq("id", proposal.id);
+      if (error) throw error;
+      if (editingProposalId === proposal.id) {
+        setProposalForm(null);
+        setEditingProposalId(null);
+      }
+      setNotice("Proposal deleted.");
+      await load();
+    } catch (error) {
+      setNotice(`Could not delete proposal: ${getErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteReview = async (review: WebsiteReview) => {
+    if (!window.confirm(`Permanently delete the website review request from ${review.client_name}? Its private link will stop working.`)) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("website_review_requests").delete().eq("id", review.id);
+      if (error) throw error;
+      if (editingReview?.id === review.id) setEditingReview(null);
+      setNotice("Website review request deleted.");
+      await load();
+    } catch (error) {
+      setNotice(`Could not delete review request: ${getErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const copyLink = async (path: string) => {
     try {
       await navigator.clipboard.writeText(`${window.location.origin}${path}`);
@@ -237,7 +302,8 @@ export default function ManageClientWork() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     {proposal.status !== "draft" && <button type="button" onClick={() => void copyLink(`/proposal/${proposal.public_token}`)} className="inline-flex min-h-9 items-center gap-1.5 rounded border border-slate-300 px-3 text-xs font-semibold"><Copy size={13} /> Copy client link</button>}
                     <a className="inline-flex min-h-9 items-center gap-1.5 rounded border border-slate-300 px-3 text-xs font-semibold" href={`mailto:${encodeURIComponent(proposal.client_email)}?subject=${encodeURIComponent(proposal.title)}&body=${encodeURIComponent(`Hello ${proposal.client_name},\n\nPlease review your proposal here:\n${window.location.origin}/proposal/${proposal.public_token}`)}`}><ExternalLink size={13} /> Email link</a>
-                    <button type="button" onClick={() => startEditProposal(proposal)} className="min-h-9 rounded border border-slate-300 px-3 text-xs font-semibold">Edit</button>
+                    <button type="button" disabled={saving} onClick={() => startEditProposal(proposal)} className="min-h-9 rounded border border-slate-300 px-3 text-xs font-semibold disabled:opacity-50">Edit</button>
+                    <button type="button" disabled={saving} onClick={() => void deleteProposal(proposal)} className="inline-flex min-h-9 items-center gap-1 rounded border border-rose-200 px-3 text-xs font-semibold text-rose-700 disabled:opacity-50"><Trash2 size={13} /> Delete</button>
                   </div>
                 </li>
               ))}
@@ -248,6 +314,22 @@ export default function ManageClientWork() {
 
       {section === "reviews" && (
         <section className="space-y-4">
+          {!reviewForm && <button type="button" onClick={() => setReviewForm(newReview())} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-700"><Plus size={16} /> New website review</button>}
+          {reviewForm && (
+            <form onSubmit={(event) => void createReview(event)} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
+              <h2 className="text-lg font-semibold">Create a website review request</h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <LabelField label="Client name"><input required maxLength={120} className={inputClass} value={reviewForm.client_name} onChange={(event) => setReviewForm({ ...reviewForm, client_name: event.target.value })} /></LabelField>
+                <LabelField label="Client email"><input required type="email" maxLength={254} className={inputClass} value={reviewForm.client_email} onChange={(event) => setReviewForm({ ...reviewForm, client_email: event.target.value })} /></LabelField>
+              </div>
+              <LabelField label="Website URL"><input required type="url" maxLength={2048} placeholder="https://example.com" className={inputClass} value={reviewForm.website_url} onChange={(event) => setReviewForm({ ...reviewForm, website_url: event.target.value })} /></LabelField>
+              <LabelField label="Client goals"><textarea rows={3} maxLength={2000} className={inputClass} value={reviewForm.goals} onChange={(event) => setReviewForm({ ...reviewForm, goals: event.target.value })} /></LabelField>
+              <div className="flex flex-wrap gap-2">
+                <button type="submit" disabled={saving} className="min-h-10 rounded-lg bg-teal-800 px-4 text-sm font-semibold text-white disabled:opacity-60">{saving ? "Creating..." : "Create review request"}</button>
+                <button type="button" disabled={saving} onClick={() => setReviewForm(null)} className="min-h-10 px-3 text-sm text-slate-600">Cancel</button>
+              </div>
+            </form>
+          )}
           {editingReview && (
             <form onSubmit={(event) => void updateReview(event)} className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-semibold">Website review for {editingReview.client_name}</h2><a href={editingReview.website_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-sm text-teal-800 underline"><ExternalLink size={14} /> Open website</a></div>
@@ -277,7 +359,10 @@ export default function ManageClientWork() {
               {reviews.map((review) => (
                 <li key={review.id} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0"><p className="font-semibold text-slate-900">{review.client_name} <span className="font-normal text-slate-500">· {review.status.replace("_", " ")}</span></p><a href={review.website_url} target="_blank" rel="noreferrer" className="break-all text-sm text-teal-800 underline">{review.website_url}</a><p className="text-xs text-slate-500">{review.client_email} · Fee {formatKes(review.fee_kes)}{review.payment_reference ? ` · Ref ${review.payment_reference}` : ""}</p></div>
-                  <button type="button" onClick={() => setEditingReview({ ...review })} className="min-h-10 shrink-0 rounded-lg border border-slate-300 px-4 text-sm font-semibold">Review & update</button>
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    <button type="button" disabled={saving} onClick={() => setEditingReview({ ...review })} className="min-h-10 rounded-lg border border-slate-300 px-4 text-sm font-semibold disabled:opacity-50">Review & update</button>
+                    <button type="button" disabled={saving} onClick={() => void deleteReview(review)} className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-rose-200 px-3 text-sm font-semibold text-rose-700 disabled:opacity-50"><Trash2 size={14} /> Delete</button>
+                  </div>
                 </li>
               ))}
             </ul>

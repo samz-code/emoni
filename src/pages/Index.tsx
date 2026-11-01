@@ -8,7 +8,9 @@ import {
 } from "lucide-react";
 import TrustedBy from "@/components/TrustedBy";
 import ProjectCard from "@/components/ProjectCard";
+import OfferCarousel from "@/components/OfferCarousel";
 import { supabase } from "@/lib/supabase";
+import { useOffers } from "@/lib/servicePricing";
 import {
   toStringArray,
   useHomeCarousel,
@@ -261,6 +263,7 @@ const Index = () => {
   const settingsQ = useHomeSettings();
   const pairsQ = useHomePairs();
   const carouselQ = useHomeCarousel();
+  const offersQ = useOffers();
   const partnersQ = useHomePartners("home");
   const servicesQ = useHomeServices();
   const processQ = useHomeProcess();
@@ -341,6 +344,10 @@ const Index = () => {
   const heroLoading = heroQ.isPending;
   const settingsLoading = settingsQ.isPending;
 
+  useEffect(() => {
+    if (offersQ.error) console.error("Could not load homepage offers:", offersQ.error);
+  }, [offersQ.error]);
+
   const { pair, phase } = useProblemSolution(pairs);
   const focusAreas = toStringArray(s?.focus_areas);
 
@@ -360,6 +367,7 @@ const Index = () => {
 
   return (
     <main className="bg-paper text-ink dark:bg-[#0F0F0C] dark:text-cream transition-colors duration-300 overflow-hidden">
+      {offersQ.data && <OfferCarousel offers={offersQ.data} />}
       {/* HERO SECTION */}
       <section className="relative bg-paper dark:bg-[#0F0F0C] overflow-hidden">
         <BoxGridBackdrop className="opacity-35" />
@@ -1036,6 +1044,11 @@ const Index = () => {
                       </div>
                     );
                   })}
+            </div>
+            <div className="mt-8 text-center">
+              <Link to="/industries" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-forest/30 px-5 text-sm font-semibold text-forest transition-colors hover:border-forest hover:bg-forest hover:text-white dark:border-cream/30 dark:text-cream dark:hover:bg-cream dark:hover:text-forest">
+                  Explore industries <ArrowRight size={15} />
+              </Link>
             </div>
           </div>
         </section>

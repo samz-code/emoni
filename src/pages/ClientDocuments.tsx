@@ -10,10 +10,15 @@ function BrandHeader() {
   return (
     <header className="flex flex-col gap-4 border-b border-[#E8E2D6] pb-6 sm:flex-row sm:items-center sm:justify-between">
       <img src="/darklogo.png" alt="Samuel Emoni" className="h-14 w-auto self-start object-contain" />
-      <div className="text-sm text-[#524646]/70 sm:text-right">
-        <p className="font-semibold text-[#1A1A16]">Samuel A. Emoni</p>
-        <a href="mailto:emonisamuel54@gmail.com" className="underline">emonisamuel54@gmail.com</a>
-        <p>+254 727 492 545 · Nairobi, Kenya</p>
+      <div className="flex flex-col gap-3 text-sm text-[#524646]/70 sm:items-end sm:text-right">
+        <div>
+          <p className="font-semibold text-[#1A1A16]">Samuel A. Emoni</p>
+          <a href="mailto:emonisamuel54@gmail.com" className="underline">emonisamuel54@gmail.com</a>
+          <p>+254 727 492 545 · Nairobi, Kenya</p>
+        </div>
+        <Link to="/" className="print:hidden inline-flex min-h-10 items-center justify-center rounded-lg border border-[#007979] px-4 font-semibold text-[#007979] transition-colors hover:bg-[#007979]/5">
+          Return to the website
+        </Link>
       </div>
     </header>
   );

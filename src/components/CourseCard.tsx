@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { FaWhatsapp } from "react-icons/fa";
+import { formatPrice, quotePrice, type Offer } from "@/lib/servicePricing";
 
 export interface Course {
   id?: string;
@@ -47,7 +48,7 @@ const BannerFallback = ({ name }: { name: string }) => (
   </div>
 );
 
-const CourseCard = ({ course }: { course: Course }) => {
+const CourseCard = ({ course, offer }: { course: Course; offer?: Offer | null }) => {
   const currentStatus = (course?.status as "enrolling" | "waitlist" | "update") || "enrolling";
 
   const ctaStyles: Record<string, string> = {
@@ -89,7 +90,17 @@ const CourseCard = ({ course }: { course: Course }) => {
   const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(activeMessage)}`;
 
   const hasPrice = course?.price !== undefined && course?.price !== null && course?.price !== "";
-  const priceLabel = hasPrice ? (Number(course.price) === 0 ? "Free" : `$${course.price}`) : null;
+  const originalPrice = hasPrice ? Number(course.price) : null;
+  const priceQuote = originalPrice !== null && Number.isFinite(originalPrice) && originalPrice > 0
+    ? quotePrice(originalPrice, offer)
+    : null;
+  const priceLabel = originalPrice === 0
+    ? "Free"
+    : priceQuote
+      ? formatPrice(priceQuote.discounted, "USD")
+      : hasPrice
+        ? `$${course.price}`
+        : null;
 
   const meta = [course?.duration, course?.level, course?.format].filter(Boolean) as string[];
   const detailsHref = course?.id ? `/courses/${course.id}` : null;
@@ -156,7 +167,10 @@ const CourseCard = ({ course }: { course: Course }) => {
         )}
 
         {priceLabel && (
-          <p className="mt-5 font-display text-3xl text-ember font-bold">{priceLabel}</p>
+          <div className="mt-5">
+            {priceQuote?.savings ? <p className="font-body text-sm text-ink/45 line-through">{formatPrice(priceQuote.original, "USD")}</p> : null}
+            <p className="font-display text-3xl text-ember font-bold">{priceLabel}</p>
+          </div>
         )}
 
         {/* Actions: always one row */}

@@ -18,6 +18,7 @@ const STATIC_ROUTES = [
   "/",
   "/what-i-do",
   "/projects",
+  "/industries",
   "/courses",
   "/partners",
   "/insights",
@@ -55,6 +56,11 @@ const DYNAMIC_SOURCES = [
     // Service detail pages -> /what-i-do/:id
     table: "services",
     toPath: (row) => (row.id ? `/what-i-do/${row.id}` : null),
+  },
+  {
+    // Industry detail pages -> /industries/:slug
+    table: "industries",
+    toPath: (row) => (row.slug ? `/industries/${row.slug}` : null),
   },
 ];
 

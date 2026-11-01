@@ -28,6 +28,12 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
       "Selected branding, UI/UX, web and software projects by Samuel Emoni, a Nairobi-based graphic designer and software engineer serving Kenya and Africa.",
     keywords: `${BASE_KEYWORDS}, graphic design portfolio Kenya, web development portfolio Nairobi`,
   },
+  "/industries": {
+    title: "Industries | Digital Solutions for Kenyan Organisations",
+    description:
+      "Explore digital solutions for education, real estate, healthcare, hospitality, nonprofits, growing businesses and more from Emoni Digital Solutions.",
+    keywords: "industries digital solutions Kenya, web development industries Nairobi, digital consultancy Kenya",
+  },
   "/courses": {
     title: "Courses | Learn Design & Software Development in Kenya",
     description:

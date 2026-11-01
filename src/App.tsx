@@ -52,6 +52,10 @@ import ManageContent from "./pages/admin/ManageContent";
 import ManagePartners from "./pages/admin/ManagePartners";
 import ManagePopups from "./pages/admin/ManagePopups";
 import ManageClientWork from "./pages/admin/ManageClientWork";
+import ManageOffers from "./pages/admin/ManageOffers";
+import ManageIndustries from "./pages/admin/ManageIndustries";
+import Industries from "./pages/Industries";
+import IndustryDetail from "./pages/IndustryDetail";
 import {
   ClientProposalPage,
   WebsiteReviewClientPage,
@@ -183,6 +187,8 @@ const App = () => (
                 <Route index element={<AdminDashboard />} />
                 <Route path="content" element={<ManageContent />} />
                 <Route path="services" element={<ManageServices />} />
+                <Route path="offers" element={<ManageOffers />} />
+                <Route path="industries" element={<ManageIndustries />} />
                 <Route path="services/new" element={<EditService />} />
                 <Route path="services/edit/:id" element={<EditService />} />
                 <Route path="courses" element={<ManageCourses />} />
@@ -241,6 +247,8 @@ const App = () => (
                     <Route path="/courses" element={<Courses />} />
                     <Route path="/projects/:kind/:id" element={<ProjectDetail />} />
                     <Route path="/projects" element={<Projects />} />
+                    <Route path="/industries/:slug" element={<IndustryDetail />} />
+                    <Route path="/industries" element={<Industries />} />
                     <Route path="/partners" element={<Partners />} />
                     <Route path="/insights" element={<Insights />} />
                     <Route path="/insights/:slug" element={<InsightDetail />} />

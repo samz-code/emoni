@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -10,6 +11,7 @@ import SEO, { SITE_URL } from "@/components/SEO";
 import Breadcrumbs, { breadcrumbSchema, type Crumb } from "@/components/detail/Breadcrumbs";
 import FaqAccordion, { faqSchema, type FaqItem } from "@/components/detail/FaqAccordion";
 import { asList, formatUsd, resolveIcon, toNumber, truncate } from "@/lib/detail";
+import { applicableOffer, formatPrice, quotePrice, useOffers } from "@/lib/servicePricing";
 
 interface CourseRow {
   id: string;
@@ -193,6 +195,11 @@ const readFaqs = (value: unknown): FaqItem[] =>
 
 const CourseDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { data: offers = [], error: offersError } = useOffers();
+
+  useEffect(() => {
+    if (offersError) console.error("Could not load course offers:", offersError);
+  }, [offersError]);
 
   const {
     data: course,
@@ -281,7 +288,9 @@ const CourseDetail = () => {
   const modules = readModules(course.curriculum);
   const customFaqs = readFaqs(course.faqs);
   const priceNumber = toNumber(course.price);
-  const priceLabel = formatUsd(course.price);
+  const appliedOffer = applicableOffer(offers, { type: "course", id: course.id, currency: "USD" });
+  const priceQuote = priceNumber > 0 ? quotePrice(priceNumber, appliedOffer) : null;
+  const priceLabel = priceQuote ? formatPrice(priceQuote.discounted, "USD") : formatUsd(course.price);
   const projectCount = toNumber(course.project_count);
   const description = (course.description || "").trim();
   const longDescription = (course.long_description || "").trim();
@@ -381,7 +390,7 @@ const CourseDetail = () => {
       priceNumber > 0
         ? {
             "@type": "Offer",
-            price: priceNumber,
+            price: priceQuote?.discounted ?? priceNumber,
             priceCurrency: "USD",
             availability: status.availability,
             url,
@@ -475,9 +484,19 @@ const CourseDetail = () => {
                   </span>
                   <div>
                     <p className="font-body text-xs uppercase tracking-widest text-cream/60">Course fee</p>
+                    {priceQuote?.savings ? (
+                      <p className="mt-1 font-body text-sm text-cream/50 line-through">
+                        {formatPrice(priceQuote.original, "USD")}
+                      </p>
+                    ) : null}
                     <p className="font-display text-3xl leading-tight">
                       {priceLabel ?? "On request"}
                     </p>
+                    {priceQuote?.savings ? (
+                      <p className="mt-1 font-body text-xs font-semibold text-olive">
+                        {appliedOffer?.title || `${appliedOffer?.discount_value}% offer`}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
 
@@ -669,7 +688,11 @@ const CourseDetail = () => {
               <ul className="mt-6 grid gap-5 md:grid-cols-3">
                 {related.map((item) => {
                   const RelatedIcon = resolveIcon(item.icon);
-                  const relatedPrice = formatUsd(item.price);
+                  const relatedNumber = toNumber(item.price);
+                  const relatedOffer = applicableOffer(offers, { type: "course", id: item.id, currency: "USD" });
+                  const relatedPrice = relatedNumber > 0
+                    ? formatPrice(quotePrice(relatedNumber, relatedOffer).discounted, "USD")
+                    : formatUsd(item.price);
                   return (
                     <li key={item.id}>
                       <Link
