@@ -39,10 +39,18 @@ function OfferArtworkLink({
 
 export default function OfferCarousel({ offers }: { offers: Offer[] }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [hasScrolled, setHasScrolled] = useState(false);
   const slides = useMemo(
     () => offers.filter((offer) => offer.show_on_home && offer.banner_image_url && isOfferActive(offer)),
     [offers],
   );
+
+  useEffect(() => {
+    const updateScrollState = () => setHasScrolled(window.scrollY > 0);
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrollState);
+  }, []);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -86,7 +94,7 @@ export default function OfferCarousel({ offers }: { offers: Offer[] }) {
           </OfferArtworkLink>
         </div>
 
-        {slides.length > 1 && (
+        {slides.length > 1 && hasScrolled && (
           <>
             <button
               type="button"
