@@ -69,7 +69,7 @@ const SparkLogo = () => (
 // ─── Section heading ──────────────────────────────────────────────────────────
 
 const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <p className="font-body text-[11px] font-semibold uppercase tracking-[0.24em] text-cream/30 mb-6">
+  <p className="font-body text-[11px] font-semibold uppercase tracking-[0.24em] text-cream/30 mb-4 lg:mb-6">
     {children}
   </p>
 );
@@ -77,17 +77,17 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 // ─── Column link list ─────────────────────────────────────────────────────────
 
 const LinkList = ({ items }: { items: { label: string; href: string }[] }) => (
-  <ul className="flex flex-col gap-4">
+  <ul className="flex flex-col gap-3 lg:gap-4">
     {items.map((link) => (
       <li key={link.label}>
         <Link
           to={link.href}
-          className="group inline-flex items-center gap-1.5 font-body text-[15px] text-cream/65 hover:text-ember"
+          className="group inline-flex items-center gap-1.5 font-body text-[14px] lg:text-[15px] leading-snug text-cream/65 hover:text-ember"
         >
           <span>{link.label}</span>
           <ArrowUpRight
             size={13}
-            className="opacity-0 group-hover:opacity-100"
+            className="hidden lg:block opacity-0 group-hover:opacity-100"
           />
         </Link>
       </li>
@@ -107,10 +107,10 @@ const Footer = () => {
       <div className="h-px w-full bg-ember" />
 
       {/* ── CTA strip ── */}
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pt-20 pb-14">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 border-b border-cream/10 pb-14">
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pt-12 lg:pt-20 pb-10 lg:pb-14">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 lg:gap-8 border-b border-cream/10 pb-10 lg:pb-14">
           <div>
-            <p className="font-body text-[11px] font-semibold uppercase tracking-[0.24em] text-ember mb-4">
+            <p className="font-body text-[11px] font-semibold uppercase tracking-[0.24em] text-ember mb-3 lg:mb-4">
               Let's build something
             </p>
             <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[0.95] tracking-tight text-cream">
@@ -122,7 +122,7 @@ const Footer = () => {
 
           <Link
             to="/contact"
-            className="inline-flex items-center gap-3 self-start rounded-full bg-ember px-8 py-4 font-body text-[15px] font-bold text-black hover:bg-cream"
+            className="inline-flex items-center gap-3 self-start rounded-full bg-ember px-6 py-3 lg:px-8 lg:py-4 font-body text-[14px] lg:text-[15px] font-bold text-black hover:bg-cream"
           >
             Start a conversation
             <ArrowUpRight size={18} />
@@ -130,32 +130,32 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* ── Main grid ── */}
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10">
+      {/* ── Main grid (2 columns on mobile, 12 on desktop) ── */}
+      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pb-12 lg:pb-20">
+        <div className="grid grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-10 lg:gap-10">
 
-          {/* ── Brand column ── */}
-          <div className="lg:col-span-4 flex flex-col gap-7">
+          {/* ── Brand column (full width on mobile) ── */}
+          <div className="col-span-2 lg:col-span-4 flex flex-col gap-5 lg:gap-7">
             <SparkLogo />
 
-            <p className="font-body text-[15px] text-cream/45 leading-relaxed max-w-xs">
+            <p className="font-body text-[14px] lg:text-[15px] text-cream/45 leading-relaxed max-w-xs">
               Full-stack development and design, built for clarity and scale.
             </p>
 
-            <div className="flex flex-col gap-3.5">
+            <div className="flex flex-col gap-3 lg:gap-3.5">
               <a
                 href="mailto:emonisamuel54@gmail.com"
-                className="flex items-center gap-3.5 font-body text-[15px] text-cream/55 hover:text-ember group"
+                className="flex items-center gap-3.5 font-body text-[14px] lg:text-[15px] text-cream/55 hover:text-ember group min-w-0"
               >
                 <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center group-hover:border-ember/40 flex-shrink-0">
                   <Mail size={15} className="text-ember" />
                 </span>
-                emonisamuel54@gmail.com
+                <span className="min-w-0 break-all">emonisamuel54@gmail.com</span>
               </a>
 
               <a
                 href="tel:+254727492545"
-                className="flex items-center gap-3.5 font-body text-[15px] text-cream/55 hover:text-ember group"
+                className="flex items-center gap-3.5 font-body text-[14px] lg:text-[15px] text-cream/55 hover:text-ember group"
               >
                 <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center group-hover:border-ember/40 flex-shrink-0">
                   <Phone size={15} className="text-ember" />
@@ -163,7 +163,7 @@ const Footer = () => {
                 +254 727 492 545
               </a>
 
-              <div className="flex items-center gap-3.5 font-body text-[15px] text-cream/55">
+              <div className="flex items-center gap-3.5 font-body text-[14px] lg:text-[15px] text-cream/55">
                 <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center flex-shrink-0">
                   <MapPin size={15} className="text-ember" />
                 </span>
@@ -172,20 +172,20 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* ── Explore ── */}
-          <div className="lg:col-span-2">
+          {/* ── Explore (half width on mobile) ── */}
+          <div className="col-span-1 lg:col-span-2">
             <SectionLabel>Explore</SectionLabel>
             <LinkList items={explore} />
           </div>
 
-          {/* ── Services ── */}
-          <div className="lg:col-span-3">
+          {/* ── Services (half width on mobile) ── */}
+          <div className="col-span-1 lg:col-span-3">
             <SectionLabel>Services</SectionLabel>
             <LinkList items={services} />
           </div>
 
-          {/* ── Connect ── */}
-          <div className="lg:col-span-3">
+          {/* ── Connect (full width on mobile, socials are 2-col inside) ── */}
+          <div className="col-span-2 lg:col-span-3">
             <SectionLabel>Connect</SectionLabel>
 
             {/* 2-column social grid */}
@@ -213,9 +213,9 @@ const Footer = () => {
             </div>
 
             {/* Working hours */}
-            <div className="mt-8 pl-4 border-l-2 border-ember/60">
+            <div className="mt-6 lg:mt-8 pl-4 border-l-2 border-ember/60">
               <SectionLabel>Working Hours</SectionLabel>
-              <p className="font-body text-[15px] text-cream/70">Mon – Fri · 09:00 – 18:00</p>
+              <p className="font-body text-[14px] lg:text-[15px] text-cream/70">Mon – Fri · 09:00 – 18:00</p>
               <p className="font-body text-[13px] text-cream/45 mt-1">Sat · 10:00 – 14:00 · EAT</p>
             </div>
           </div>
@@ -226,7 +226,7 @@ const Footer = () => {
       {/* ── Bottom bar ── */}
       <div style={{ backgroundColor: "#C8A96A" }} className="relative">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="font-body text-[13px] font-bold text-black">
+          <p className="font-body text-[13px] font-bold text-black text-center">
             © {year} Samuel A. Emoni. All rights reserved.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 font-body text-[13px] font-bold text-black">
