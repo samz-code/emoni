@@ -3,7 +3,7 @@ import type { Session } from "@supabase/supabase-js";
 import { BrowserRouter, Route, Routes, Navigate, Outlet } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 // SEO
@@ -19,48 +19,49 @@ import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
 import PopupManager from "@/components/popups/PopupManager";
 
-// Public Agency Pages
-import Index from "./pages/Index";
-import WhatIDo from "./pages/WhatIDo";
-import Courses from "./pages/Courses";
-import CourseDetail from "./pages/CourseDetail";
-import ServiceDetail from "./pages/ServiceDetail";
-import Projects from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail";
-import Partners from "./pages/Partners";
-import Insights from "./pages/Insights";
-import InsightDetail from "./pages/InsightDetail";
-import Contact from "./pages/Contact";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Cookies from "./pages/Cookies";
-import NotFound from "./pages/NotFound";
-
-// Admin & Editor Pages
-import AdminLayout from "./pages/admin/AdminLayout";
-import AdminLogin from "./pages/admin/AdminLogin";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import ManageServices from "./pages/admin/ManageServices";
-import EditService from "./pages/admin/EditService";
-import ManageCourses from "./pages/admin/ManageCourses";
-import ManageProjects from "./pages/admin/ManageProjects";
-import ManageAbout from "./pages/admin/ManageAbout";
-import ManageProcessSteps from "./pages/admin/ManageProcessSteps";
-import ManageIdealFor from "./pages/admin/ManageIdealFor";
-import ManageInsights from "./pages/admin/ManageInsights";
-import ManageContent from "./pages/admin/ManageContent";
-import ManagePartners from "./pages/admin/ManagePartners";
-import ManagePopups from "./pages/admin/ManagePopups";
-import ManageClientWork from "./pages/admin/ManageClientWork";
-import ManageOffers from "./pages/admin/ManageOffers";
-import ManageIndustries from "./pages/admin/ManageIndustries";
-import Industries from "./pages/Industries";
-import IndustryDetail from "./pages/IndustryDetail";
-import {
-  ClientProposalPage,
-  WebsiteReviewClientPage,
-  WebsiteReviewRequestPage,
-} from "./pages/ClientDocuments";
+const Index = lazy(() => import("./pages/Index"));
+const WhatIDo = lazy(() => import("./pages/WhatIDo"));
+const Courses = lazy(() => import("./pages/Courses"));
+const CourseDetail = lazy(() => import("./pages/CourseDetail"));
+const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
+const Projects = lazy(() => import("./pages/Projects"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
+const Partners = lazy(() => import("./pages/Partners"));
+const Insights = lazy(() => import("./pages/Insights"));
+const InsightDetail = lazy(() => import("./pages/InsightDetail"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Cookies = lazy(() => import("./pages/Cookies"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const ManageServices = lazy(() => import("./pages/admin/ManageServices"));
+const EditService = lazy(() => import("./pages/admin/EditService"));
+const ManageCourses = lazy(() => import("./pages/admin/ManageCourses"));
+const ManageProjects = lazy(() => import("./pages/admin/ManageProjects"));
+const ManageAbout = lazy(() => import("./pages/admin/ManageAbout"));
+const ManageProcessSteps = lazy(() => import("./pages/admin/ManageProcessSteps"));
+const ManageIdealFor = lazy(() => import("./pages/admin/ManageIdealFor"));
+const ManageInsights = lazy(() => import("./pages/admin/ManageInsights"));
+const ManageContent = lazy(() => import("./pages/admin/ManageContent"));
+const ManagePartners = lazy(() => import("./pages/admin/ManagePartners"));
+const ManagePopups = lazy(() => import("./pages/admin/ManagePopups"));
+const ManageClientWork = lazy(() => import("./pages/admin/ManageClientWork"));
+const ManageOffers = lazy(() => import("./pages/admin/ManageOffers"));
+const ManageIndustries = lazy(() => import("./pages/admin/ManageIndustries"));
+const Industries = lazy(() => import("./pages/Industries"));
+const IndustryDetail = lazy(() => import("./pages/IndustryDetail"));
+const ClientProposalPage = lazy(() =>
+  import("./pages/ClientDocuments").then((module) => ({ default: module.ClientProposalPage })),
+);
+const WebsiteReviewClientPage = lazy(() =>
+  import("./pages/ClientDocuments").then((module) => ({ default: module.WebsiteReviewClientPage })),
+);
+const WebsiteReviewRequestPage = lazy(() =>
+  import("./pages/ClientDocuments").then((module) => ({ default: module.WebsiteReviewRequestPage })),
+);
 
 const queryClient = new QueryClient();
 
@@ -180,94 +181,96 @@ const App = () => (
       <TooltipProvider>
         <BrowserRouter>
           <ScrollToTop />
-          <Routes>
-            {/* Protected Administrative CMS Routes (no Navbar/Footer) */}
-            <Route path="/admin" element={<ProtectedAdminRoute />}>
-              <Route element={<AdminLayout />}>
-                <Route index element={<AdminDashboard />} />
-                <Route path="content" element={<ManageContent />} />
-                <Route path="services" element={<ManageServices />} />
-                <Route path="offers" element={<ManageOffers />} />
-                <Route path="industries" element={<ManageIndustries />} />
-                <Route path="services/new" element={<EditService />} />
-                <Route path="services/edit/:id" element={<EditService />} />
-                <Route path="courses" element={<ManageCourses />} />
-                <Route path="projects" element={<ManageProjects />} />
-                <Route path="about" element={<ManageAbout />} />
-                <Route path="process-steps" element={<ManageProcessSteps />} />
-                <Route path="ideal-for" element={<ManageIdealFor />} />
-                <Route path="insights" element={<ManageInsights />} />
-                <Route path="partners" element={<ManagePartners />} />
-                <Route path="popups" element={<ManagePopups />} />
-                <Route path="client-work" element={<ManageClientWork />} />
+          <Suspense fallback={<div className="min-h-screen bg-paper dark:bg-[#0F0F0C]" aria-busy="true" />}>
+            <Routes>
+              {/* Protected Administrative CMS Routes (no Navbar/Footer) */}
+              <Route path="/admin" element={<ProtectedAdminRoute />}>
+                <Route element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="content" element={<ManageContent />} />
+                  <Route path="services" element={<ManageServices />} />
+                  <Route path="offers" element={<ManageOffers />} />
+                  <Route path="industries" element={<ManageIndustries />} />
+                  <Route path="services/new" element={<EditService />} />
+                  <Route path="services/edit/:id" element={<EditService />} />
+                  <Route path="courses" element={<ManageCourses />} />
+                  <Route path="projects" element={<ManageProjects />} />
+                  <Route path="about" element={<ManageAbout />} />
+                  <Route path="process-steps" element={<ManageProcessSteps />} />
+                  <Route path="ideal-for" element={<ManageIdealFor />} />
+                  <Route path="insights" element={<ManageInsights />} />
+                  <Route path="partners" element={<ManagePartners />} />
+                  <Route path="popups" element={<ManagePopups />} />
+                  <Route path="client-work" element={<ManageClientWork />} />
+                </Route>
               </Route>
-            </Route>
 
-            {/* Private client documents (never indexed) */}
-            <Route
-              path="/proposal/:token"
-              element={
-                <>
-                  <NoIndex />
-                  <ClientProposalPage />
-                </>
-              }
-            />
-            <Route
-              path="/website-review"
-              element={
-                <>
-                  <NoIndex />
-                  <WebsiteReviewRequestPage />
-                </>
-              }
-            />
-            <Route
-              path="/website-review/:token"
-              element={
-                <>
-                  <NoIndex />
-                  <WebsiteReviewClientPage />
-                </>
-              }
-            />
+              {/* Private client documents (never indexed) */}
+              <Route
+                path="/proposal/:token"
+                element={
+                  <>
+                    <NoIndex />
+                    <ClientProposalPage />
+                  </>
+                }
+              />
+              <Route
+                path="/website-review"
+                element={
+                  <>
+                    <NoIndex />
+                    <WebsiteReviewRequestPage />
+                  </>
+                }
+              />
+              <Route
+                path="/website-review/:token"
+                element={
+                  <>
+                    <NoIndex />
+                    <WebsiteReviewClientPage />
+                  </>
+                }
+              />
 
-            {/* Public Web Platform Routes (with Navbar/Footer) */}
-            <Route
-              path="*"
-              element={
-                <>
-                  <RouteSEO />
-                  <Navbar />
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/what-i-do/:id" element={<ServiceDetail />} />
-                    <Route path="/what-i-do" element={<WhatIDo />} />
-                    <Route path="/courses/:id" element={<CourseDetail />} />
-                    <Route path="/courses" element={<Courses />} />
-                    <Route path="/projects/:kind/:id" element={<ProjectDetail />} />
-                    <Route path="/projects" element={<Projects />} />
-                    <Route path="/industries/:slug" element={<IndustryDetail />} />
-                    <Route path="/industries" element={<Industries />} />
-                    <Route path="/partners" element={<Partners />} />
-                    <Route path="/insights" element={<Insights />} />
-                    <Route path="/insights/:slug" element={<InsightDetail />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/admin/login" element={<AdminLogin />} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/terms" element={<Terms />} />
-                    <Route path="/cookies" element={<Cookies />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                  <Footer />
-                  <FloatingWidgets />
-                  <BackToTop />
-                  <PopupManager />
-                  <CookieConsent />
-                </>
-              }
-            />
-          </Routes>
+              {/* Public Web Platform Routes (with Navbar/Footer) */}
+              <Route
+                path="*"
+                element={
+                  <>
+                    <RouteSEO />
+                    <Navbar />
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/what-i-do/:id" element={<ServiceDetail />} />
+                      <Route path="/what-i-do" element={<WhatIDo />} />
+                      <Route path="/courses/:id" element={<CourseDetail />} />
+                      <Route path="/courses" element={<Courses />} />
+                      <Route path="/projects/:kind/:id" element={<ProjectDetail />} />
+                      <Route path="/projects" element={<Projects />} />
+                      <Route path="/industries/:slug" element={<IndustryDetail />} />
+                      <Route path="/industries" element={<Industries />} />
+                      <Route path="/partners" element={<Partners />} />
+                      <Route path="/insights" element={<Insights />} />
+                      <Route path="/insights/:slug" element={<InsightDetail />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/admin/login" element={<AdminLogin />} />
+                      <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/terms" element={<Terms />} />
+                      <Route path="/cookies" element={<Cookies />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    <Footer />
+                    <FloatingWidgets />
+                    <BackToTop />
+                    <PopupManager />
+                    <CookieConsent />
+                  </>
+                }
+              />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

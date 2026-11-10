@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { optimizeSupabaseImageUrl } from "@/lib/imageOptimization";
 import { isOfferActive, type Offer } from "@/lib/servicePricing";
 
 function offerDestination(offer: Offer) {
@@ -86,9 +87,13 @@ export default function OfferCarousel({ offers }: { offers: Offer[] }) {
         }`}>
           <OfferArtworkLink key={current.id} offer={current}>
             <img
-              src={current.banner_image_url || ""}
+              src={optimizeSupabaseImageUrl(current.banner_image_url || "", 1440)}
               alt={current.banner_alt || current.title}
+              width={1200}
+              height={current.banner_format === "flyer" ? 1500 : 600}
               loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="h-full w-full object-cover"
             />
           </OfferArtworkLink>

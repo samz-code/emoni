@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, ImageOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { optimizeSupabaseImageUrl } from "@/lib/imageOptimization";
 
 export interface ProjectCardProps {
   project: {
@@ -74,8 +75,10 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
         {hasImages ? (
           <>
             <img
-              src={imageList[currentImageIdx]}
+              src={optimizeSupabaseImageUrl(imageList[currentImageIdx], 768)}
               alt={project.name}
+              width={project.landscapePreview ? 768 : 640}
+              height={project.landscapePreview ? 432 : 782}
               onError={() => setImgError(true)}
               loading="lazy"
               decoding="async"
