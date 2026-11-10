@@ -4,11 +4,13 @@ import { getSupabaseImageSrcSet, optimizeSupabaseImageUrl } from "@/lib/imageOpt
 type OptimizedImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & {
   src: string;
   transformWidth: number;
+  fetchpriority?: "high" | "low" | "auto";
 };
 
 export default function OptimizedImage({
   src,
   transformWidth,
+  fetchpriority,
   onError,
   ...props
 }: OptimizedImageProps) {
@@ -26,5 +28,5 @@ export default function OptimizedImage({
     onError?.(event);
   };
 
-  return <img {...props} src={optimizedSrc} srcSet={srcSet} onError={handleError} />;
+  return <img {...props} src={optimizedSrc} srcSet={srcSet} fetchpriority={fetchpriority} onError={handleError} />;
 }

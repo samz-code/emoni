@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { fetchPublicRows } from "@/lib/publicRest";
 
 export interface Industry {
   id: string;
@@ -46,16 +46,11 @@ export function slugifyIndustryName(name: string) {
 export function useIndustries() {
   return useQuery({
     queryKey: ["industries"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("industries")
-        .select("*")
-        .eq("published", true)
-        .order("sort_order", { ascending: true })
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as Industry[];
-    },
+    queryFn: () =>
+      fetchPublicRows<Industry>("industries", {
+        filters: { published: true },
+        order: [{ column: "sort_order" }, { column: "name" }],
+      }),
     staleTime: 60_000,
   });
 }
@@ -65,14 +60,11 @@ export function useIndustry(slug: string | undefined) {
     queryKey: ["industry", slug],
     enabled: Boolean(slug),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("industries")
-        .select("*")
-        .eq("slug", slug)
-        .eq("published", true)
-        .maybeSingle();
-      if (error) throw error;
-      return (data as Industry | null) ?? null;
+      const rows = await fetchPublicRows<Industry>("industries", {
+        filters: { slug: slug ?? "", published: true },
+        limit: 1,
+      });
+      return rows[0] ?? null;
     },
     staleTime: 60_000,
   });
@@ -82,16 +74,13 @@ export function useIndustryServices(serviceSlugs: string[] | undefined) {
   return useQuery({
     queryKey: ["industry-services", serviceSlugs],
     enabled: Boolean(serviceSlugs?.length),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("services")
-        .select("id,name,starting_from,short_description")
-        .in("id", serviceSlugs ?? [])
-        .eq("published", true)
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as IndustryService[];
-    },
+    queryFn: () =>
+      fetchPublicRows<IndustryService>("services", {
+        select: "id,name,starting_from,short_description",
+        inValues: { id: serviceSlugs ?? [] },
+        filters: { published: true },
+        order: [{ column: "sort_order" }],
+      }),
     staleTime: 60_000,
   });
 }

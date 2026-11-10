@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { fetchPublicRows } from "@/lib/publicRest";
 
 export type OfferTarget = "all" | "services" | "courses" | "service" | "course";
 
@@ -34,13 +34,10 @@ export function useOffers() {
   return useQuery({
     queryKey: ["offers"],
     queryFn: async (): Promise<Offer[]> => {
-      const { data, error } = await supabase
-        .from("offers")
-        .select("*")
-        .eq("enabled", true)
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as Offer[];
+      return fetchPublicRows<Offer>("offers", {
+        filters: { enabled: true },
+        order: [{ column: "sort_order" }],
+      });
     },
     staleTime: 60_000,
     refetchInterval: 60_000,

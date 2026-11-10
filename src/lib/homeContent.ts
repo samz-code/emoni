@@ -1,5 +1,5 @@
 import { QueryClient, useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { fetchPublicRows } from "@/lib/publicRest";
 
 /* ═══════════════════════════════════════════════════════════
    TYPES  (shared by the homepage and the admin panel)
@@ -314,22 +314,26 @@ async function listRows<T>(table: string, opts: ListOptions = {}): Promise<T[]> 
   let lastError: unknown = null;
   for (const sel of selects) {
     for (const v of variants) {
-      let q: any = supabase.from(table).select(sel);
-      if (v.pub) q = q.eq("published", true);
-      if (v.ord && opts.order) q = q.order(opts.order, { ascending: opts.ascending ?? true });
-      if (opts.limit) q = q.limit(opts.limit);
-      const { data, error } = await q;
-      if (!error) return (data ?? []) as T[];
-      lastError = error;
+      try {
+        return await fetchPublicRows<T>(table, {
+          select: sel,
+          ...(v.pub ? { filters: { published: true } } : {}),
+          ...(v.ord && opts.order
+            ? { order: [{ column: opts.order, ascending: opts.ascending ?? true }] }
+            : {}),
+          limit: opts.limit,
+        });
+      } catch (error) {
+        lastError = error;
+      }
     }
   }
   throw lastError;
 }
 
 async function getSingleRow<T>(table: string): Promise<T | null> {
-  const { data, error } = await supabase.from(table).select("*").limit(1).maybeSingle();
-  if (error) throw error;
-  return (data as T | null) ?? null;
+  const rows = await fetchPublicRows<T>(table, { limit: 1 });
+  return rows[0] ?? null;
 }
 
 function useHomeQuery<T>(key: string, fn: () => Promise<T>) {
@@ -378,14 +382,11 @@ export function useHomeCarousel() {
 /** scope "home" → Trusted-By strip; scope "all" → future /partners page. */
 export function useHomePartners(scope: "home" | "all" = "home") {
   return useHomeQuery<Partner[]>(`partners-${scope}`, async () => {
-    let q: any = supabase
-      .from("partners")
-      .select("id,name,logo_url,website_url,description,category,show_on_home,sort_order,published")
-      .eq("published", true);
-    if (scope === "home") q = q.eq("show_on_home", true);
-    const { data, error } = await q.order("sort_order", { ascending: true });
-    if (error) throw error;
-    return (data ?? []) as Partner[];
+    return fetchPublicRows<Partner>("partners", {
+      select: "id,name,logo_url,website_url,description,category,show_on_home,sort_order,published",
+      filters: { published: true, ...(scope === "home" ? { show_on_home: true } : {}) },
+      order: [{ column: "sort_order" }],
+    });
   });
 }
 

@@ -46,6 +46,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://ydswydifmafjvtlqbmmm.supabase.co" crossorigin />
+  <link
+    rel="preload"
+    as="image"
+    href="https://ydswydifmafjvtlqbmmm.supabase.co/storage/v1/object/public/site-assets/profile/profile-1788998929535.jpg"
+    fetchpriority="high"
+  />
   <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
   <link rel="dns-prefetch" href="https://www.google-analytics.com" />
   <link
@@ -404,25 +410,45 @@
   }
   </script>
 
-  <!-- ===================== GOOGLE TAG MANAGER ===================== -->
+  <!-- ===================== CONSENT-GATED GOOGLE TAG MANAGER ===================== -->
   <script>
-    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-N2T3NCQJ');
+    (function(w,d){
+      var id='GTM-N2T3NCQJ', loaded=false, timer;
+      function allowed(value){
+        try {
+          value=value||JSON.parse(localStorage.getItem('cookie-consent')||'null');
+          return value&&value.version===2&&(value.analytics||value.marketing);
+        } catch(e) { return false; }
+      }
+      function load(){
+        if(loaded||!allowed()) return;
+        loaded=true;
+        clearTimeout(timer);
+        w.dataLayer=w.dataLayer||[];
+        w.dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});
+        var script=d.createElement('script');
+        script.async=true;
+        script.src='https://www.googletagmanager.com/gtm.js?id='+id;
+        d.head.appendChild(script);
+        ['pointerdown','keydown','scroll'].forEach(function(event){
+          w.removeEventListener(event,load);
+        });
+      }
+      w.addEventListener('cookie-consent-change',function(event){
+        if(allowed(event.detail)) load();
+      });
+      if(allowed()) {
+        timer=w.setTimeout(load,10000);
+        ['pointerdown','keydown','scroll'].forEach(function(event){
+          w.addEventListener(event,load,{once:true,passive:true});
+        });
+      }
+    })(window,document);
   </script>
   <!-- End Google Tag Manager -->
 </head>
 
 <body>
-  <!-- Google Tag Manager (noscript) -->
-  <noscript>
-    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-N2T3NCQJ"
-      height="0" width="0" style="display:none;visibility:hidden"></iframe>
-  </noscript>
-  <!-- End Google Tag Manager (noscript) -->
-
   <div id="root"></div>
 
   <!--

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { fetchPublicRows } from "@/lib/publicRest";
 import { CONSENT_EVENT, hasConsent, hasDecided } from "@/components/CookieConsent";
 import type { Popup } from "./popupTypes";
 import { PopupBannerView, PopupModalView } from "./PopupViews";
@@ -56,21 +56,30 @@ export default function PopupManager() {
 
   useEffect(() => {
     let active = true;
-    supabase.auth.getSession()
-      .then(({ data, error }) => {
+    let unsubscribe = () => {};
+
+    void (async () => {
+      try {
+        const { supabase } = await import("@/lib/supabase");
+        if (!active) return;
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          if (active) setLoggedIn(!!session);
+        });
+        unsubscribe = () => subscription.unsubscribe();
+
+        const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
         if (active) setLoggedIn(!!data.session);
-      })
-      .catch((error: unknown) => {
+      } catch (error: unknown) {
         console.warn("Unable to read authentication state for popups:", error);
         if (active) setLoggedIn(false);
-      });
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (active) setLoggedIn(!!session);
-    });
+      }
+    })();
+
     return () => {
       active = false;
-      subscription.subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
@@ -78,14 +87,14 @@ export default function PopupManager() {
     let active = true;
     void (async () => {
       try {
-        const { data, error } = await supabase
-          .from("popups")
-          .select("*")
-          .eq("is_active", true)
-          .order("priority", { ascending: false })
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        if (active) setPopups((data ?? []) as Popup[]);
+        const data = await fetchPublicRows<Popup>("popups", {
+          filters: { is_active: true },
+          order: [
+            { column: "priority", ascending: false },
+            { column: "created_at", ascending: false },
+          ],
+        });
+        if (active) setPopups(data);
       } catch (error) {
         console.warn("Popups load failed:", error);
       }

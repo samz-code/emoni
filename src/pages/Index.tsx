@@ -10,7 +10,7 @@ import TrustedBy from "@/components/TrustedBy";
 import ProjectCard from "@/components/ProjectCard";
 import OfferCarousel from "@/components/OfferCarousel";
 import OptimizedImage from "@/components/OptimizedImage";
-import { supabase } from "@/lib/supabase";
+import { fetchPublicRows } from "@/lib/publicRest";
 import { useOffers } from "@/lib/servicePricing";
 import {
   toStringArray,
@@ -223,16 +223,14 @@ function HeroImage({
           </div>
         )
       ) : (
-          <OptimizedImage
+          <img
             key={slides[current].url}
             src={slides[current].url}
-            transformWidth={960}
             alt={slides[current].alt}
             width={1200}
             height={800}
-            sizes="(min-width: 1024px) 480px, 100vw"
             loading="eager"
-            fetchPriority="high"
+            fetchpriority="high"
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover object-center"
           />
@@ -275,13 +273,18 @@ const Index = () => {
   const featuredProjectsQ = useQuery({
     queryKey: ["home-featured-projects"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("projects")
-        .select("id,name,description,sector,image,live_url,created_at")
-        .order("created_at", { ascending: false })
-        .limit(5);
-      if (error) throw error;
-      return data || [];
+      return fetchPublicRows<{
+        id: string | number;
+        name: string | null;
+        description: string | null;
+        sector: string | null;
+        image: string | null;
+        live_url: string | null;
+      }>("projects", {
+        select: "id,name,description,sector,image,live_url,created_at",
+        order: [{ column: "created_at", ascending: false }],
+        limit: 5,
+      });
     },
     staleTime: 60_000,
     retry: 1,
@@ -290,13 +293,11 @@ const Index = () => {
   const designMarqueeQ = useQuery({
     queryKey: ["home-design-marquee"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("graphic_designs")
-        .select("id,title,category,image")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (error) throw error;
-      return data || [];
+      return fetchPublicRows<{ id: string | number; title: string; category: string | null; image: string | null }>("graphic_designs", {
+        select: "id,title,category,image",
+        order: [{ column: "created_at", ascending: false }],
+        limit: 10,
+      });
     },
     staleTime: 60_000,
     retry: 1,
@@ -305,13 +306,19 @@ const Index = () => {
   const aboutQ = useQuery({
     queryKey: ["home-about"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("homepage_about")
-        .select("background,education,soft_skills,hard_skills,software,profile_image_url")
-        .eq("id", 1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const rows = await fetchPublicRows<{
+        background: string | null;
+        education: string[] | null;
+        soft_skills: string[] | null;
+        hard_skills: string[] | null;
+        software: { name: string; icon_url?: string | null }[] | null;
+        profile_image_url: string | null;
+      }>("homepage_about", {
+        select: "background,education,soft_skills,hard_skills,software,profile_image_url",
+        filters: { id: 1 },
+        limit: 1,
+      });
+      return rows[0] ?? null;
     },
     staleTime: 60_000,
     retry: 1,
@@ -320,14 +327,19 @@ const Index = () => {
   const shoutoutsQ = useQuery({
     queryKey: ["home-about-shoutouts"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("homepage_shoutouts")
-        .select("id,name,role,information,profile_url,image_url")
-        .eq("published", true)
-        .order("sort_order", { ascending: true })
-        .limit(12);
-      if (error) throw error;
-      return data || [];
+      return fetchPublicRows<{
+        id: string | number;
+        name: string;
+        role: string | null;
+        information: string | null;
+        profile_url: string | null;
+        image_url: string | null;
+      }>("homepage_shoutouts", {
+        select: "id,name,role,information,profile_url,image_url",
+        filters: { published: true },
+        order: [{ column: "sort_order" }],
+        limit: 12,
+      });
     },
     staleTime: 60_000,
     retry: 1,

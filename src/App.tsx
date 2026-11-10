@@ -4,7 +4,6 @@ import { BrowserRouter, Route, Routes, Navigate, Outlet } from "react-router-dom
 import { HelmetProvider } from "react-helmet-async";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 
 // SEO
 import SEO from "@/components/SEO";
@@ -16,9 +15,9 @@ import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
-import PopupManager from "@/components/popups/PopupManager";
 
 const FloatingWidgets = lazy(() => import("@/components/FloatingWidgets"));
+const PopupManager = lazy(() => import("@/components/popups/PopupManager"));
 const Index = lazy(() => import("./pages/Index"));
 const WhatIDo = lazy(() => import("./pages/WhatIDo"));
 const Courses = lazy(() => import("./pages/Courses"));
@@ -80,6 +79,21 @@ function DeferredFloatingWidgets() {
   ) : null;
 }
 
+function DeferredPopupManager() {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setReady(true), 1800);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  return ready ? (
+    <Suspense fallback={null}>
+      <PopupManager />
+    </Suspense>
+  ) : null;
+}
+
 /** Keeps private pages out of search results and AI indexes. */
 function NoIndex() {
   return (
@@ -99,51 +113,62 @@ function ProtectedAdminRoute() {
   useEffect(() => {
     let active = true;
     let requestId = 0;
+    let unsubscribe = () => {};
 
-    async function verifyAdmin(currentSession: Session | null) {
-      const currentRequest = ++requestId;
-      setSession(currentSession);
-      setLoading(true);
+    void import("@/lib/supabase")
+      .then(({ supabase }) => {
+        if (!active) return;
 
-      if (!currentSession?.user) {
-        setIsAdmin(false);
-        setLoading(false);
-        return;
-      }
+        async function verifyAdmin(currentSession: Session | null) {
+          const currentRequest = ++requestId;
+          setSession(currentSession);
+          setLoading(true);
 
-      try {
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", currentSession.user.id)
-          .single();
+          if (!currentSession?.user) {
+            setIsAdmin(false);
+            setLoading(false);
+            return;
+          }
 
-        if (error && error.code !== "PGRST116") {
-          console.error("Unable to verify administrator profile:", error);
+          try {
+            const { data: profile, error } = await supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", currentSession.user.id)
+              .single();
+
+            if (error && error.code !== "PGRST116") {
+              console.error("Unable to verify administrator profile:", error);
+            }
+
+            const role = profile?.role || currentSession.user.app_metadata?.role;
+            if (active && currentRequest === requestId) setIsAdmin(role === "admin");
+          } catch (error) {
+            console.error("Unable to verify administrator access:", error);
+            if (active && currentRequest === requestId) setIsAdmin(false);
+          } finally {
+            if (active && currentRequest === requestId) setLoading(false);
+          }
         }
 
-        const role = profile?.role || currentSession.user.app_metadata?.role;
-        if (active && currentRequest === requestId) setIsAdmin(role === "admin");
-      } catch (error) {
-        console.error("Unable to verify administrator access:", error);
-        if (active && currentRequest === requestId) setIsAdmin(false);
-      } finally {
-        if (active && currentRequest === requestId) setLoading(false);
-      }
-    }
+        void supabase.auth.getSession().then(({ data, error }) => {
+          if (error) console.error("Unable to read the current authentication session:", error);
+          if (active) void verifyAdmin(data.session);
+        });
 
-    void supabase.auth.getSession().then(({ data, error }) => {
-      if (error) console.error("Unable to read the current authentication session:", error);
-      if (active) void verifyAdmin(data.session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      void Promise.resolve().then(() => verifyAdmin(session));
-    });
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+          void Promise.resolve().then(() => verifyAdmin(session));
+        });
+        unsubscribe = () => subscription.unsubscribe();
+      })
+      .catch((error: unknown) => {
+        console.error("Unable to load administrator authentication:", error);
+        if (active) setLoading(false);
+      });
 
     return () => {
       active = false;
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, []);
 
@@ -279,7 +304,7 @@ const App = () => (
                     <Footer />
                     <DeferredFloatingWidgets />
                     <BackToTop />
-                    <PopupManager />
+                    <DeferredPopupManager />
                     <CookieConsent />
                   </>
                 }
