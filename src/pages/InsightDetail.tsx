@@ -330,7 +330,7 @@ const InsightDetail = () => {
                     <img
                       src={insight.image}
                       alt={insight.title}
-                      fetchpriority="high"
+                      ref={(image) => image?.setAttribute("fetchpriority", "high")}
                       decoding="async"
                       className="w-full aspect-[16/10] lg:aspect-[16/9] object-cover"
                     />

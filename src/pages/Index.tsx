@@ -230,7 +230,7 @@ function HeroImage({
             width={1200}
             height={800}
             loading="eager"
-            fetchpriority="high"
+            ref={(image) => image?.setAttribute("fetchpriority", "high")}
             decoding="async"
             className="absolute inset-0 h-full w-full object-cover object-center"
           />

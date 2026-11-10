@@ -197,7 +197,13 @@ function ProtectedAdminRoute() {
             Your account (<strong>{session.user.email}</strong>) is authenticated but does not hold administrator authority.
           </p>
           <button
-            onClick={() => supabase.auth.signOut()}
+            onClick={() => {
+              void import("@/lib/supabase")
+                .then(({ supabase }) => supabase.auth.signOut())
+                .catch((error: unknown) => {
+                  console.error("Unable to sign out:", error);
+                });
+            }}
             className="mt-6 px-6 py-2.5 bg-[#007979] text-[#FFE2AF] rounded-lg font-display text-sm font-bold hover:bg-[#24B1B1] transition-colors"
           >
             SIGN OUT & RETURN

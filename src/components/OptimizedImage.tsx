@@ -1,21 +1,24 @@
 import type { ImgHTMLAttributes, SyntheticEvent } from "react";
 import { getSupabaseImageSrcSet, optimizeSupabaseImageUrl } from "@/lib/imageOptimization";
 
-type OptimizedImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src"> & {
+type OptimizedImageProps = Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "fetchPriority"> & {
   src: string;
   transformWidth: number;
-  fetchpriority?: "high" | "low" | "auto";
+  fetchPriority?: "high" | "low" | "auto";
 };
 
 export default function OptimizedImage({
   src,
   transformWidth,
-  fetchpriority,
+  fetchPriority,
   onError,
   ...props
 }: OptimizedImageProps) {
   const optimizedSrc = optimizeSupabaseImageUrl(src, transformWidth);
   const srcSet = getSupabaseImageSrcSet(src, [transformWidth, 320, 640, 960, 1440]);
+  const setFetchPriority = (image: HTMLImageElement | null) => {
+    if (image && fetchPriority) image.setAttribute("fetchpriority", fetchPriority);
+  };
 
   const handleError = (event: SyntheticEvent<HTMLImageElement>) => {
     const image = event.currentTarget;
@@ -28,5 +31,5 @@ export default function OptimizedImage({
     onError?.(event);
   };
 
-  return <img {...props} src={optimizedSrc} srcSet={srcSet} fetchpriority={fetchpriority} onError={handleError} />;
+  return <img {...props} ref={setFetchPriority} src={optimizedSrc} srcSet={srcSet} onError={handleError} />;
 }
