@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, ImageOff, ChevronLeft, ChevronRight } from "lucide-react";
-import { optimizeSupabaseImageUrl } from "@/lib/imageOptimization";
+import OptimizedImage from "@/components/OptimizedImage";
 
 export interface ProjectCardProps {
   project: {
@@ -74,8 +74,9 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
       <div className={`relative w-full overflow-hidden bg-[#eee9df] ${project.landscapePreview ? "aspect-video" : isLogo ? "aspect-square" : "aspect-[736/900]"}`}>
         {hasImages ? (
           <>
-            <img
-              src={optimizeSupabaseImageUrl(imageList[currentImageIdx], 768)}
+            <OptimizedImage
+              src={imageList[currentImageIdx]}
+              transformWidth={768}
               alt={project.name}
               width={project.landscapePreview ? 768 : 640}
               height={project.landscapePreview ? 432 : 782}

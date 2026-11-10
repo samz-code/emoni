@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Partner } from "@/lib/homeContent";
-import { optimizeSupabaseImageUrl } from "@/lib/imageOptimization";
+import OptimizedImage from "@/components/OptimizedImage";
 
 interface TrustedByProps {
   eyebrow?: string | null;
@@ -30,8 +30,9 @@ function PartnerCard({ partner }: { partner: Partner }) {
   const card = (
     <div className="flex items-center justify-center w-[160px] h-[80px] border border-olive/40 rounded-[4px] bg-white/60 dark:bg-white/5 px-4 py-3 hover:border-olive transition-colors duration-200">
       {showImage ? (
-        <img
-          src={optimizeSupabaseImageUrl(partner.logo_url as string, 320)}
+        <OptimizedImage
+          src={partner.logo_url as string}
+          transformWidth={320}
           alt={`${partner.name} logo`}
           width={320}
           height={160}

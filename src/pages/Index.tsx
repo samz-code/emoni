@@ -9,8 +9,8 @@ import {
 import TrustedBy from "@/components/TrustedBy";
 import ProjectCard from "@/components/ProjectCard";
 import OfferCarousel from "@/components/OfferCarousel";
+import OptimizedImage from "@/components/OptimizedImage";
 import { supabase } from "@/lib/supabase";
-import { optimizeSupabaseImageUrl } from "@/lib/imageOptimization";
 import { useOffers } from "@/lib/servicePricing";
 import {
   toStringArray,
@@ -224,9 +224,10 @@ function HeroImage({
         )
       ) : (
         slides.map((slide, i) => (
-          <img
+          <OptimizedImage
             key={slide.url}
-            src={optimizeSupabaseImageUrl(slide.url, 960)}
+            src={slide.url}
+            transformWidth={960}
             alt={slide.alt}
             width={1200}
             height={800}
@@ -538,8 +539,9 @@ const Index = () => {
                 <div className="h-full rounded-2xl border border-[#E0DAD0] bg-paper p-4 shadow-sm dark:border-olive/20 dark:bg-[#1A1A16] sm:p-6">
                   <Eyebrow>About</Eyebrow>
                   {aboutQ.data?.profile_image_url && (
-                    <img
-                      src={optimizeSupabaseImageUrl(aboutQ.data.profile_image_url, 640)}
+                    <OptimizedImage
+                      src={aboutQ.data.profile_image_url}
+                      transformWidth={640}
                       alt="Samuel A. Emoni"
                       width={640}
                       height={896}
@@ -626,7 +628,7 @@ const Index = () => {
                               <ul key={copy} className={`flex shrink-0 gap-3 pr-3 sm:gap-4 sm:pr-4 ${copy === 1 ? "homepage-software-marquee-duplicate" : ""}`} aria-hidden={copy === 1}>
                                 {aboutQ.data.software.map((tool: { id?: string; icon_url?: string }, index: number) => (
                                   <li key={tool.id || `software-${index}`} className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#E0DAD0] bg-snow dark:border-olive/20 dark:bg-[#141410] sm:h-14 sm:w-14">
-                                    {tool.icon_url ? <img src={optimizeSupabaseImageUrl(tool.icon_url, 96)} alt="" title="Software tool" width={36} height={36} loading="lazy" decoding="async" className="h-8 w-8 object-contain sm:h-9 sm:w-9" /> : <Code2 size={22} aria-hidden="true" />}
+                                    {tool.icon_url ? <OptimizedImage src={tool.icon_url} transformWidth={96} alt="" title="Software tool" width={36} height={36} loading="lazy" decoding="async" className="h-8 w-8 object-contain sm:h-9 sm:w-9" /> : <Code2 size={22} aria-hidden="true" />}
                                   </li>
                                 ))}
                               </ul>
@@ -662,7 +664,7 @@ const Index = () => {
                     return (
                       <article key={person.id} className="flex min-w-0 gap-3 rounded-2xl border border-[#E0DAD0] bg-paper p-3 shadow-sm dark:border-olive/20 dark:bg-[#1A1A16] sm:gap-4 sm:p-4">
                         {person.image_url ? (
-                          <img src={optimizeSupabaseImageUrl(person.image_url, 160)} alt="" width={80} height={64} loading="lazy" decoding="async" className="h-16 w-20 shrink-0 rounded-xl object-cover" />
+                          <OptimizedImage src={person.image_url} transformWidth={160} alt="" width={80} height={64} loading="lazy" decoding="async" className="h-16 w-20 shrink-0 rounded-xl object-cover" />
                         ) : (
                           <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-xl bg-olive/15 font-display text-lg text-forest dark:text-olive">{person.name.slice(0, 1)}</div>
                         )}
@@ -847,7 +849,7 @@ const Index = () => {
                         >
                           <div className="aspect-square overflow-hidden bg-[#eee9df] p-4">
                             {design.image ? (
-                              <img src={optimizeSupabaseImageUrl(design.image, 512)} alt="" width={512} height={512} loading="lazy" decoding="async" className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]" />
+                              <OptimizedImage src={design.image} transformWidth={512} alt="" width={512} height={512} loading="lazy" decoding="async" className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]" />
                             ) : (
                               <div className="flex h-full items-center justify-center font-body text-xs text-ink/50">Preview unavailable</div>
                             )}
