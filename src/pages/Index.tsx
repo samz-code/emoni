@@ -206,7 +206,7 @@ function HeroImage({
 
   useEffect(() => {
     if (count < 2) return;
-    const id = window.setInterval(() => setActive((a) => (a + 1) % count), 4500);
+    const id = window.setInterval(() => setActive((a) => (a + 1) % count), 8000);
     return () => window.clearInterval(id);
   }, [count]);
 
@@ -223,22 +223,19 @@ function HeroImage({
           </div>
         )
       ) : (
-        slides.map((slide, i) => (
           <OptimizedImage
-            key={slide.url}
-            src={slide.url}
+            key={slides[current].url}
+            src={slides[current].url}
             transformWidth={960}
-            alt={slide.alt}
+            alt={slides[current].alt}
             width={1200}
             height={800}
-            loading={i === 0 ? "eager" : "lazy"}
-            fetchPriority={i === 0 ? "high" : "auto"}
+            sizes="(min-width: 1024px) 480px, 100vw"
+            loading="eager"
+            fetchPriority="high"
             decoding="async"
-            className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
-              i === current ? "opacity-100" : "opacity-0"
-            }`}
+            className="absolute inset-0 h-full w-full object-cover object-center"
           />
-        ))
       )}
 
       {count > 1 && (
@@ -372,7 +369,13 @@ const Index = () => {
 
   return (
     <main className="bg-paper text-ink dark:bg-[#0F0F0C] dark:text-cream transition-colors duration-300 overflow-hidden">
-      {offersQ.data && <OfferCarousel offers={offersQ.data} />}
+      {offersQ.isPending ? (
+        <section className="bg-[#F1F1F1] px-3 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-9" aria-hidden="true">
+          <div className="relative mx-auto max-w-[1232px] overflow-hidden rounded-xl bg-[#17151B] aspect-[2/1] sm:aspect-[16/5]" />
+        </section>
+      ) : offersQ.data ? (
+        <OfferCarousel offers={offersQ.data} />
+      ) : null}
       {/* HERO SECTION */}
       <section className="relative bg-paper dark:bg-[#0F0F0C] overflow-hidden">
         <BoxGridBackdrop className="opacity-35" />
@@ -545,6 +548,7 @@ const Index = () => {
                       alt="Samuel A. Emoni"
                       width={640}
                       height={896}
+                      sizes="(min-width: 1024px) 560px, calc(100vw - 2rem)"
                       loading="lazy"
                       decoding="async"
                       className="mt-4 h-56 w-full rounded-2xl border border-[#E0DAD0] object-cover object-top shadow-md dark:border-olive/20 sm:mt-5 sm:h-72 lg:h-64 xl:h-72"
@@ -628,7 +632,7 @@ const Index = () => {
                               <ul key={copy} className={`flex shrink-0 gap-3 pr-3 sm:gap-4 sm:pr-4 ${copy === 1 ? "homepage-software-marquee-duplicate" : ""}`} aria-hidden={copy === 1}>
                                 {aboutQ.data.software.map((tool: { id?: string; icon_url?: string }, index: number) => (
                                   <li key={tool.id || `software-${index}`} className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#E0DAD0] bg-snow dark:border-olive/20 dark:bg-[#141410] sm:h-14 sm:w-14">
-                                    {tool.icon_url ? <OptimizedImage src={tool.icon_url} transformWidth={96} alt="" title="Software tool" width={36} height={36} loading="lazy" decoding="async" className="h-8 w-8 object-contain sm:h-9 sm:w-9" /> : <Code2 size={22} aria-hidden="true" />}
+                                    {tool.icon_url ? <OptimizedImage src={tool.icon_url} transformWidth={96} alt="" title="Software tool" width={36} height={36} sizes="36px" loading="lazy" decoding="async" className="h-8 w-8 object-contain sm:h-9 sm:w-9" /> : <Code2 size={22} aria-hidden="true" />}
                                   </li>
                                 ))}
                               </ul>
@@ -664,7 +668,7 @@ const Index = () => {
                     return (
                       <article key={person.id} className="flex min-w-0 gap-3 rounded-2xl border border-[#E0DAD0] bg-paper p-3 shadow-sm dark:border-olive/20 dark:bg-[#1A1A16] sm:gap-4 sm:p-4">
                         {person.image_url ? (
-                          <OptimizedImage src={person.image_url} transformWidth={160} alt="" width={80} height={64} loading="lazy" decoding="async" className="h-16 w-20 shrink-0 rounded-xl object-cover" />
+                          <OptimizedImage src={person.image_url} transformWidth={160} alt="" width={80} height={64} sizes="80px" loading="lazy" decoding="async" className="h-16 w-20 shrink-0 rounded-xl object-cover" />
                         ) : (
                           <div className="flex h-16 w-20 shrink-0 items-center justify-center rounded-xl bg-olive/15 font-display text-lg text-forest dark:text-olive">{person.name.slice(0, 1)}</div>
                         )}
@@ -849,7 +853,7 @@ const Index = () => {
                         >
                           <div className="aspect-square overflow-hidden bg-[#eee9df] p-4">
                             {design.image ? (
-                              <OptimizedImage src={design.image} transformWidth={512} alt="" width={512} height={512} loading="lazy" decoding="async" className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]" />
+                              <OptimizedImage src={design.image} transformWidth={512} alt="" width={512} height={512} sizes="(min-width: 640px) 256px, 224px" loading="lazy" decoding="async" className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]" />
                             ) : (
                               <div className="flex h-full items-center justify-center font-body text-xs text-ink/50">Preview unavailable</div>
                             )}

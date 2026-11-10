@@ -53,17 +53,10 @@ const PulseRing = ({ color }: { color: string }) => (
 // ─── Main component ───────────────────────────────────────────────────────────
 
 const FloatingWidgets = () => {
-  const [visible, setVisible] = useState(false);
   const [dimmed, setDimmed] = useState(false);
   const [hovering, setHovering] = useState<string | null>(null);
 
   useEffect(() => {
-    const t = setTimeout(() => setVisible(true), 3000);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    if (!visible) return;
     let dimTimer: ReturnType<typeof setTimeout>;
     const reset = () => {
       setDimmed(false);
@@ -76,9 +69,7 @@ const FloatingWidgets = () => {
       clearTimeout(dimTimer);
       window.removeEventListener("mousemove", reset);
     };
-  }, [visible]);
-
-  if (!visible) return null;
+  }, []);
 
   const isDimmed = dimmed && !hovering;
 

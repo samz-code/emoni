@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { optimizeSupabaseImageUrl } from "./imageOptimization";
+import { getSupabaseImageSrcSet, optimizeSupabaseImageUrl } from "./imageOptimization";
 
 describe("optimizeSupabaseImageUrl", () => {
   it("requests a WebP transformation for public Supabase images", () => {
@@ -23,5 +23,17 @@ describe("optimizeSupabaseImageUrl", () => {
 
     expect(optimizeSupabaseImageUrl(externalUrl, 640)).toBe(externalUrl);
     expect(optimizeSupabaseImageUrl(invalidUrl, 640)).toBe(invalidUrl);
+  });
+
+  it("builds responsive image variants without duplicate widths", () => {
+    const srcSet = getSupabaseImageSrcSet(
+      "https://project.supabase.co/storage/v1/object/public/media/photo.jpg",
+      [640, 320, 640],
+    );
+
+    expect(srcSet).toContain("width=320");
+    expect(srcSet).toContain("width=640");
+    expect(srcSet?.match(/ 320w/g)).toHaveLength(1);
+    expect(srcSet?.match(/ 640w/g)).toHaveLength(1);
   });
 });

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Cookie, X } from "lucide-react";
 
@@ -100,17 +99,12 @@ export default function CookieConsentBanner() {
   }, []);
 
   return createPortal(
-    <AnimatePresence>
-      {visible && (
-        <motion.div
+      visible ? (
+        <div
           role="dialog"
           aria-live="polite"
           aria-label="Cookie consent"
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 24 }}
-          transition={{ duration: 0.3 }}
-          className="fixed z-[9999] pointer-events-auto bottom-4 left-4 right-4 sm:right-auto sm:max-w-md bg-white border border-[#E8E2D6] rounded-2xl shadow-2xl p-5 font-body text-[#524646]"
+          className="animate-in fade-in slide-in-from-bottom-3 duration-300 fixed z-[9999] pointer-events-auto bottom-4 left-4 right-4 sm:right-auto sm:max-w-md bg-white border border-[#E8E2D6] rounded-2xl shadow-2xl p-5 font-body text-[#524646]"
         >
           {!showPrefs ? (
             <>
@@ -207,9 +201,8 @@ export default function CookieConsentBanner() {
               </div>
             </>
           )}
-        </motion.div>
-      )}
-    </AnimatePresence>,
+        </div>
+      ) : null,
     document.body
   );
 }

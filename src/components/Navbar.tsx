@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown, ArrowUpRight, LogIn, Menu, X } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useIndustries } from "@/lib/industries";
 
 const navLinks = [
@@ -104,6 +103,8 @@ const Navbar = () => {
           <img
             src="/whitelogo.png"
             alt="Samuel Emoni Logo"
+            width={3783}
+            height={1054}
             className="h-12 sm:h-14 xl:h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
           />
         </Link>
@@ -141,14 +142,9 @@ const Navbar = () => {
                   )}
                 </button>
 
-                <AnimatePresence>
-                  {dropdownOpen === link.label && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      transition={{ duration: 0.15 }}
-                      className={`absolute top-full ${link.label === "INDUSTRIES" ? "left-1/2 -translate-x-1/2 pt-3" : "left-0 pt-3"} max-w-[92vw]`}
+                {dropdownOpen === link.label && (
+                    <div
+                      className={`nav-dropdown-enter absolute top-full ${link.label === "INDUSTRIES" ? "left-1/2 -translate-x-1/2 pt-3" : "left-0 pt-3"} max-w-[92vw]`}
                     >
                       {link.label === "INDUSTRIES" ? (
                         <div className="grid w-[min(620px,92vw)] grid-cols-[minmax(0,1.35fr)_minmax(160px,0.65fr)] overflow-hidden rounded-b-2xl bg-white shadow-2xl">
@@ -191,9 +187,8 @@ const Navbar = () => {
                         ))}
                       </div>
                       )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    </div>
+                )}
               </div>
             ) : (
               <Link
@@ -247,28 +242,22 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Drawer */}
-      <AnimatePresence>
-        {mobileOpen && (
+      {mobileOpen && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black z-50"
+            <div
+              className="nav-overlay-enter fixed inset-0 bg-black/50 z-50"
               onClick={() => setMobileOpen(false)}
             />
 
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ duration: 0.25, ease: "easeOut" }}
-              className="fixed top-0 right-0 h-full w-[85vw] max-w-[320px] bg-[hsl(var(--forest))] border-l border-[hsl(var(--cream))/0.2] z-50 flex flex-col"
+            <div
+              className="nav-drawer-enter fixed top-0 right-0 h-full w-[85vw] max-w-[320px] bg-[hsl(var(--forest))] border-l border-[hsl(var(--cream))/0.2] z-50 flex flex-col"
             >
               <div className="flex items-center justify-between px-5 sm:px-6 py-4 sm:py-5 border-b border-[hsl(var(--cream))/0.2] shrink-0">
                 <img
                   src="/whitelogo.png"
                   alt="Samuel Emoni Logo"
+                  width={3783}
+                  height={1054}
                   className="h-10 w-auto object-contain"
                 />
                 <button
@@ -299,15 +288,8 @@ const Navbar = () => {
                           className={`transition-transform duration-200 ${mobileAccordion === link.label ? "rotate-180" : ""}`}
                         />
                       </button>
-                      <AnimatePresence>
-                        {mobileAccordion === link.label && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
+                      {mobileAccordion === link.label && (
+                          <div className="nav-dropdown-enter overflow-hidden">
                             <div className="pl-3 border-l border-[hsl(var(--cream))/0.3] my-1 space-y-2">
                               {link.label === "INDUSTRIES" && (
                                 <Link
@@ -329,9 +311,8 @@ const Navbar = () => {
                                 </Link>
                               ))}
                             </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                          </div>
+                      )}
                     </div>
                   ) : (
                     <Link
@@ -359,10 +340,9 @@ const Navbar = () => {
                   <span>PORTAL LOGIN</span>
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </>
-        )}
-      </AnimatePresence>
+      )}
     </nav>
   );
 };

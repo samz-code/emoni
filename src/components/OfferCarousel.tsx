@@ -92,6 +92,7 @@ export default function OfferCarousel({ offers }: { offers: Offer[] }) {
               alt={current.banner_alt || current.title}
               width={1200}
               height={current.banner_format === "flyer" ? 1500 : 600}
+              sizes={current.banner_format === "flyer" ? "min(448px, 100vw)" : "(min-width: 1232px) 1232px, 100vw"}
               loading="eager"
               fetchPriority="high"
               decoding="async"

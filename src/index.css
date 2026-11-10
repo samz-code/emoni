@@ -109,4 +109,29 @@
   .btn-tan:hover {
     background-color: hsl(var(--tan-dark));
   }
+
+  .nav-dropdown-enter {
+    animation: nav-fade-in 150ms ease-out both;
+  }
+  .nav-overlay-enter {
+    animation: nav-fade-in 150ms ease-out both;
+  }
+  .nav-drawer-enter {
+    animation: nav-slide-in 250ms ease-out both;
+  }
+  @keyframes nav-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes nav-slide-in {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-dropdown-enter,
+    .nav-overlay-enter,
+    .nav-drawer-enter {
+      animation: none;
+    }
+  }
 }

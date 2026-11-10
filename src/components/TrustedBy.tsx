@@ -36,6 +36,7 @@ function PartnerCard({ partner }: { partner: Partner }) {
           alt={`${partner.name} logo`}
           width={320}
           height={160}
+          sizes="160px"
           loading="lazy"
           decoding="async"
           onError={() => setFailed(true)}

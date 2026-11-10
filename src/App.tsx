@@ -13,12 +13,12 @@ import RouteSEO from "@/components/RouteSEO";
 // Layout & Navigation Components
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import FloatingWidgets from "@/components/FloatingWidgets";
 import BackToTop from "@/components/BackToTop";
 import ScrollToTop from "@/components/ScrollToTop";
 import CookieConsent from "@/components/CookieConsent";
 import PopupManager from "@/components/popups/PopupManager";
 
+const FloatingWidgets = lazy(() => import("@/components/FloatingWidgets"));
 const Index = lazy(() => import("./pages/Index"));
 const WhatIDo = lazy(() => import("./pages/WhatIDo"));
 const Courses = lazy(() => import("./pages/Courses"));
@@ -64,6 +64,21 @@ const WebsiteReviewRequestPage = lazy(() =>
 );
 
 const queryClient = new QueryClient();
+
+function DeferredFloatingWidgets() {
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setReady(true), 3000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  return ready ? (
+    <Suspense fallback={null}>
+      <FloatingWidgets />
+    </Suspense>
+  ) : null;
+}
 
 /** Keeps private pages out of search results and AI indexes. */
 function NoIndex() {
@@ -262,7 +277,7 @@ const App = () => (
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                     <Footer />
-                    <FloatingWidgets />
+                    <DeferredFloatingWidgets />
                     <BackToTop />
                     <PopupManager />
                     <CookieConsent />

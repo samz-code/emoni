@@ -17,3 +17,15 @@ export function optimizeSupabaseImageUrl(src: string, width: number, quality = 7
   url.searchParams.set("format", "webp");
   return url.toString();
 }
+
+export function getSupabaseImageSrcSet(src: string, widths: number[], quality = 75): string | undefined {
+  const entries = [...new Set(widths.map((width) => Math.max(1, Math.round(width))))].sort(
+    (a, b) => a - b,
+  );
+  const transformed = entries.map((width) => ({
+    width,
+    url: optimizeSupabaseImageUrl(src, width, quality),
+  }));
+  if (transformed.every(({ url }) => url === src)) return undefined;
+  return transformed.map(({ width, url }) => `${url} ${width}w`).join(", ");
+}
