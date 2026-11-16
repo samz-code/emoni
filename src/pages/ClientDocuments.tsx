@@ -4,19 +4,30 @@ import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { formatKes, getErrorMessage, type ClientProposal, type WebsiteReview } from "@/lib/clientWork";
 
-const sectionClass = "rounded-xl border border-[#E8E2D6] bg-white p-5 sm:p-7";
+const sectionClass = "rounded-xl border border-[#E8E2D6] bg-white p-4 sm:p-7";
+const inputClass =
+  "mt-1 w-full rounded-lg border border-[#E8E2D6] px-3 py-2.5 text-base focus:border-[#007979] focus:outline-none sm:text-sm";
 
 function BrandHeader() {
   return (
-    <header className="flex flex-col gap-4 border-b border-[#E8E2D6] pb-6 sm:flex-row sm:items-center sm:justify-between">
-      <img src="/darklogo.png" alt="Samuel Emoni" className="h-14 w-auto self-start object-contain" />
-      <div className="flex flex-col gap-3 text-sm text-[#524646]/70 sm:items-end sm:text-right">
-        <div>
+    <header className="flex flex-col items-center gap-5 border-b border-[#E8E2D6] pb-6 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+      <img src="/darklogo.png" alt="Samuel Emoni" className="h-12 w-auto object-contain sm:h-14" />
+      <div className="flex flex-col items-center gap-4 text-sm text-[#524646]/70 sm:items-end sm:text-right">
+        <div className="space-y-0.5">
           <p className="font-semibold text-[#1A1A16]">Samuel A. Emoni</p>
-          <a href="mailto:emonisamuel54@gmail.com" className="underline">emonisamuel54@gmail.com</a>
-          <p>+254 727 492 545 · Nairobi, Kenya</p>
+          <a href="mailto:emonisamuel54@gmail.com" className="block break-all underline">
+            emonisamuel54@gmail.com
+          </a>
+          <p>
+            <span className="whitespace-nowrap">+254 727 492 545</span>
+            <span className="hidden sm:inline"> · </span>
+            <span className="block sm:inline">Nairobi, Kenya</span>
+          </p>
         </div>
-        <Link to="/" className="print:hidden inline-flex min-h-10 items-center justify-center rounded-lg border border-[#007979] px-4 font-semibold text-[#007979] transition-colors hover:bg-[#007979]/5">
+        <Link
+          to="/"
+          className="print:hidden hidden min-h-10 items-center justify-center rounded-lg border border-[#007979] px-4 font-semibold text-[#007979] transition-colors hover:bg-[#007979]/5 sm:inline-flex"
+        >
           Return to the website
         </Link>
       </div>
@@ -26,12 +37,18 @@ function BrandHeader() {
 
 function PageFrame({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-[#FBF9F5] px-4 py-8 text-[#524646] sm:px-6 sm:py-12">
-      <article className="mx-auto max-w-4xl space-y-7">
+    <main className="min-h-screen overflow-x-hidden bg-[#FBF9F5] px-4 py-6 text-[#524646] sm:px-6 sm:py-12">
+      <article className="mx-auto max-w-4xl space-y-5 sm:space-y-7">
         <BrandHeader />
         {children}
-        <footer className="border-t border-[#E8E2D6] pt-4 text-center text-xs text-[#524646]/60">
-          Prepared by Samuel A. Emoni · <a className="underline" href="https://www.emonisamuel.co.ke">emonisamuel.co.ke</a>
+        <footer className="border-t border-[#E8E2D6] pt-5 text-center text-xs text-[#524646]/60">
+          <Link
+            to="/"
+            className="print:hidden mb-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-[#007979] px-4 text-sm font-semibold text-[#007979] transition-colors hover:bg-[#007979]/5 sm:hidden"
+          >
+            Return to the website
+          </Link>
+          <p>Prepared by Samuel A. Emoni · <a className="underline" href="https://www.emonisamuel.co.ke">emonisamuel.co.ke</a></p>
         </footer>
       </article>
     </main>
@@ -39,7 +56,14 @@ function PageFrame({ children }: { children: React.ReactNode }) {
 }
 
 function StatusMessage({ children, error = false }: { children: React.ReactNode; error?: boolean }) {
-  return <p role={error ? "alert" : "status"} className={`rounded-lg border p-4 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-900" : "border-teal-200 bg-teal-50 text-teal-900"}`}>{children}</p>;
+  return (
+    <p
+      role={error ? "alert" : "status"}
+      className={`break-words rounded-lg border p-4 text-sm ${error ? "border-rose-200 bg-rose-50 text-rose-900" : "border-teal-200 bg-teal-50 text-teal-900"}`}
+    >
+      {children}
+    </p>
+  );
 }
 
 export function ClientProposalPage() {
@@ -106,53 +130,61 @@ export function ClientProposalPage() {
     }
   };
 
-  if (loading) return <PageFrame><p>Loading your proposal...</p></PageFrame>;
-  if (error || !proposal) return <PageFrame><StatusMessage error>{error ?? "Proposal not found."}</StatusMessage><Link to="/" className="text-teal-800 underline">Return to the website</Link></PageFrame>;
+  if (loading) return <PageFrame><p className="text-center">Loading your proposal...</p></PageFrame>;
+  if (error || !proposal) return <PageFrame><StatusMessage error>{error ?? "Proposal not found."}</StatusMessage><Link to="/" className="block text-center text-teal-800 underline">Return to the website</Link></PageFrame>;
 
   const expires = new Date(new Date(proposal.created_at).getTime() + proposal.validity_days * 86_400_000);
   const canRespond = proposal.status === "sent" && Date.now() <= expires.getTime();
 
   return (
     <PageFrame>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#007979]">Proposal & quote</p>
-          <h1 className="mt-2 text-3xl font-bold text-[#1A1A16]">{proposal.title}</h1>
+          <h1 className="mt-2 break-words text-2xl font-bold text-[#1A1A16] sm:text-3xl">{proposal.title}</h1>
           <p className="mt-2 text-sm text-[#524646]/70">Prepared for {proposal.client_name}{proposal.company_name ? ` · ${proposal.company_name}` : ""}</p>
         </div>
-        <button type="button" onClick={() => window.print()} className="rounded-lg border border-[#007979] px-4 py-2 text-sm font-semibold text-[#007979] hover:bg-[#007979]/5 print:hidden">Print / Save as PDF</button>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="min-h-11 w-full shrink-0 rounded-lg border border-[#007979] px-4 py-2 text-sm font-semibold text-[#007979] hover:bg-[#007979]/5 print:hidden sm:min-h-0 sm:w-auto"
+        >
+          Print / Save as PDF
+        </button>
       </div>
 
       {notice && <StatusMessage>{notice}</StatusMessage>}
       <section className={sectionClass}>
         <h2 className="text-lg font-semibold text-[#1A1A16]">Project summary</h2>
-        <p className="mt-2 whitespace-pre-line leading-relaxed">{proposal.summary || "Please review the proposed scope and quote below."}</p>
+        <p className="mt-2 whitespace-pre-line break-words leading-relaxed">{proposal.summary || "Please review the proposed scope and quote below."}</p>
         <p className="mt-4 text-xs text-[#524646]/60">Quote valid until {expires.toLocaleDateString("en-KE", { day: "numeric", month: "long", year: "numeric" })}.</p>
       </section>
 
       <section className={sectionClass}>
         <h2 className="text-lg font-semibold text-[#1A1A16]">Scope & deliverables</h2>
-        <p className="mt-3 whitespace-pre-line leading-relaxed">{proposal.scope}</p>
+        <p className="mt-3 whitespace-pre-line break-words leading-relaxed">{proposal.scope}</p>
       </section>
 
       <section className={`${sectionClass} !p-0`}>
-        <div className="p-5 sm:p-7">
+        <div className="p-4 sm:p-7">
           <h2 className="text-lg font-semibold text-[#1A1A16]">Investment · KES</h2>
           <ul className="mt-4 divide-y divide-[#E8E2D6]">
             {(proposal.line_items ?? []).map((item, index) => (
-              <li key={`${item.description}-${index}`} className="flex flex-wrap justify-between gap-3 py-3 text-sm">
-                <span>{item.description}</span><span className="font-medium">{formatKes(item.amount_kes)}</span>
+              <li key={`${item.description}-${index}`} className="flex items-start justify-between gap-4 py-3 text-sm">
+                <span className="min-w-0 break-words">{item.description}</span>
+                <span className="shrink-0 whitespace-nowrap font-medium">{formatKes(item.amount_kes)}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-2 flex justify-between border-t border-[#524646]/20 pt-4 text-lg font-bold text-[#007979]">
-            <span>Total (tax inclusive)</span><span>{formatKes(proposal.total_kes)}</span>
+          <div className="mt-2 flex items-start justify-between gap-4 border-t border-[#524646]/20 pt-4 text-base font-bold text-[#007979] sm:text-lg">
+            <span>Total (tax inclusive)</span>
+            <span className="shrink-0 whitespace-nowrap">{formatKes(proposal.total_kes)}</span>
           </div>
-          {proposal.payment_terms && <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-[#524646]/80">{proposal.payment_terms}</p>}
+          {proposal.payment_terms && <p className="mt-4 whitespace-pre-line break-words text-sm leading-relaxed text-[#524646]/80">{proposal.payment_terms}</p>}
         </div>
       </section>
 
-      {proposal.client_message && !canRespond && <section className={sectionClass}><h2 className="font-semibold">Your message</h2><p className="mt-2 whitespace-pre-line">{proposal.client_message}</p></section>}
+      {proposal.client_message && !canRespond && <section className={sectionClass}><h2 className="font-semibold">Your message</h2><p className="mt-2 whitespace-pre-line break-words">{proposal.client_message}</p></section>}
       {proposal.status === "sent" && !canRespond && <StatusMessage>This quote has expired. Contact Samuel if you would like an updated proposal.</StatusMessage>}
       {!canRespond && <StatusMessage>Your response: <strong className="capitalize">{proposal.status.replace("_", " ")}</strong>{proposal.accepted_at ? ` on ${new Date(proposal.accepted_at).toLocaleDateString()}` : ""}.</StatusMessage>}
 
@@ -160,11 +192,11 @@ export function ClientProposalPage() {
         <section className={`${sectionClass} print:hidden`}>
           <h2 className="text-lg font-semibold text-[#1A1A16]">Your response</h2>
           <label className="mt-3 block text-sm font-medium" htmlFor="client-message">Message or requested changes (optional)</label>
-          <textarea id="client-message" rows={4} maxLength={3000} className="mt-1 w-full rounded-lg border border-[#E8E2D6] p-3 text-sm focus:border-[#007979] focus:outline-none" value={message} onChange={(event) => setMessage(event.target.value)} />
+          <textarea id="client-message" rows={4} maxLength={3000} className={inputClass} value={message} onChange={(event) => setMessage(event.target.value)} />
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <button type="button" disabled={saving} onClick={() => void respond("accepted")} className="min-h-11 rounded-lg bg-[#007979] px-5 text-sm font-semibold text-white disabled:opacity-60">{saving ? "Sending..." : "Accept proposal"}</button>
-            <button type="button" disabled={saving} onClick={() => void respond("changes_requested")} className="min-h-11 rounded-lg border border-[#007979] px-5 text-sm font-semibold text-[#007979] disabled:opacity-60">Request changes</button>
-            <button type="button" disabled={saving} onClick={() => void respond("declined")} className="min-h-11 rounded-lg border border-slate-300 px-5 text-sm font-semibold text-slate-700 disabled:opacity-60">Decline</button>
+            <button type="button" disabled={saving} onClick={() => void respond("accepted")} className="min-h-12 w-full rounded-lg bg-[#007979] px-5 text-sm font-semibold text-white disabled:opacity-60 sm:min-h-11 sm:w-auto">{saving ? "Sending..." : "Accept proposal"}</button>
+            <button type="button" disabled={saving} onClick={() => void respond("changes_requested")} className="min-h-12 w-full rounded-lg border border-[#007979] px-5 text-sm font-semibold text-[#007979] disabled:opacity-60 sm:min-h-11 sm:w-auto">Request changes</button>
+            <button type="button" disabled={saving} onClick={() => void respond("declined")} className="min-h-12 w-full rounded-lg border border-slate-300 px-5 text-sm font-semibold text-slate-700 disabled:opacity-60 sm:min-h-11 sm:w-auto">Decline</button>
           </div>
         </section>
       )}
@@ -233,15 +265,15 @@ export function WebsiteReviewClientPage() {
     }
   };
 
-  if (loading) return <PageFrame><p>Loading your website review...</p></PageFrame>;
-  if (error || !review) return <PageFrame><StatusMessage error>{error ?? "Review not found."}</StatusMessage><Link to="/website-review" className="text-teal-800 underline">Request a website review</Link></PageFrame>;
+  if (loading) return <PageFrame><p className="text-center">Loading your website review...</p></PageFrame>;
+  if (error || !review) return <PageFrame><StatusMessage error>{error ?? "Review not found."}</StatusMessage><Link to="/website-review" className="block text-center text-teal-800 underline">Request a website review</Link></PageFrame>;
 
   const reportReady = review.status === "complete";
   return (
     <PageFrame>
-      <div>
+      <div className="min-w-0">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#007979]">Website review</p>
-        <h1 className="mt-2 text-3xl font-bold text-[#1A1A16]">Review for {review.website_url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</h1>
+        <h1 className="mt-2 break-words text-2xl font-bold text-[#1A1A16] sm:text-3xl">Review for {review.website_url.replace(/^https?:\/\//, "").replace(/\/$/, "")}</h1>
         <p className="mt-2 text-sm text-[#524646]/70">Prepared for {review.client_name} · Request status: <span className="font-semibold capitalize">{review.status.replace("_", " ")}</span></p>
       </div>
 
@@ -250,8 +282,8 @@ export function WebsiteReviewClientPage() {
         <section className={sectionClass}>
           <h2 className="text-lg font-semibold text-[#1A1A16]">Your request is being reviewed</h2>
           <p className="mt-2 leading-relaxed">I’m reviewing your website and will update this page with the review fee and payment instructions. Your report will be available here after payment is confirmed and the review is complete.</p>
-          {review.goals && <p className="mt-4 rounded-lg bg-[#FBF9F5] p-3 text-sm"><strong>Your goals:</strong> {review.goals}</p>}
-          <button type="button" onClick={() => void load()} className="mt-4 text-sm font-semibold text-[#007979] underline">Refresh status</button>
+          {review.goals && <p className="mt-4 break-words rounded-lg bg-[#FBF9F5] p-3 text-sm"><strong>Your goals:</strong> {review.goals}</p>}
+          <button type="button" onClick={() => void load()} className="mt-4 min-h-11 text-sm font-semibold text-[#007979] underline sm:min-h-0">Refresh status</button>
         </section>
       ) : null}
 
@@ -259,14 +291,14 @@ export function WebsiteReviewClientPage() {
         <section className={sectionClass}>
           <h2 className="text-lg font-semibold text-[#1A1A16]">Payment required to unlock the report</h2>
           <p className="mt-2 text-2xl font-bold text-[#007979]">{formatKes(review.fee_kes)} <span className="text-sm font-normal text-[#524646]/60">tax inclusive</span></p>
-          <p className="mt-3 whitespace-pre-line text-sm leading-relaxed">{review.payment_instructions || "Please contact Samuel using the details above to receive payment instructions."}</p>
+          <p className="mt-3 whitespace-pre-line break-words text-sm leading-relaxed">{review.payment_instructions || "Please contact Samuel using the details above to receive payment instructions."}</p>
           {review.payment_reference ? (
-            <StatusMessage>Your payment reference has been received and is awaiting verification.</StatusMessage>
+            <div className="mt-4"><StatusMessage>Your payment reference has been received and is awaiting verification.</StatusMessage></div>
           ) : (
             <form onSubmit={(event) => void sendPaymentReference(event)} className="mt-5 space-y-3">
               <label htmlFor="payment-reference" className="block text-sm font-medium">Payment reference / transaction code</label>
-              <input id="payment-reference" required minLength={3} maxLength={100} value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} className="w-full rounded-lg border border-[#E8E2D6] px-3 py-2.5 text-sm focus:border-[#007979] focus:outline-none" />
-              <button type="submit" disabled={sending} className="min-h-11 rounded-lg bg-[#007979] px-5 text-sm font-semibold text-white disabled:opacity-60">{sending ? "Submitting..." : "Submit payment reference"}</button>
+              <input id="payment-reference" required minLength={3} maxLength={100} value={paymentReference} onChange={(event) => setPaymentReference(event.target.value)} className={inputClass} />
+              <button type="submit" disabled={sending} className="min-h-12 w-full rounded-lg bg-[#007979] px-5 text-sm font-semibold text-white disabled:opacity-60 sm:min-h-11 sm:w-auto">{sending ? "Submitting..." : "Submit payment reference"}</button>
             </form>
           )}
         </section>
@@ -276,14 +308,14 @@ export function WebsiteReviewClientPage() {
 
       {reportReady && (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <StatusMessage>Your payment is confirmed and your report is ready.</StatusMessage>
-            <button type="button" onClick={() => window.print()} className="rounded-lg border border-[#007979] px-4 py-2 text-sm font-semibold text-[#007979] hover:bg-[#007979]/5 print:hidden">Download / Save report as PDF</button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 sm:flex-1"><StatusMessage>Your payment is confirmed and your report is ready.</StatusMessage></div>
+            <button type="button" onClick={() => window.print()} className="min-h-11 w-full shrink-0 rounded-lg border border-[#007979] px-4 py-2 text-sm font-semibold text-[#007979] hover:bg-[#007979]/5 print:hidden sm:min-h-0 sm:w-auto">Download / Save report as PDF</button>
           </div>
-          <section className={sectionClass}><h2 className="text-lg font-semibold text-[#1A1A16]">Executive summary</h2><p className="mt-2 whitespace-pre-line leading-relaxed">{review.summary}</p></section>
+          <section className={sectionClass}><h2 className="text-lg font-semibold text-[#1A1A16]">Executive summary</h2><p className="mt-2 whitespace-pre-line break-words leading-relaxed">{review.summary}</p></section>
           <div className="grid gap-5 md:grid-cols-2">
-            <section className={sectionClass}><h2 className="text-lg font-semibold text-emerald-800">What is working well</h2><ul className="mt-3 list-disc space-y-2 pl-5">{review.working_well.map((item, index) => <li key={index} className="leading-relaxed">{item}</li>)}</ul></section>
-            <section className={sectionClass}><h2 className="text-lg font-semibold text-amber-800">What needs improvement</h2><ul className="mt-3 list-disc space-y-2 pl-5">{review.needs_improvement.map((item, index) => <li key={index} className="leading-relaxed">{item}</li>)}</ul></section>
+            <section className={sectionClass}><h2 className="text-lg font-semibold text-emerald-800">What is working well</h2><ul className="mt-3 list-disc space-y-2 pl-5">{review.working_well.map((item, index) => <li key={index} className="break-words leading-relaxed">{item}</li>)}</ul></section>
+            <section className={sectionClass}><h2 className="text-lg font-semibold text-amber-800">What needs improvement</h2><ul className="mt-3 list-disc space-y-2 pl-5">{review.needs_improvement.map((item, index) => <li key={index} className="break-words leading-relaxed">{item}</li>)}</ul></section>
           </div>
         </>
       )}
@@ -321,16 +353,16 @@ export function WebsiteReviewRequestPage() {
     <PageFrame>
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#007979]">Website review</p>
-        <h1 className="mt-2 text-3xl font-bold text-[#1A1A16]">Get a practical review of your website</h1>
+        <h1 className="mt-2 text-2xl font-bold text-[#1A1A16] sm:text-3xl">Get a practical review of your website</h1>
         <p className="mt-3 max-w-2xl leading-relaxed">Share your website and goals. I’ll review what is working, identify what could improve, and prepare a clear report. You can track your request, submit your payment reference, and download the completed report from a private link.</p>
       </div>
       <form onSubmit={(event) => void submit(event)} className={`${sectionClass} space-y-4`}>
         {error && <StatusMessage error>{error}</StatusMessage>}
-        <label className="block text-sm font-medium">Your name<input required maxLength={120} value={form.client_name} onChange={(event) => setForm({ ...form, client_name: event.target.value })} className="mt-1 w-full rounded-lg border border-[#E8E2D6] px-3 py-2.5 focus:border-[#007979] focus:outline-none" /></label>
-        <label className="block text-sm font-medium">Email address<input required type="email" maxLength={254} value={form.client_email} onChange={(event) => setForm({ ...form, client_email: event.target.value })} className="mt-1 w-full rounded-lg border border-[#E8E2D6] px-3 py-2.5 focus:border-[#007979] focus:outline-none" /></label>
-        <label className="block text-sm font-medium">Website URL<input required type="url" maxLength={2048} placeholder="https://example.com" value={form.website_url} onChange={(event) => setForm({ ...form, website_url: event.target.value })} className="mt-1 w-full rounded-lg border border-[#E8E2D6] px-3 py-2.5 focus:border-[#007979] focus:outline-none" /></label>
-        <label className="block text-sm font-medium">What would you like the review to focus on?<span className="font-normal text-slate-500"> (optional)</span><textarea rows={4} maxLength={2000} value={form.goals} onChange={(event) => setForm({ ...form, goals: event.target.value })} className="mt-1 w-full rounded-lg border border-[#E8E2D6] px-3 py-2.5 focus:border-[#007979] focus:outline-none" /></label>
-        <button type="submit" disabled={sending} className="min-h-11 rounded-lg bg-[#007979] px-5 text-sm font-semibold text-white disabled:opacity-60">{sending ? "Submitting..." : "Request website review"}</button>
+        <label className="block text-sm font-medium">Your name<input required maxLength={120} value={form.client_name} onChange={(event) => setForm({ ...form, client_name: event.target.value })} className={inputClass} /></label>
+        <label className="block text-sm font-medium">Email address<input required type="email" maxLength={254} value={form.client_email} onChange={(event) => setForm({ ...form, client_email: event.target.value })} className={inputClass} /></label>
+        <label className="block text-sm font-medium">Website URL<input required type="url" maxLength={2048} placeholder="https://example.com" value={form.website_url} onChange={(event) => setForm({ ...form, website_url: event.target.value })} className={inputClass} /></label>
+        <label className="block text-sm font-medium">What would you like the review to focus on?<span className="font-normal text-slate-500"> (optional)</span><textarea rows={4} maxLength={2000} value={form.goals} onChange={(event) => setForm({ ...form, goals: event.target.value })} className={inputClass} /></label>
+        <button type="submit" disabled={sending} className="min-h-12 w-full rounded-lg bg-[#007979] px-5 text-sm font-semibold text-white disabled:opacity-60 sm:min-h-11 sm:w-auto">{sending ? "Submitting..." : "Request website review"}</button>
       </form>
       <p className="text-xs leading-relaxed text-[#524646]/60">Submitting this form creates a private review link. No automated security testing is performed; reviews are prepared manually based on your site and stated goals.</p>
     </PageFrame>
