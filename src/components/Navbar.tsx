@@ -34,6 +34,7 @@ const navLinks = [
   { label: "PARTNERS",  href: "/partners" },
   { label: "INSIGHTS",  href: "/insights" },
   { label: "REVIEW",    href: "/website-review" },
+  { label: "AGREEMENT", href: "/contract" },
   { label: "CONTACT",   href: "/contact" },
 ];
 
@@ -97,7 +98,7 @@ const Navbar = () => {
           : "bg-[hsl(var(--forest))] border-b border-transparent"
       }`}
     >
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 xl:px-8 flex items-center justify-between gap-6 h-20 xl:h-24">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 xl:px-8 flex items-center justify-between gap-4 2xl:gap-6 h-20 xl:h-24">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center group shrink-0">
           <img
@@ -105,12 +106,12 @@ const Navbar = () => {
             alt="Samuel Emoni Logo"
             width={3783}
             height={1054}
-            className="h-12 sm:h-14 xl:h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
+            className="h-12 sm:h-14 xl:h-14 2xl:h-16 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
           />
         </Link>
 
         {/* Navigation Links — wide desktop only (xl+) */}
-        <div className="hidden xl:flex flex-1 items-center justify-center gap-5 2xl:gap-7 min-w-0">
+        <div className="hidden xl:flex flex-1 items-center justify-center gap-4 2xl:gap-7 min-w-0">
           {navLinks.map((link) =>
             link.dropdown ? (
               <div
@@ -213,7 +214,7 @@ const Navbar = () => {
         <div className="hidden xl:flex items-center shrink-0">
           <Link
             to="/admin/login"
-            className="flex items-center gap-2 font-sans text-xs font-bold tracking-wider text-[hsl(var(--forest))] bg-[hsl(var(--cream))] py-2.5 px-5 rounded-full hover:bg-white transition-colors shadow-md hover:shadow-lg whitespace-nowrap"
+            className="flex items-center gap-2 font-sans text-xs font-bold tracking-wider text-[hsl(var(--forest))] bg-[hsl(var(--cream))] py-2.5 px-4 2xl:px-5 rounded-full hover:bg-white transition-colors shadow-md hover:shadow-lg whitespace-nowrap"
           >
             <LogIn size={15} />
             <span>PORTAL LOGIN</span>

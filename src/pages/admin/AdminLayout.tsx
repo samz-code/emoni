@@ -6,6 +6,7 @@ import {
   BriefcaseBusiness,
   Building2,
   ExternalLink,
+  FileSignature,
   FileText,
   FolderKanban,
   GraduationCap,
@@ -26,16 +27,22 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 /* ═══════════════════════════════════════════════════════════
-   NOTIFICATIONS (new partner applications)
+   NOTIFICATIONS (new partner applications + new contracts)
 ═══════════════════════════════════════════════════════════ */
-type NewApplication = {
+type NotificationItem = {
   id: string;
-  organization_name: string;
-  field: string | null;
+  kind: "partner" | "contract";
+  title: string;
+  subtitle: string;
+  to: string;
   created_at: string;
 };
 
-type NotificationsData = { count: number; items: NewApplication[] };
+type NotificationsData = {
+  count: number;
+  contractCount: number;
+  items: NotificationItem[];
+};
 
 function timeAgo(iso: string) {
   const seconds = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
@@ -50,9 +57,8 @@ function timeAgo(iso: string) {
 }
 
 /**
- * Query key starts with "admin-partner-applications" so ManagePartners'
- * invalidateQueries({ queryKey: ["admin-partner-applications"] }) refreshes it too
- * (e.g. when you change a status from "new").
+ * Query key starts with "admin-partner-applications" / "admin-contracts" so the manage pages'
+ * invalidateQueries calls refresh the bell too.
  */
 function useNewApplications() {
   const qc = useQueryClient();
@@ -68,16 +74,56 @@ function useNewApplications() {
         .order("created_at", { ascending: false })
         .limit(5);
       if (error) throw error;
-      return { count: count ?? data?.length ?? 0, items: (data ?? []) as NewApplication[] };
+
+      const partnerItems: NotificationItem[] = (data ?? []).map((a) => ({
+        id: `partner-${a.id}`,
+        kind: "partner",
+        title: a.organization_name,
+        subtitle: `New partner application${a.field ? ` · ${a.field}` : ""}`,
+        to: "/admin/partners",
+        created_at: a.created_at,
+      }));
+
+      // Contracts are non-fatal: if the table is not created yet, the partner bell still works.
+      let contractCount = 0;
+      let contractItems: NotificationItem[] = [];
+      const contracts = await supabase
+        .from("service_contracts")
+        .select("id, reference, client_name, project_name, created_at", { count: "exact" })
+        .eq("is_read", false)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (contracts.error) {
+        console.error("Unable to load contract notifications:", contracts.error.message);
+      } else {
+        contractCount = contracts.count ?? contracts.data?.length ?? 0;
+        contractItems = (contracts.data ?? []).map((c) => ({
+          id: `contract-${c.id}`,
+          kind: "contract",
+          title: c.client_name,
+          subtitle: `Signed contract · ${c.project_name}`,
+          to: "/admin/contracts",
+          created_at: c.created_at,
+        }));
+      }
+
+      const items = [...partnerItems, ...contractItems]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 6);
+
+      return { count: (count ?? data?.length ?? 0) + contractCount, contractCount, items };
     },
   });
 
-  // Live updates (needs Realtime enabled on partner_applications; polling above is the fallback)
+  // Live updates (needs Realtime enabled on the tables; polling above is the fallback)
   useEffect(() => {
     const channel = supabase
-      .channel("admin-partner-applications-bell")
+      .channel("admin-notifications-bell")
       .on("postgres_changes", { event: "*", schema: "public", table: "partner_applications" }, () => {
         qc.invalidateQueries({ queryKey: ["admin-partner-applications"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "service_contracts" }, () => {
+        qc.invalidateQueries({ queryKey: ["admin-partner-applications", "new-bell"] });
       })
       .subscribe();
     return () => {
@@ -161,24 +207,20 @@ function NotificationBell({
               </div>
             ) : (
               <ul>
-                {items.map((a) => (
-                  <li key={a.id}>
+                {items.map((n) => (
+                  <li key={n.id}>
                     <Link
-                      to="/admin/partners"
+                      to={n.to}
                       onClick={() => setOpen(false)}
                       className="flex items-start gap-3 px-4 py-3 hover:bg-[#FBF9F5] border-b border-[#E8E2D6]/60 last:border-b-0"
                     >
                       <span className="mt-0.5 w-8 h-8 rounded-full bg-[#007979]/10 text-[#007979] flex items-center justify-center shrink-0">
-                        <Inbox className="w-4 h-4" />
+                        {n.kind === "contract" ? <FileSignature className="w-4 h-4" /> : <Inbox className="w-4 h-4" />}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-sm text-[#1A1A16] font-medium truncate">
-                          {a.organization_name}
-                        </span>
-                        <span className="block text-xs text-[#524646]/70 truncate">
-                          New partner application{a.field ? ` · ${a.field}` : ""}
-                        </span>
-                        <span className="block text-[11px] text-[#9A9A9A] mt-0.5">{timeAgo(a.created_at)}</span>
+                        <span className="block text-sm text-[#1A1A16] font-medium truncate">{n.title}</span>
+                        <span className="block text-xs text-[#524646]/70 truncate">{n.subtitle}</span>
+                        <span className="block text-[11px] text-[#9A9A9A] mt-0.5">{timeAgo(n.created_at)}</span>
                       </span>
                     </Link>
                   </li>
@@ -187,13 +229,22 @@ function NotificationBell({
             )}
           </div>
 
-          <Link
-            to="/admin/partners"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-2.5 text-center text-xs font-display font-bold tracking-widest text-[#007979] hover:bg-[#FBF9F5] border-t border-[#E8E2D6]"
-          >
-            VIEW ALL APPLICATIONS
-          </Link>
+          <div className="grid grid-cols-2 border-t border-[#E8E2D6]">
+            <Link
+              to="/admin/partners"
+              onClick={() => setOpen(false)}
+              className="block px-3 py-2.5 text-center text-[10px] font-display font-bold tracking-widest text-[#007979] hover:bg-[#FBF9F5]"
+            >
+              APPLICATIONS
+            </Link>
+            <Link
+              to="/admin/contracts"
+              onClick={() => setOpen(false)}
+              className="block px-3 py-2.5 text-center text-[10px] font-display font-bold tracking-widest text-[#007979] hover:bg-[#FBF9F5] border-l border-[#E8E2D6]"
+            >
+              CONTRACTS
+            </Link>
+          </div>
         </div>
       )}
     </div>
@@ -208,7 +259,8 @@ export default function AdminLayout() {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const notifications = useNewApplications();
-  const newApplications = notifications.data?.count ?? 0;
+  const newContracts = notifications.data?.contractCount ?? 0;
+  const newApplications = (notifications.data?.count ?? 0) - newContracts;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -230,6 +282,7 @@ export default function AdminLayout() {
     { to: "/admin/projects", label: "PROJECTS & CASE STUDIES", icon: FolderKanban },
     { to: "/admin/about", label: "ABOUT & SHOUT-OUTS", icon: User },
     { to: "/admin/partners", label: "MANAGE PARTNERS", icon: Handshake, badge: newApplications },
+    { to: "/admin/contracts", label: "CONTRACTS", icon: FileSignature, badge: newContracts },
     { to: "/admin/popups", label: "POPUPS & BANNERS", icon: Megaphone },
     { to: "/admin/client-work", label: "CLIENT WORK", icon: BriefcaseBusiness },
   ];

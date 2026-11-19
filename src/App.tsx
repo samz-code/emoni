@@ -50,8 +50,11 @@ const ManagePopups = lazy(() => import("./pages/admin/ManagePopups"));
 const ManageClientWork = lazy(() => import("./pages/admin/ManageClientWork"));
 const ManageOffers = lazy(() => import("./pages/admin/ManageOffers"));
 const ManageIndustries = lazy(() => import("./pages/admin/ManageIndustries"));
+const ManageContracts = lazy(() => import("./pages/admin/ManageContracts"));
 const Industries = lazy(() => import("./pages/Industries"));
 const IndustryDetail = lazy(() => import("./pages/IndustryDetail"));
+const ContractForm = lazy(() => import("./pages/ContractForm"));
+const ContractView = lazy(() => import("./pages/ContractView"));
 const ClientProposalPage = lazy(() =>
   import("./pages/ClientDocuments").then((module) => ({ default: module.ClientProposalPage })),
 );
@@ -246,6 +249,7 @@ const App = () => (
                   <Route path="ideal-for" element={<ManageIdealFor />} />
                   <Route path="insights" element={<ManageInsights />} />
                   <Route path="partners" element={<ManagePartners />} />
+                  <Route path="contracts" element={<ManageContracts />} />
                   <Route path="popups" element={<ManagePopups />} />
                   <Route path="client-work" element={<ManageClientWork />} />
                 </Route>
@@ -276,6 +280,24 @@ const App = () => (
                   <>
                     <NoIndex />
                     <WebsiteReviewClientPage />
+                  </>
+                }
+              />
+              <Route
+                path="/contract"
+                element={
+                  <>
+                    <NoIndex />
+                    <ContractForm />
+                  </>
+                }
+              />
+              <Route
+                path="/contract/:token"
+                element={
+                  <>
+                    <NoIndex />
+                    <ContractView />
                   </>
                 }
               />
