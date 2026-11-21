@@ -28,9 +28,7 @@ function titleFromSlug(slug) {
 
 function buildHtml(template, loc, pathname) {
   let html = template
-    // remove any real canonical tag (HTML comments that mention the word are untouched)
     .replace(/<link[^>]*rel=["']canonical["'][^>]*>\s*/gi, "")
-    // remove existing og:url so we can set our own
     .replace(/<meta[^>]*property=["']og:url["'][^>]*>\s*/gi, "");
 
   const last = pathname.split("/").filter(Boolean).pop();
@@ -68,8 +66,8 @@ function main() {
   const locs = [...xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/g)].map((m) => unxml(m[1]));
   if (locs.length === 0) fail("No <loc> entries found in sitemap.xml.");
 
-  // Read the template once; every page is built from this untouched copy
   const template = readFileSync(TEMPLATE, "utf8");
+  const sample = [];
   let written = 0;
   let skipped = 0;
 
@@ -83,12 +81,25 @@ function main() {
       }
       mkdirSync(dirname(file), { recursive: true });
       writeFileSync(file, buildHtml(template, loc, url.pathname), "utf8");
+      if (sample.length < 5) sample.push(file.replace(DIST, "dist"));
       written++;
     } catch (e) {
       skipped++;
       console.warn(`[prerender] Skipped ${loc}: ${e.message}`);
     }
   }
+
+  // Build report: fetch /prerender-report.json on the live site to confirm which build is served
+  const report = {
+    builtAt: new Date().toISOString(),
+    commit: process.env.VERCEL_GIT_COMMIT_SHA || "local",
+    vercelEnv: process.env.VERCEL_ENV || "local",
+    pagesWritten: written,
+    pagesSkipped: skipped,
+    sitemapUsed: sitemapPath.replace(resolve("."), "."),
+    sampleFiles: sample,
+  };
+  writeFileSync(join(DIST, "prerender-report.json"), JSON.stringify(report, null, 2), "utf8");
 
   console.log(
     `[prerender] Wrote ${written} pages with self-canonical tags (${skipped} skipped) from ${sitemapPath}`
