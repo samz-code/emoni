@@ -116,7 +116,7 @@ const Footer = () => {
       {/* ── CTA band: its own gold section, separate from the footer ── */}
       <section
         aria-labelledby="footer-cta"
-        className="bg-[#C8A96A] text-ink"
+        className="bg-[#ffffff] text-ink"
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12 lg:py-16">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 lg:gap-8">
@@ -144,7 +144,7 @@ const Footer = () => {
           </div>
         </div>
       </section>
-      
+
       {/* ── Footer proper ── */}
       <div className="patterned-surface relative bg-forest text-cream overflow-hidden">
 
