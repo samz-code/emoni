@@ -1,9 +1,24 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowUpRight, ImageOff } from "lucide-react";
+import { AnimatePresence, motion, useScroll, useSpring } from "framer-motion";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  ImageOff,
+  Images,
+  Layers,
+  Link2,
+  Maximize2,
+  X,
+} from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import SEO, { SITE_URL } from "@/components/SEO";
+import ProjectCard from "@/components/ProjectCard";
 
 type ProjectKind = "web" | "design";
 
@@ -39,8 +54,10 @@ const safeExternalUrl = (value: string | null) => {
 const URL_PATTERN = /(https?:\/\/[^\s<>"]+)/g;
 const OWN_HOSTS = ["emonisamuel.co.ke", "www.emonisamuel.co.ke"];
 
-const linkClass =
-  "break-words font-semibold text-forest underline decoration-ember/60 underline-offset-2 transition-colors hover:text-ember focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember";
+const focusRing =
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember";
+
+const linkClass = `break-words font-semibold text-forest underline decoration-ember/60 underline-offset-2 transition-colors hover:text-ember ${focusRing}`;
 
 /** Turns any http(s) URLs inside plain text into clickable links. */
 const renderLinkedText = (text: string): ReactNode[] =>
@@ -163,9 +180,113 @@ const fetchCaseStudy = async (kind: ProjectKind, id: string): Promise<CaseStudy>
   };
 };
 
+/** Related projects: same sector first, then fill with the latest. Mapped to the ProjectCard shape. */
+const fetchRelated = async (kind: ProjectKind, id: string, sector: string) => {
+  const table = kind === "web" ? "projects" : "graphic_designs";
+  const sectorColumn = kind === "web" ? "sector" : "category";
+  const columns =
+    kind === "web"
+      ? "id,name,description,sector,categories,image,live_url,created_at"
+      : "id,title,category,description,categories,image,created_at";
+
+  const { data: sameSector, error } = await supabase
+    .from(table)
+    .select(columns)
+    .neq("id", id)
+    .eq(sectorColumn, sector)
+    .order("created_at", { ascending: false })
+    .limit(3);
+  if (error) throw error;
+
+  let rows: any[] = sameSector || [];
+  if (rows.length < 3) {
+    const { data: latest, error: latestError } = await supabase
+      .from(table)
+      .select(columns)
+      .neq("id", id)
+      .order("created_at", { ascending: false })
+      .limit(6);
+    if (latestError) throw latestError;
+    const seen = new Set(rows.map((row) => row.id));
+    rows = [...rows, ...(latest || []).filter((row: any) => !seen.has(row.id))].slice(0, 3);
+  }
+
+  return rows.map((row: any) =>
+    kind === "web"
+      ? {
+          id: row.id,
+          name: row.name,
+          description: row.description || "",
+          sector: row.sector,
+          categories: Array.isArray(row.categories) ? row.categories : [],
+          image: row.image,
+          liveUrl: row.live_url,
+          landscapePreview: true,
+          detailUrl: `/projects/web/${row.id}`,
+        }
+      : {
+          id: row.id,
+          name: row.title,
+          description: row.description || row.category,
+          sector: row.category,
+          categories: Array.isArray(row.categories) ? row.categories : [],
+          image: row.image,
+          images: [],
+          squarePreview: /logo/i.test(row.category || ""),
+          detailUrl: `/projects/design/${row.id}`,
+        },
+  );
+};
+
+/** Fades and lifts content in as it scrolls into view. */
+function Reveal({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.5, delay, ease: "easeOut" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function Fact({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 px-4 py-3 sm:px-5">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ember/10 text-ember">
+        {icon}
+      </span>
+      <span className="min-w-0">
+        <span className="block font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-ink/50">
+          {label}
+        </span>
+        <span className="block truncate font-body text-sm font-semibold text-ink">{value}</span>
+      </span>
+    </div>
+  );
+}
+
 export default function ProjectDetail() {
   const { kind, id } = useParams();
   const projectKind = isProjectKind(kind) ? kind : null;
+
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 28, restDelta: 0.001 });
+
   const { data: project, isLoading, error } = useQuery({
     queryKey: ["project-case-study", kind, id],
     queryFn: () => {
@@ -176,6 +297,44 @@ export default function ProjectDetail() {
     staleTime: 60_000,
     retry: 1,
   });
+
+  const { data: related = [] } = useQuery({
+    queryKey: ["project-related", kind, id, project?.category],
+    queryFn: () => fetchRelated(projectKind as ProjectKind, id as string, project?.category || ""),
+    enabled: Boolean(projectKind && id && project),
+    staleTime: 60_000,
+    retry: 1,
+  });
+
+  const imageCount = project?.images.length ?? 0;
+  const lightboxOpen = lightbox !== null;
+
+  // Lightbox: keyboard navigation + scroll lock.
+  useEffect(() => {
+    if (!lightboxOpen || imageCount === 0) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLightbox(null);
+      if (event.key === "ArrowRight") setLightbox((i) => (i === null ? i : (i + 1) % imageCount));
+      if (event.key === "ArrowLeft") setLightbox((i) => (i === null ? i : (i - 1 + imageCount) % imageCount));
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [lightboxOpen, imageCount]);
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch (copyError) {
+      console.warn("Copy link failed:", copyError instanceof Error ? copyError.message : copyError);
+    }
+  };
 
   if (!projectKind || !id) {
     return (
@@ -189,6 +348,7 @@ export default function ProjectDetail() {
   const pageTitle = project ? `${project.title} | Samuel A. Emoni` : "Project Details | Samuel A. Emoni";
   const pageDescription = project?.description || project?.fullDescription.slice(0, 155) || "Project case study and portfolio gallery.";
   const liveUrl = safeExternalUrl(project?.liveUrl ?? null);
+  const liveHost = liveUrl ? new URL(liveUrl).hostname.replace(/^www\./, "") : null;
   const projectSchema = project
     ? {
         "@context": "https://schema.org",
@@ -213,6 +373,18 @@ export default function ProjectDetail() {
   const galleryFrame =
     projectKind === "web" ? "aspect-video" : isLogo ? "aspect-square" : "aspect-[736/900]";
 
+  // Laptop/desktop (lg+) only: smaller gallery tiles via more columns.
+  const galleryColumns =
+    projectKind === "web" ? "lg:grid-cols-3" : "lg:grid-cols-4";
+
+  const readMinutes = Math.max(
+    1,
+    Math.round((project?.fullDescription || project?.description || "").split(/\s+/).filter(Boolean).length / 200),
+  );
+
+  const heroImage = project?.images[0] ?? null;
+  let headingCounter = 0;
+
   return (
     <>
       <SEO
@@ -225,17 +397,37 @@ export default function ProjectDetail() {
         schema={projectSchema}
       />
 
-      <main className="min-h-screen bg-paper py-10 sm:py-14">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      {/* Scroll progress */}
+      <motion.div
+        aria-hidden="true"
+        className="fixed inset-x-0 top-0 z-50 h-1 origin-left bg-ember"
+        style={{ scaleX: progress }}
+      />
+
+      <main className="relative min-h-screen overflow-x-clip bg-paper py-10 sm:py-14">
+        {/* Decorative background glows */}
+        <div aria-hidden="true" className="pointer-events-none absolute -right-32 top-10 h-96 w-96 rounded-full bg-ember/10 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -left-40 top-[38rem] h-96 w-96 rounded-full bg-olive/20 blur-3xl" />
+
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <Link
             to="/projects"
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-forest bg-forest px-5 py-2 font-body text-sm font-semibold text-cream transition-colors hover:bg-olive hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+            className={`group inline-flex min-h-11 items-center gap-2 rounded-xl border border-forest bg-forest px-5 py-2 font-body text-sm font-semibold text-cream transition-colors hover:bg-olive hover:text-ink ${focusRing}`}
           >
-            <ArrowLeft size={16} aria-hidden="true" /> Back to projects
+            <ArrowLeft size={16} aria-hidden="true" className="transition-transform group-hover:-translate-x-1" /> Back to projects
           </Link>
 
           {isLoading ? (
-            <p className="py-24 text-center font-body text-sm text-ink/60">Loading project details…</p>
+            <div className="py-24 text-center" role="status">
+              <div className="mx-auto h-1 w-40 overflow-hidden rounded-full bg-border">
+                <motion.div
+                  className="h-full w-1/3 rounded-full bg-ember"
+                  animate={{ x: ["-100%", "300%"] }}
+                  transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </div>
+              <p className="mt-4 font-body text-sm text-ink/60">Loading project details…</p>
+            </div>
           ) : error || !project ? (
             <section className="py-24 text-center" role="alert">
               <h1 className="font-display text-3xl text-ink">Project details unavailable</h1>
@@ -248,78 +440,188 @@ export default function ProjectDetail() {
             </section>
           ) : (
             <article className="mt-8">
-              <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12">
+              {/* HERO */}
+              <header>
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="max-w-4xl"
+                >
+                  <p className="inline-flex items-center gap-2 rounded-full border border-ember/30 bg-ember/10 px-3 py-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">
+                    <span className="h-1.5 w-1.5 rounded-full bg-ember" aria-hidden="true" />
+                    {project.category}
+                  </p>
+                  <h1 className="mt-4 font-display text-4xl leading-[1.05] text-ink sm:text-6xl">{project.title}</h1>
+                  {project.description && (
+                    <p className="mt-5 max-w-3xl font-body text-lg leading-relaxed text-ink/80 sm:text-xl">
+                      {project.description}
+                    </p>
+                  )}
+
+                  {/* Categories + live link on small screens (sidebar holds them on desktop) */}
+                  <div className="lg:hidden">
+                    {allCategories.length > 0 && (
+                      <ul className="mt-6 flex flex-wrap gap-2" aria-label="Project categories">
+                        {allCategories.map((category) => (
+                          <li key={category}>
+                            <Link
+                              to={categoryLink(category)}
+                              className={`inline-flex min-h-10 items-center rounded-full border border-border bg-snow px-3.5 py-2 font-body text-xs font-medium text-ink transition-colors hover:border-ember hover:text-ember ${focusRing}`}
+                            >
+                              {category}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {liveUrl && (
+                      <a
+                        href={liveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-forest px-4 py-2 font-body text-sm font-semibold text-cream hover:bg-forest/90 ${focusRing}`}
+                      >
+                        Visit live project <ArrowUpRight size={15} aria-hidden="true" />
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
+
+                {/* Hero media */}
+                {heroImage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 32, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.6, delay: 0.1, ease: "easeOut" }}
+                    className="mt-10"
+                  >
+                    {projectKind === "web" ? (
+                      // Browser-window mockup (capped + centered on laptop/desktop)
+                      <div className="overflow-hidden rounded-2xl border border-border bg-snow shadow-[0_30px_80px_-30px_rgba(0,0,0,0.35)] lg:mx-auto lg:max-w-3xl">
+                        <div className="flex items-center gap-3 border-b border-border bg-paper px-4 py-3">
+                          <span className="flex gap-1.5" aria-hidden="true">
+                            <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                            <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+                            <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                          </span>
+                          <span className="min-w-0 flex-1 truncate rounded-full border border-border bg-snow px-4 py-1 text-center font-body text-xs text-ink/55">
+                            {liveHost || "project preview"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setLightbox(0)}
+                          aria-label="Open project preview full size"
+                          className={`group relative block aspect-video w-full overflow-hidden bg-[#eee9df] ${focusRing}`}
+                        >
+                          <img
+                            src={heroImage}
+                            alt={`${project.title} preview`}
+                            loading="eager"
+                            decoding="async"
+                            className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
+                          />
+                          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-ink/80 px-3 py-1.5 font-body text-xs font-medium text-cream opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                            <Maximize2 size={13} aria-hidden="true" /> View full size
+                          </span>
+                        </button>
+                      </div>
+                    ) : (
+                      // Framed design piece with offset accent block
+                      <div className="relative mx-auto w-full max-w-md sm:max-w-lg lg:max-w-sm">
+                        <div aria-hidden="true" className="absolute inset-0 translate-x-3 translate-y-3 rounded-2xl bg-ember/20 sm:translate-x-5 sm:translate-y-5" />
+                        <div aria-hidden="true" className="absolute inset-0 -translate-x-2 -translate-y-2 rounded-2xl border border-forest/20" />
+                        <button
+                          type="button"
+                          onClick={() => setLightbox(0)}
+                          aria-label="Open design full size"
+                          className={`group relative block w-full overflow-hidden rounded-2xl border border-border bg-[#eee9df] shadow-xl ${galleryFrame} ${focusRing}`}
+                        >
+                          <img
+                            src={heroImage}
+                            alt={`${project.title} design`}
+                            loading="eager"
+                            decoding="async"
+                            className={`absolute inset-0 h-full w-full transition-transform duration-500 group-hover:scale-[1.03] ${
+                              isLogo ? "object-contain p-8" : "object-cover object-top"
+                            }`}
+                          />
+                          <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-ink/80 px-3 py-1.5 font-body text-xs font-medium text-cream opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                            <Maximize2 size={13} aria-hidden="true" /> View full size
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* Quick facts */}
+                <motion.dl
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="mt-10 grid grid-cols-2 divide-border rounded-2xl border border-border bg-snow sm:grid-cols-4 sm:divide-x [&>div:nth-child(-n+2)]:border-b [&>div:nth-child(-n+2)]:border-border sm:[&>div:nth-child(-n+2)]:border-b-0 [&>div:nth-child(odd)]:border-r [&>div:nth-child(odd)]:border-border sm:[&>div:nth-child(odd)]:border-r-0"
+                >
+                  <Fact icon={<Layers size={16} aria-hidden="true" />} label="Type" value={projectKind === "web" ? "Web project" : "Graphic design"} />
+                  <Fact icon={<ArrowUpRight size={16} aria-hidden="true" />} label="Sector" value={project.category} />
+                  <Fact icon={<Images size={16} aria-hidden="true" />} label="Gallery" value={`${project.images.length} ${project.images.length === 1 ? "image" : "images"}`} />
+                  <Fact icon={<Clock size={16} aria-hidden="true" />} label="Read time" value={`${readMinutes} min`} />
+                </motion.dl>
+              </header>
+
+              <div className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12">
                 {/* Main column */}
                 <div className="min-w-0">
-                  <header>
-                    <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">{project.category}</p>
-                    <h1 className="mt-3 font-display text-4xl leading-tight text-ink sm:text-5xl">{project.title}</h1>
-                    {project.description && (
-                      <p className="mt-5 font-body text-lg leading-relaxed text-ink/80">{project.description}</p>
-                    )}
-
-                    {/* Categories + live link on small screens (sidebar holds them on desktop) */}
-                    <div className="lg:hidden">
-                      {allCategories.length > 0 && (
-                        <ul className="mt-6 flex flex-wrap gap-2" aria-label="Project categories">
-                          {allCategories.map((category) => (
-                            <li key={category}>
-                              <Link
-                                to={categoryLink(category)}
-                                className="inline-flex min-h-10 items-center rounded-xl border border-border bg-snow px-3 py-2 font-body text-xs font-medium text-ink transition-colors hover:border-ember hover:text-ember focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
-                              >
-                                {category}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      {liveUrl && (
-                        <a
-                          href={liveUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-forest px-4 py-2 font-body text-sm font-semibold text-cream hover:bg-forest/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
-                        >
-                          Visit live project <ArrowUpRight size={15} aria-hidden="true" />
-                        </a>
-                      )}
-                    </div>
-                  </header>
-
                   {blocks.length > 0 && (
-                    <section className="mt-10" aria-labelledby="project-overview-heading">
-                      <h2 id="project-overview-heading" className="border-b border-border pb-3 font-display text-2xl text-ink">
-                        Project overview
-                      </h2>
+                    <section aria-labelledby="project-overview-heading">
+                      <Reveal>
+                        <h2 id="project-overview-heading" className="border-b border-border pb-3 font-display text-2xl text-ink sm:text-3xl">
+                          Project overview
+                        </h2>
+                      </Reveal>
                       <div className="mt-6 space-y-5 font-body text-base leading-relaxed text-ink/85">
                         {blocks.map((block, index) => {
                           if (block.type === "heading") {
+                            headingCounter += 1;
+                            const number = String(headingCounter).padStart(2, "0");
                             return (
-                              <h3
-                                key={`h-${index}`}
-                                className="border-l-4 border-ember pl-3 pt-4 font-display text-xl font-bold text-ink"
-                              >
-                                {block.text}
-                              </h3>
+                              <Reveal key={`h-${index}`}>
+                                <h3 className="flex items-center gap-3 pt-6 font-display text-xl font-bold text-ink sm:text-2xl">
+                                  <span className="flex h-9 min-w-9 shrink-0 items-center justify-center rounded-full bg-forest px-2 font-body text-xs font-semibold tracking-wider text-cream">
+                                    {number}
+                                  </span>
+                                  <span className="min-w-0 break-words">{block.text}</span>
+                                </h3>
+                              </Reveal>
                             );
                           }
                           if (block.type === "list") {
                             return (
-                              <ul key={`l-${index}`} className="list-disc space-y-2 pl-6">
-                                {block.items.map((item, itemIndex) => (
-                                  <li key={itemIndex} className="break-words">{renderListItem(item)}</li>
-                                ))}
-                              </ul>
+                              <Reveal key={`l-${index}`}>
+                                <ul className="space-y-2.5">
+                                  {block.items.map((item, itemIndex) => (
+                                    <li
+                                      key={itemIndex}
+                                      className="flex gap-3 rounded-xl border border-border/70 bg-snow px-4 py-3"
+                                    >
+                                      <span aria-hidden="true" className="mt-2 h-2 w-2 shrink-0 rounded-full bg-ember" />
+                                      <span className="min-w-0 break-words">{renderListItem(item)}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </Reveal>
                             );
                           }
                           return (
-                            <p key={`p-${index}`} className="whitespace-pre-line break-words">
-                              {block.label && (
-                                <strong className="font-bold text-ink">{block.label}. </strong>
-                              )}
-                              {renderLinkedText(block.text)}
-                            </p>
+                            <Reveal key={`p-${index}`}>
+                              <p className="whitespace-pre-line break-words">
+                                {block.label && (
+                                  <strong className="font-bold text-ink">{block.label}. </strong>
+                                )}
+                                {renderLinkedText(block.text)}
+                              </p>
+                            </Reveal>
                           );
                         })}
                       </div>
@@ -329,7 +631,7 @@ export default function ProjectDetail() {
 
                 {/* Sidebar */}
                 <aside className="lg:sticky lg:top-28 lg:self-start" aria-label="Project details">
-                  <div className="rounded-2xl border border-border bg-snow p-5 sm:p-6">
+                  <div className="rounded-2xl border border-border bg-snow p-5 shadow-sm sm:p-6">
                     <h2 className="font-display text-lg font-bold text-ink">Project details</h2>
 
                     <dl className="mt-4 space-y-4 font-body text-sm">
@@ -337,6 +639,13 @@ export default function ProjectDetail() {
                         <dt className="text-xs font-semibold uppercase tracking-wider text-ink/55">Sector</dt>
                         <dd className="mt-1 font-semibold text-ink">{project.category}</dd>
                       </div>
+
+                      {liveHost && (
+                        <div>
+                          <dt className="text-xs font-semibold uppercase tracking-wider text-ink/55">Live site</dt>
+                          <dd className="mt-1 break-all font-semibold text-ink">{liveHost}</dd>
+                        </div>
+                      )}
 
                       {allCategories.length > 0 && (
                         <div className="hidden lg:block">
@@ -347,7 +656,7 @@ export default function ProjectDetail() {
                                 <li key={category}>
                                   <Link
                                     to={categoryLink(category)}
-                                    className="inline-flex min-h-9 items-center rounded-xl border border-border bg-paper px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-ember hover:text-ember focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                                    className={`inline-flex min-h-9 items-center rounded-full border border-border bg-paper px-3 py-1.5 text-xs font-medium text-ink transition-colors hover:border-ember hover:text-ember ${focusRing}`}
                                   >
                                     {category}
                                   </Link>
@@ -364,7 +673,7 @@ export default function ProjectDetail() {
                         href={liveUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-6 hidden min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-forest px-4 py-2 font-body text-sm font-semibold text-cream transition-colors hover:bg-forest/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember lg:inline-flex"
+                        className={`mt-6 hidden min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-forest px-4 py-2 font-body text-sm font-semibold text-cream transition-colors hover:bg-forest/90 lg:inline-flex ${focusRing}`}
                       >
                         Visit live project <ArrowUpRight size={15} aria-hidden="true" />
                       </a>
@@ -372,44 +681,78 @@ export default function ProjectDetail() {
 
                     <Link
                       to="/contact"
-                      className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-forest px-4 py-2 font-body text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                      className={`mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-forest px-4 py-2 font-body text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-cream ${focusRing}`}
                     >
                       Start a similar project <ArrowUpRight size={15} aria-hidden="true" />
                     </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => void copyLink()}
+                      className={`mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 font-body text-sm font-medium text-ink/70 transition-colors hover:bg-paper hover:text-ink ${focusRing}`}
+                    >
+                      {copied ? <Check size={15} className="text-forest" aria-hidden="true" /> : <Link2 size={15} aria-hidden="true" />}
+                      <span aria-live="polite">{copied ? "Link copied" : "Copy link"}</span>
+                    </button>
                   </div>
                 </aside>
               </div>
 
-              <section className="mt-14" aria-labelledby="project-gallery-heading">
-                <div className="mb-5 flex items-end justify-between gap-4">
-                  <div>
-                    <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">Selected work</p>
-                    <h2 id="project-gallery-heading" className="mt-2 font-display text-2xl text-ink">Project gallery</h2>
+              {/* GALLERY */}
+              <section className="mt-16" aria-labelledby="project-gallery-heading">
+                <Reveal>
+                  <div className="mb-6 flex items-end justify-between gap-4">
+                    <div>
+                      <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">Selected work</p>
+                      <h2 id="project-gallery-heading" className="mt-2 font-display text-2xl text-ink sm:text-3xl">Project gallery</h2>
+                    </div>
+                    <span className="rounded-full border border-border bg-snow px-3 py-1 font-body text-xs text-ink/60">
+                      {project.images.length} {project.images.length === 1 ? "image" : "images"}
+                    </span>
                   </div>
-                  <span className="font-body text-xs text-ink/55">{project.images.length} {project.images.length === 1 ? "image" : "images"}</span>
-                </div>
+                </Reveal>
+
                 {project.images.length > 0 ? (
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                    {project.images.map((image, index) => (
-                      <a
-                        key={`${image}-${index}`}
-                        href={image}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`Open full-size project image ${index + 1}`}
-                        className={`group relative block w-full overflow-hidden rounded-2xl border border-border/80 bg-[#eee9df] transition-colors hover:border-olive focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${galleryFrame}`}
-                      >
-                        <img
-                          src={image}
-                          alt={`${project.title} project example ${index + 1}`}
-                          loading={index === 0 ? "eager" : "lazy"}
-                          decoding="async"
-                          className={`absolute inset-0 h-full w-full transition-transform duration-300 group-hover:scale-[1.03] ${
-                            isLogo ? "object-contain p-6" : "object-cover object-top"
-                          }`}
-                        />
-                      </a>
-                    ))}
+                  <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 ${galleryColumns}`}>
+                    {project.images.map((image, index) => {
+                      // Featured wide tile on mobile/tablet only; on lg+ every tile is the same smaller size.
+                      const featured = projectKind === "web" && index === 0 && project.images.length > 1;
+                      return (
+                        <motion.button
+                          key={`${image}-${index}`}
+                          type="button"
+                          onClick={() => setLightbox(index)}
+                          aria-label={`Open project image ${index + 1} of ${project.images.length}`}
+                          initial={{ opacity: 0, y: 28 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, margin: "-40px" }}
+                          transition={{ duration: 0.5, delay: (index % 2) * 0.08, ease: "easeOut" }}
+                          className={`group relative block w-full overflow-hidden rounded-2xl border border-border/80 bg-[#eee9df] text-left transition-colors hover:border-olive ${galleryFrame} ${
+                            featured ? "sm:col-span-2 lg:col-span-1" : ""
+                          } ${focusRing}`}
+                        >
+                          <img
+                            src={image}
+                            alt={`${project.title} project example ${index + 1}`}
+                            loading={index === 0 ? "eager" : "lazy"}
+                            decoding="async"
+                            className={`absolute inset-0 h-full w-full transition-transform duration-500 group-hover:scale-[1.04] ${
+                              isLogo ? "object-contain p-6" : "object-cover object-top"
+                            }`}
+                          />
+                          <span
+                            aria-hidden="true"
+                            className="absolute inset-0 bg-gradient-to-t from-ink/55 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                          />
+                          <span className="absolute left-3 top-3 rounded-full bg-snow/90 px-2.5 py-1 font-body text-[11px] font-semibold text-ink backdrop-blur">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+                          <span className="absolute bottom-3 right-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-snow text-ink opacity-0 shadow-lg transition-all duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
+                            <Maximize2 size={15} aria-hidden="true" />
+                          </span>
+                        </motion.button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border text-ink/45">
@@ -419,29 +762,148 @@ export default function ProjectDetail() {
                 )}
               </section>
 
-              <section className="patterned-surface mt-16 overflow-hidden rounded-2xl bg-forest px-6 py-10 text-cream sm:px-10 sm:py-12" aria-labelledby="project-cta-heading">
-                <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
-                  <div className="max-w-2xl">
-                    <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-cream/70">Let’s work together</p>
-                    <h2 id="project-cta-heading" className="mt-2 font-display text-2xl leading-tight sm:text-3xl">
-                      Have a project like this in mind?
-                    </h2>
-                    <p className="mt-3 font-body text-sm leading-relaxed text-cream/80">
-                      Tell me what you’re looking to create, and let’s discuss the right solution for your business.
-                    </p>
+              {/* MORE LIKE THIS */}
+              {related.length > 0 && (
+                <section className="mt-20" aria-labelledby="related-heading">
+                  <Reveal>
+                    <div className="mb-6 flex items-end justify-between gap-4">
+                      <div>
+                        <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">Keep exploring</p>
+                        <h2 id="related-heading" className="mt-2 font-display text-2xl text-ink sm:text-3xl">More like this</h2>
+                      </div>
+                      <Link
+                        to={`/projects?tab=${projectKind === "web" ? "projects" : "design"}`}
+                        className={`inline-flex min-h-11 items-center gap-1.5 font-body text-sm font-semibold text-forest hover:text-ember ${focusRing}`}
+                      >
+                        View all <ArrowUpRight size={14} aria-hidden="true" />
+                      </Link>
+                    </div>
+                  </Reveal>
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {related.map((item: any, index: number) => (
+                      <Reveal key={item.id} delay={index * 0.08}>
+                        {projectKind === "design" ? (
+                          <div className="mx-auto aspect-[736/900] w-full max-w-[736px] overflow-hidden [&>*]:h-full">
+                            <ProjectCard project={item} />
+                          </div>
+                        ) : (
+                          <ProjectCard project={item} />
+                        )}
+                      </Reveal>
+                    ))}
                   </div>
-                  <Link
-                    to="/contact"
-                    className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-olive px-6 py-3 font-body text-sm font-semibold text-ink transition-colors hover:bg-cream hover:text-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
-                  >
-                    Start a project <ArrowUpRight size={16} className="ml-2" aria-hidden="true" />
-                  </Link>
-                </div>
-              </section>
+                </section>
+              )}
+
+              {/* CTA */}
+              <Reveal className="mt-20">
+                <section className="patterned-surface relative overflow-hidden rounded-3xl bg-forest px-6 py-12 text-cream sm:px-12 sm:py-14" aria-labelledby="project-cta-heading">
+                  <div aria-hidden="true" className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-ember/30 blur-3xl" />
+                  <div aria-hidden="true" className="absolute -bottom-20 left-10 h-48 w-48 rounded-full bg-olive/30 blur-3xl" />
+                  <div className="relative mx-auto flex max-w-5xl flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
+                    <div className="max-w-2xl">
+                      <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-cream/70">Let’s work together</p>
+                      <h2 id="project-cta-heading" className="mt-2 font-display text-3xl leading-tight sm:text-4xl">
+                        Have a project like this in mind?
+                      </h2>
+                      <p className="mt-3 font-body text-sm leading-relaxed text-cream/80 sm:text-base">
+                        Tell me what you’re looking to create, and let’s discuss the right solution for your business.
+                      </p>
+                    </div>
+                    <Link
+                      to="/contact"
+                      className="group inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-olive px-6 py-3 font-body text-sm font-semibold text-ink transition-colors hover:bg-cream hover:text-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+                    >
+                      Start a project
+                      <ArrowUpRight size={16} className="ml-2 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+                    </Link>
+                  </div>
+                </section>
+              </Reveal>
             </article>
           )}
         </div>
       </main>
+
+      {/* LIGHTBOX */}
+      <AnimatePresence>
+        {project && lightbox !== null && project.images[lightbox] && (
+          <motion.div
+            key="lightbox"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Project image viewer"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/95 p-4 sm:p-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setLightbox(null)}
+          >
+            <button
+              type="button"
+              onClick={() => setLightbox(null)}
+              aria-label="Close image viewer"
+              className="absolute right-4 top-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full bg-snow/10 text-cream transition-colors hover:bg-snow/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cream"
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
+
+            {project.images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setLightbox((lightbox - 1 + project.images.length) % project.images.length);
+                  }}
+                  aria-label="Previous image"
+                  className="absolute left-3 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-snow/10 text-cream transition-colors hover:bg-snow/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cream sm:left-6"
+                >
+                  <ChevronLeft size={22} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setLightbox((lightbox + 1) % project.images.length);
+                  }}
+                  aria-label="Next image"
+                  className="absolute right-3 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-snow/10 text-cream transition-colors hover:bg-snow/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cream sm:right-6"
+                >
+                  <ChevronRight size={22} aria-hidden="true" />
+                </button>
+              </>
+            )}
+
+            <motion.img
+              key={lightbox}
+              src={project.images[lightbox]}
+              alt={`${project.title} project example ${lightbox + 1}`}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="max-h-full max-w-full rounded-lg object-contain shadow-2xl lg:max-h-[80vh] lg:max-w-4xl"
+              onClick={(event) => event.stopPropagation()}
+            />
+
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full bg-snow/10 px-4 py-2 font-body text-xs text-cream backdrop-blur">
+              <span>
+                {lightbox + 1} / {project.images.length}
+              </span>
+              <a
+                href={project.images[lightbox]}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => event.stopPropagation()}
+                className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-olive focus-visible:outline focus-visible:outline-2 focus-visible:outline-cream"
+              >
+                Open original <ArrowUpRight size={12} aria-hidden="true" />
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

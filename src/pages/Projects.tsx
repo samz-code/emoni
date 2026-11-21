@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Helmet } from "react-helmet-async";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import ProjectCard from "@/components/ProjectCard";
-import { Package, Palette, FileText, Megaphone, Code, ChevronDown } from "lucide-react";
+import { Package, Palette, FileText, Megaphone, Code, ChevronDown, SlidersHorizontal } from "lucide-react";
 
 const iconMap = { Palette, FileText, Megaphone, Code };
 
@@ -56,12 +56,81 @@ const cardVariants = {
   exit: { opacity: 0, y: -10, scale: 0.98, transition: { duration: 0.2, ease: "easeIn" } },
 };
 
+const focusRing =
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember";
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`min-h-10 rounded-full border px-3.5 py-2 font-body text-[13px] transition-colors active:scale-[0.97] xl:min-h-9 xl:rounded-xl xl:px-3 xl:py-1.5 ${focusRing} ${
+        active
+          ? "border-ember bg-ember text-snow font-medium"
+          : "border-border bg-snow text-ink hover:border-ember"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Mobile/tablet-only button that opens and closes the filter panel (hidden on xl+).
+function MobileFilterToggle({
+  open,
+  onToggle,
+  panelId,
+  label,
+  current,
+  count,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  panelId: string;
+  label: string;
+  current: string;
+  count: number;
+}) {
+  return (
+    <button
+      type="button"
+      aria-expanded={open}
+      aria-controls={panelId}
+      onClick={onToggle}
+      className={`flex min-h-12 w-full items-center justify-between gap-3 rounded-xl border border-border bg-paper px-4 py-2 text-left xl:hidden ${focusRing}`}
+    >
+      <span className="flex min-w-0 items-center gap-2.5">
+        <SlidersHorizontal size={16} className="shrink-0 text-ember" />
+        <span className="min-w-0 truncate font-body text-sm text-ink">
+          <span className="text-ink/50">{label}: </span>
+          <span className="font-medium">{current}</span>
+        </span>
+      </span>
+      <span className="flex shrink-0 items-center gap-2">
+        <span className="rounded-full bg-ember/10 px-2 py-0.5 font-body text-[11px] font-semibold text-ember">
+          {count}
+        </span>
+        <ChevronDown size={16} className={`text-ink/50 transition-transform ${open ? "rotate-180" : ""}`} />
+      </span>
+    </button>
+  );
+}
+
 export default function Projects() {
   const [searchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const requestedCategory = searchParams.get("category");
 
-  const [tab, setTab] = useState<Tab>(() =>
+  const [tab, setTabState] = useState<Tab>(() =>
     requestedTab === "design" || requestedTab === "products" ? requestedTab : "projects",
   );
   // A category link from a project page (?tab=...&category=...) pre-selects the matching filter.
@@ -75,10 +144,14 @@ export default function Projects() {
   // Web Projects sidebar: show only the first few industries until "Show all" is pressed.
   const [showAllSectors, setShowAllSectors] = useState(false);
 
+  // Mobile/tablet: whether the filter dropdown panel is open.
+  const [filterOpen, setFilterOpen] = useState(false);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
+
   // Graphic Design sidebar accordion: which service groups are expanded.
-  // If a category was requested via the URL, its group starts open.
+  // If a category was requested via the URL, its group starts open; otherwise the first group does.
   const [openGroups, setOpenGroups] = useState<string[]>(() => {
-    if (!requestedCategory || requestedTab !== "design") return [];
+    if (!requestedCategory || requestedTab !== "design") return [DESIGN_CATEGORY_GROUPS[0].title];
     const match = DESIGN_CATEGORY_GROUPS.find((group) =>
       group.categories.some((category) => category.toLocaleLowerCase() === requestedCategory.toLocaleLowerCase()),
     );
@@ -89,6 +162,34 @@ export default function Projects() {
     setOpenGroups((current) =>
       current.includes(title) ? current.filter((item) => item !== title) : [...current, title],
     );
+
+  const setTab = (next: Tab) => {
+    setTabState(next);
+    setFilterOpen(false);
+  };
+
+  // After picking a filter on small screens: close the dropdown and bring the results into view.
+  const afterFilterPick = () => {
+    setFilterOpen(false);
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 1279px)").matches) {
+      requestAnimationFrame(() => {
+        const el = resultsRef.current;
+        if (!el) return;
+        const top = el.getBoundingClientRect().top + window.scrollY - 88;
+        window.scrollTo({ top, behavior: "smooth" });
+      });
+    }
+  };
+
+  const pickIndustry = (value: string) => {
+    setSelectedIndustry(value);
+    afterFilterPick();
+  };
+
+  const pickDesignCategory = (value: string) => {
+    setSelectedDesignCategory(value);
+    afterFilterPick();
+  };
 
   // Fetch Web Projects from Supabase
   const {
@@ -374,7 +475,7 @@ export default function Projects() {
                 type="button"
                 aria-pressed={tab === key}
                 onClick={() => setTab(key)}
-                className={`min-h-11 whitespace-nowrap border-b-2 pb-2 font-body text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
+                className={`min-h-11 whitespace-nowrap border-b-2 pb-2 font-body text-sm transition-colors ${focusRing} ${
                   tab === key ? "text-ink border-b-2 border-ember font-medium" : "text-[#9A9A9A] hover:text-ink"
                 }`}
               >
@@ -386,23 +487,23 @@ export default function Projects() {
           {/* WEB PROJECTS TAB */}
           {tab === "projects" && (
             <section aria-label="Web development projects">
-              {/* Mobile/tablet: filter sits above the cards. xl+: two columns, cards left, filter right. */}
+              {/* Mobile/tablet: filter dropdown sits above the cards. xl+: two columns, cards left, filter right. */}
               <div className="flex flex-col xl:grid xl:grid-cols-[minmax(0,1fr)_260px] xl:gap-8">
 
                 {/* Cards column (card sizes unchanged) */}
-                <div className="min-w-0">
+                <div ref={resultsRef} className="min-w-0">
                   {loadingProjects ? (
                     <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">Loading projects...</div>
                   ) : projectsFailed ? (
                     <div className="py-16 text-center" role="alert">
                       <p className="font-body text-sm text-red-700">Projects could not be loaded.</p>
-                      <button type="button" onClick={() => void retryProjects()} className="mt-3 rounded border border-border px-4 py-2 font-body text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember">Retry</button>
+                      <button type="button" onClick={() => void retryProjects()} className={`mt-3 rounded border border-border px-4 py-2 font-body text-sm ${focusRing}`}>Retry</button>
                     </div>
                   ) : filteredWebProjects.length === 0 ? (
                     <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">No web projects available.</div>
                   ) : (
                     <>
-                    <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:mt-8">
                         {filteredWebProjects.map((project: any) => (
                           <div key={project.id || project.name}>
                             <ProjectCard project={project} />
@@ -415,7 +516,7 @@ export default function Projects() {
                           type="button"
                           onClick={() => void fetchNextPage()}
                           disabled={isFetchingNextPage}
-                          className="min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                          className={`min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
                         >
                           {isFetchingNextPage ? "Loading more projects…" : "Load more projects"}
                         </button>
@@ -425,62 +526,70 @@ export default function Projects() {
                   )}
                 </div>
 
-                {/* Right-hand filter column */}
+                {/* Filter: dropdown on mobile/tablet, right-hand column on xl+ */}
                 <aside
                   aria-label="Browse web projects by industry"
-                  className="order-first mt-6 rounded-2xl border border-border bg-snow p-4 xl:order-none xl:mt-8 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:self-start xl:overflow-y-auto"
+                  className="order-first mt-6 rounded-2xl border border-border bg-snow p-3 shadow-sm xl:order-none xl:mt-8 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:self-start xl:overflow-y-auto xl:p-4 xl:shadow-none"
                 >
-                  <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-ink">
-                    Browse by industry
-                  </h2>
+                  <MobileFilterToggle
+                    open={filterOpen}
+                    onToggle={() => setFilterOpen((current) => !current)}
+                    panelId="web-filter-panel"
+                    label="Industry"
+                    current={selectedIndustry === "All" ? "All Web Projects" : selectedIndustry}
+                    count={filteredWebProjects.length}
+                  />
 
-                  <button
-                    type="button"
-                    aria-pressed={selectedIndustry === "All"}
-                    onClick={() => setSelectedIndustry("All")}
-                    className={`min-h-10 w-full rounded-xl border px-4 py-2 text-left font-body text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
-                      selectedIndustry === "All"
-                        ? "border-ember bg-ember text-snow font-medium"
-                        : "border-border bg-snow text-ink hover:border-ember"
-                    }`}
+                  <div
+                    id="web-filter-panel"
+                    className={`${filterOpen ? "mt-3 block" : "hidden"} max-h-[60vh] overflow-y-auto xl:mt-0 xl:block xl:max-h-none xl:overflow-visible`}
                   >
-                    All Web Projects
-                  </button>
+                    <h2 className="mb-3 hidden font-display text-sm font-semibold uppercase tracking-wider text-ink xl:block">
+                      Browse by industry
+                    </h2>
 
-                  {sectorOptions.length > 0 && (
-                    <div role="group" aria-label="Filter by industry" className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
-                      {visibleSectors.map((sec) => (
-                        <button
-                          key={sec}
-                          type="button"
-                          aria-pressed={selectedIndustry === sec}
-                          onClick={() => setSelectedIndustry(sec)}
-                          className={`min-h-9 rounded-xl border px-3 py-1.5 font-body text-[13px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
-                            selectedIndustry === sec
-                              ? "border-ember bg-ember text-snow font-medium"
-                              : "border-border bg-snow text-ink hover:border-ember"
-                          }`}
-                        >
-                          {sec}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {hiddenSectorCount > 0 && (
                     <button
                       type="button"
-                      aria-expanded={showAllSectors}
-                      onClick={() => setShowAllSectors((current) => !current)}
-                      className="mt-3 inline-flex min-h-9 items-center gap-1.5 font-body text-xs font-semibold uppercase tracking-wider text-ink/65 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                      aria-pressed={selectedIndustry === "All"}
+                      onClick={() => pickIndustry("All")}
+                      className={`min-h-11 w-full rounded-xl border px-4 py-2 text-left font-body text-sm transition-colors xl:min-h-10 ${focusRing} ${
+                        selectedIndustry === "All"
+                          ? "border-ember bg-ember text-snow font-medium"
+                          : "border-border bg-snow text-ink hover:border-ember"
+                      }`}
                     >
-                      {showAllSectors ? "Show fewer" : `Show all (${sectorOptions.length})`}
-                      <ChevronDown
-                        size={14}
-                        className={`transition-transform ${showAllSectors ? "rotate-180" : ""}`}
-                      />
+                      All Web Projects
                     </button>
-                  )}
+
+                    {sectorOptions.length > 0 && (
+                      <div role="group" aria-label="Filter by industry" className="mt-3 flex flex-wrap gap-2 border-t border-border pt-3">
+                        {visibleSectors.map((sec) => (
+                          <FilterChip
+                            key={sec}
+                            active={selectedIndustry === sec}
+                            onClick={() => pickIndustry(sec)}
+                          >
+                            {sec}
+                          </FilterChip>
+                        ))}
+                      </div>
+                    )}
+
+                    {hiddenSectorCount > 0 && (
+                      <button
+                        type="button"
+                        aria-expanded={showAllSectors}
+                        onClick={() => setShowAllSectors((current) => !current)}
+                        className={`mt-3 inline-flex min-h-10 items-center gap-1.5 font-body text-xs font-semibold uppercase tracking-wider text-ink/65 hover:text-ink xl:min-h-9 ${focusRing}`}
+                      >
+                        {showAllSectors ? "Show fewer" : `Show all (${sectorOptions.length})`}
+                        <ChevronDown
+                          size={14}
+                          className={`transition-transform ${showAllSectors ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                    )}
+                  </div>
                 </aside>
               </div>
             </section>
@@ -489,20 +598,20 @@ export default function Projects() {
           {/* GRAPHIC DESIGN TAB */}
           {tab === "design" && (
             <section aria-label="Graphic design projects">
-              {/* Mobile/tablet: filter sits above the cards. xl+: two columns, cards left, filter right. */}
+              {/* Mobile/tablet: filter dropdown sits above the cards. xl+: two columns, cards left, filter right. */}
               <div className="flex flex-col xl:grid xl:grid-cols-[minmax(0,1fr)_260px] xl:gap-8">
 
                 {/* Cards column */}
-                <div className="min-w-0">
+                <div ref={resultsRef} className="min-w-0">
                   {loadingDesigns ? (
                     <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">Loading designs...</div>
                   ) : designsFailed ? (
                     <div className="py-16 text-center" role="alert">
                       <p className="font-body text-sm text-red-700">Design work could not be loaded.</p>
-                      <button type="button" onClick={() => void retryDesigns()} className="mt-3 rounded border border-border px-4 py-2 font-body text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember">Retry</button>
+                      <button type="button" onClick={() => void retryDesigns()} className={`mt-3 rounded border border-border px-4 py-2 font-body text-sm ${focusRing}`}>Retry</button>
                     </div>
                   ) : filteredDesignProjects.length === 0 ? (
-                    <div className="mt-8 rounded-2xl border border-border bg-snow px-6 py-10 text-center">
+                    <div className="mt-6 rounded-2xl border border-border bg-snow px-6 py-10 text-center xl:mt-8">
                       <h2 className="font-display text-xl text-ink">
                         {selectedDesignCategory === "All"
                           ? "Graphic design work is being updated."
@@ -515,7 +624,7 @@ export default function Projects() {
                       </p>
                       <Link
                         to="/contact"
-                        className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-forest px-5 py-2.5 font-body text-sm font-medium text-cream hover:bg-forest/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                        className={`mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-forest px-5 py-2.5 font-body text-sm font-medium text-cream hover:bg-forest/90 ${focusRing}`}
                       >
                         Ask about this service
                       </Link>
@@ -523,7 +632,7 @@ export default function Projects() {
                   ) : (
                     <>
                     {/* 2 columns. Each card is held to a 736 x 900 proportion and never wider than 736px. */}
-                    <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 xl:mt-8">
                       {filteredDesignProjects.map((project: any) => (
                         <div
                           key={project.id || project.name}
@@ -539,7 +648,7 @@ export default function Projects() {
                           type="button"
                           onClick={() => void fetchNextDesignPage()}
                           disabled={isFetchingNextDesignPage}
-                          className="min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                          className={`min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
                         >
                           {isFetchingNextDesignPage ? "Loading more designs…" : "Load more designs"}
                         </button>
@@ -549,86 +658,93 @@ export default function Projects() {
                   )}
                 </div>
 
-                {/* Right-hand filter column */}
+                {/* Filter: dropdown on mobile/tablet, right-hand column on xl+ */}
                 <aside
                   aria-label="Browse all services"
-                  className="order-first mt-6 rounded-2xl border border-border bg-snow p-4 xl:order-none xl:mt-8 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:self-start xl:overflow-y-auto"
+                  className="order-first mt-6 rounded-2xl border border-border bg-snow p-3 shadow-sm xl:order-none xl:mt-8 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:self-start xl:overflow-y-auto xl:p-4 xl:shadow-none"
                 >
-                  <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wider text-ink">
-                    Browse all services
-                  </h2>
+                  <MobileFilterToggle
+                    open={filterOpen}
+                    onToggle={() => setFilterOpen((current) => !current)}
+                    panelId="design-filter-panel"
+                    label="Service"
+                    current={selectedDesignCategory === "All" ? "All Graphic Design" : selectedDesignCategory}
+                    count={filteredDesignProjects.length}
+                  />
 
-                  <button
-                    type="button"
-                    aria-pressed={selectedDesignCategory === "All"}
-                    onClick={() => setSelectedDesignCategory("All")}
-                    className={`min-h-10 w-full rounded-xl border px-4 py-2 text-left font-body text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
-                      selectedDesignCategory === "All"
-                        ? "border-ember bg-ember text-snow font-medium"
-                        : "border-border bg-snow text-ink hover:border-ember"
-                    }`}
+                  <div
+                    id="design-filter-panel"
+                    className={`${filterOpen ? "mt-3 block" : "hidden"} max-h-[60vh] overflow-y-auto xl:mt-0 xl:block xl:max-h-none xl:overflow-visible`}
                   >
-                    All Graphic Design
-                  </button>
+                    <h2 className="mb-3 hidden font-display text-sm font-semibold uppercase tracking-wider text-ink xl:block">
+                      Browse all services
+                    </h2>
 
-                  <div className="mt-3 divide-y divide-border border-t border-border">
-                    {groupedDesignCategories.map((group, index) => {
-                      const isOpen = openGroups.includes(group.title);
-                      const hasSelected = group.categories.some(
-                        (category) => category.toLocaleLowerCase() === selectedDesignCategory.toLocaleLowerCase(),
-                      );
-                      const panelId = `design-group-${index}`;
+                    <button
+                      type="button"
+                      aria-pressed={selectedDesignCategory === "All"}
+                      onClick={() => pickDesignCategory("All")}
+                      className={`min-h-11 w-full rounded-xl border px-4 py-2 text-left font-body text-sm transition-colors xl:min-h-10 ${focusRing} ${
+                        selectedDesignCategory === "All"
+                          ? "border-ember bg-ember text-snow font-medium"
+                          : "border-border bg-snow text-ink hover:border-ember"
+                      }`}
+                    >
+                      All Graphic Design
+                    </button>
 
-                      return (
-                        <div key={group.title}>
-                          <button
-                            type="button"
-                            aria-expanded={isOpen}
-                            aria-controls={panelId}
-                            onClick={() => toggleGroup(group.title)}
-                            className="flex min-h-11 w-full items-center justify-between gap-2 py-2 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
-                          >
-                            <span className="font-body text-xs font-semibold uppercase tracking-wider text-ink/65">
-                              {group.title}
-                              <span className="ml-1.5 font-normal text-ink/40">({group.categories.length})</span>
-                            </span>
-                            <span className="flex items-center gap-2">
-                              {hasSelected && (
-                                <span className="h-2 w-2 rounded-full bg-ember" aria-label="Contains selected category" />
-                              )}
-                              <ChevronDown
-                                size={16}
-                                className={`text-ink/50 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                              />
-                            </span>
-                          </button>
+                    <div className="mt-3 divide-y divide-border border-t border-border">
+                      {groupedDesignCategories.map((group, index) => {
+                        const isOpen = openGroups.includes(group.title);
+                        const hasSelected = group.categories.some(
+                          (category) => category.toLocaleLowerCase() === selectedDesignCategory.toLocaleLowerCase(),
+                        );
+                        const panelId = `design-group-${index}`;
 
-                          <div
-                            id={panelId}
-                            role="group"
-                            aria-label={`${group.title} categories`}
-                            hidden={!isOpen}
-                            className="flex flex-wrap gap-2 pb-3 pt-1"
-                          >
-                            {group.categories.map((category) => (
-                              <button
-                                key={category}
-                                type="button"
-                                aria-pressed={selectedDesignCategory === category}
-                                onClick={() => setSelectedDesignCategory(category)}
-                                className={`min-h-9 rounded-xl border px-3 py-1.5 font-body text-[13px] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${
-                                  selectedDesignCategory === category
-                                    ? "border-ember bg-ember text-snow font-medium"
-                                    : "border-border bg-snow text-ink hover:border-ember"
-                                }`}
-                              >
-                                {category}
-                              </button>
-                            ))}
+                        return (
+                          <div key={group.title}>
+                            <button
+                              type="button"
+                              aria-expanded={isOpen}
+                              aria-controls={panelId}
+                              onClick={() => toggleGroup(group.title)}
+                              className={`flex min-h-12 w-full items-center justify-between gap-2 py-2 text-left xl:min-h-11 ${focusRing}`}
+                            >
+                              <span className="font-body text-xs font-semibold uppercase tracking-wider text-ink/65">
+                                {group.title}
+                                <span className="ml-1.5 font-normal text-ink/40">({group.categories.length})</span>
+                              </span>
+                              <span className="flex items-center gap-2">
+                                {hasSelected && (
+                                  <span className="h-2 w-2 rounded-full bg-ember" aria-label="Contains selected category" />
+                                )}
+                                <ChevronDown
+                                  size={16}
+                                  className={`text-ink/50 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                                />
+                              </span>
+                            </button>
+
+                            <div
+                              id={panelId}
+                              role="group"
+                              aria-label={`${group.title} categories`}
+                              className={`${isOpen ? "flex" : "hidden"} flex-wrap gap-2 pb-3 pt-1`}
+                            >
+                              {group.categories.map((category) => (
+                                <FilterChip
+                                  key={category}
+                                  active={selectedDesignCategory.toLocaleLowerCase() === category.toLocaleLowerCase()}
+                                  onClick={() => pickDesignCategory(category)}
+                                >
+                                  {category}
+                                </FilterChip>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </aside>
               </div>
@@ -643,7 +759,7 @@ export default function Projects() {
               ) : productsFailed ? (
                 <div className="py-16 text-center" role="alert">
                   <p className="font-body text-sm text-red-700">Products could not be loaded.</p>
-                  <button type="button" onClick={() => void retryProducts()} className="mt-3 rounded border border-border px-4 py-2 font-body text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember">Retry</button>
+                  <button type="button" onClick={() => void retryProducts()} className={`mt-3 rounded border border-border px-4 py-2 font-body text-sm ${focusRing}`}>Retry</button>
                 </div>
               ) : products.length === 0 ? (
                 <div className="py-20 text-center font-body text-xs text-[#9A9A9A]">No products available.</div>
@@ -671,7 +787,7 @@ export default function Projects() {
                               <p className="font-body text-[11px] text-[#9A9A9A]">{product.format}</p>
                               <p className="font-body text-[15px] font-semibold text-ink mt-0.5">${product.price}</p>
                             </div>
-                            <Link to="/contact" className={`inline-flex min-h-11 items-center gap-1.5 font-body text-[12px] font-medium px-3.5 py-2 rounded-[4px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember ${product.status === "available" ? "bg-ink text-snow" : "border border-border text-[#7A7A7A]"}`}>
+                            <Link to="/contact" className={`inline-flex min-h-11 items-center gap-1.5 font-body text-[12px] font-medium px-3.5 py-2 rounded-[4px] ${focusRing} ${product.status === "available" ? "bg-ink text-snow" : "border border-border text-[#7A7A7A]"}`}>
                               {product.status === "available" ? "Get this" : "Notify me"}
                             </Link>
                           </div>
@@ -687,7 +803,7 @@ export default function Projects() {
                     type="button"
                     onClick={() => void fetchNextProductPage()}
                     disabled={isFetchingNextProductPage}
-                    className="min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                    className={`min-h-11 border border-border bg-snow px-5 py-3 font-body text-sm font-medium text-ink hover:border-olive disabled:cursor-wait disabled:opacity-60 ${focusRing}`}
                   >
                     {isFetchingNextProductPage ? "Loading more products…" : "Load more products"}
                   </button>
@@ -707,7 +823,7 @@ export default function Projects() {
               </div>
               <Link
                 to="/contact"
-                className="inline-flex min-h-11 items-center justify-center self-start bg-forest px-5 py-3 font-body text-sm font-medium text-cream transition-colors hover:bg-olive focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember sm:self-auto"
+                className={`inline-flex min-h-11 items-center justify-center self-start bg-forest px-5 py-3 font-body text-sm font-medium text-cream transition-colors hover:bg-olive sm:self-auto ${focusRing}`}
               >
                 Discuss a project
               </Link>
