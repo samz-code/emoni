@@ -54,7 +54,8 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
   const liveUrl = safeExternalUrl(project.liveUrl);
   const sectorName = project.sector || project.industry || "General";
 
-  // Logos keep their full artwork (contained + padded); everything else fills the frame edge to edge.
+  // Logos get extra padding and a plain background. Everything else is fully visible (object-contain)
+  // with a blurred copy of the image filling any empty space, so there are no bare bars.
   const isLogo = Boolean(project.squarePreview);
 
   const nextImage = (e: React.MouseEvent) => {
@@ -71,21 +72,36 @@ const ProjectCard = ({ project }: ProjectCardProps) => {
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-snow transition-colors hover:border-olive">
-      <div className={`relative w-full overflow-hidden bg-[#eee9df] ${project.landscapePreview ? "aspect-video" : isLogo ? "aspect-square" : "aspect-[736/900]"}`}>
+      <div className={`relative w-full overflow-hidden bg-[#eee9df] ${project.landscapePreview ? "aspect-[4/3]" : isLogo ? "aspect-square" : "aspect-[736/900]"}`}>
         {hasImages ? (
           <>
+            {/* Blurred backdrop: fills empty space around the image */}
+            {!isLogo && (
+              <OptimizedImage
+                src={imageList[currentImageIdx]}
+                transformWidth={96}
+                alt=""
+                aria-hidden="true"
+                width={96}
+                height={project.landscapePreview ? 72 : 117}
+                loading="lazy"
+                decoding="async"
+                className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover object-center opacity-80 blur-2xl"
+              />
+            )}
+
             <OptimizedImage
               src={imageList[currentImageIdx]}
               transformWidth={768}
               alt={project.name}
               width={project.landscapePreview ? 768 : 640}
-              height={project.landscapePreview ? 432 : 782}
+              height={project.landscapePreview ? 576 : 782}
               onError={() => setImgError(true)}
               loading="lazy"
               decoding="async"
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-              className={`absolute inset-0 h-full w-full transition-transform duration-300 group-hover:scale-[1.03] ${
-                isLogo ? "object-contain p-6" : "object-cover object-top"
+              className={`absolute inset-0 h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-[1.01] ${
+                isLogo ? "p-6" : ""
               }`}
             />
 

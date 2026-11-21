@@ -812,24 +812,6 @@ export default function Projects() {
             </section>
           )}
 
-          <aside className="mt-16 border-t border-border pt-8 sm:mt-20 sm:pt-10">
-            <p className="font-body text-xs font-medium uppercase tracking-widest text-ember">Have something in mind?</p>
-            <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <h2 className="font-display text-2xl text-ink sm:text-3xl">Let’s discuss your project.</h2>
-                <p className="mt-2 max-w-xl font-body text-sm leading-relaxed text-[#4A4A4A]">
-                  Get in touch to talk through your goals and the right next step.
-                </p>
-              </div>
-              <Link
-                to="/contact"
-                className={`inline-flex min-h-11 items-center justify-center self-start bg-forest px-5 py-3 font-body text-sm font-medium text-cream transition-colors hover:bg-olive sm:self-auto ${focusRing}`}
-              >
-                Discuss a project
-              </Link>
-            </div>
-          </aside>
-
         </div>
       </main>
     </>

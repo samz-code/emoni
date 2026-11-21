@@ -368,10 +368,11 @@ export default function ProjectDetail() {
   const categoryLink = (category: string) =>
     `/projects?tab=${projectKind === "web" ? "projects" : "design"}&category=${encodeURIComponent(category)}`;
 
-  // Same frame logic as ProjectCard: web = 16:9 cover, logos = square contained, other design = portrait cover.
+  // Frames: web = 4:3 (taller than 16:9 so more of the screenshot fits), logos = square, other design = portrait.
+  // All images use object-contain, so the whole image is visible (nothing is cropped).
   const isLogo = projectKind === "design" && /logo/i.test(project?.category || "");
   const galleryFrame =
-    projectKind === "web" ? "aspect-video" : isLogo ? "aspect-square" : "aspect-[736/900]";
+    projectKind === "web" ? "aspect-[4/3]" : isLogo ? "aspect-square" : "aspect-[736/900]";
 
   // Laptop/desktop (lg+) only: smaller gallery tiles via more columns.
   const galleryColumns =
@@ -513,14 +514,14 @@ export default function ProjectDetail() {
                           type="button"
                           onClick={() => setLightbox(0)}
                           aria-label="Open project preview full size"
-                          className={`group relative block aspect-video w-full overflow-hidden bg-[#eee9df] ${focusRing}`}
+                          className={`group relative block aspect-[4/3] w-full overflow-hidden bg-[#eee9df] ${focusRing}`}
                         >
                           <img
                             src={heroImage}
                             alt={`${project.title} preview`}
                             loading="eager"
                             decoding="async"
-                            className="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
+                            className="absolute inset-0 h-full w-full object-contain object-center transition-transform duration-500 group-hover:scale-[1.01]"
                           />
                           <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-ink/80 px-3 py-1.5 font-body text-xs font-medium text-cream opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                             <Maximize2 size={13} aria-hidden="true" /> View full size
@@ -543,8 +544,8 @@ export default function ProjectDetail() {
                             alt={`${project.title} design`}
                             loading="eager"
                             decoding="async"
-                            className={`absolute inset-0 h-full w-full transition-transform duration-500 group-hover:scale-[1.03] ${
-                              isLogo ? "object-contain p-8" : "object-cover object-top"
+                            className={`absolute inset-0 h-full w-full object-contain object-center transition-transform duration-500 group-hover:scale-[1.01] ${
+                              isLogo ? "p-8" : ""
                             }`}
                           />
                           <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-ink/80 px-3 py-1.5 font-body text-xs font-medium text-cream opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
@@ -736,13 +737,9 @@ export default function ProjectDetail() {
                             alt={`${project.title} project example ${index + 1}`}
                             loading={index === 0 ? "eager" : "lazy"}
                             decoding="async"
-                            className={`absolute inset-0 h-full w-full transition-transform duration-500 group-hover:scale-[1.04] ${
-                              isLogo ? "object-contain p-6" : "object-cover object-top"
+                            className={`absolute inset-0 h-full w-full object-contain object-center transition-transform duration-500 group-hover:scale-[1.02] ${
+                              isLogo ? "p-6" : ""
                             }`}
-                          />
-                          <span
-                            aria-hidden="true"
-                            className="absolute inset-0 bg-gradient-to-t from-ink/55 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                           />
                           <span className="absolute left-3 top-3 rounded-full bg-snow/90 px-2.5 py-1 font-body text-[11px] font-semibold text-ink backdrop-blur">
                             {String(index + 1).padStart(2, "0")}
@@ -798,8 +795,6 @@ export default function ProjectDetail() {
               {/* CTA */}
               <Reveal className="mt-20">
                 <section className="patterned-surface relative overflow-hidden rounded-3xl bg-forest px-6 py-12 text-cream sm:px-12 sm:py-14" aria-labelledby="project-cta-heading">
-                  <div aria-hidden="true" className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-ember/30 blur-3xl" />
-                  <div aria-hidden="true" className="absolute -bottom-20 left-10 h-48 w-48 rounded-full bg-olive/30 blur-3xl" />
                   <div className="relative mx-auto flex max-w-5xl flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
                     <div className="max-w-2xl">
                       <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-cream/70">Let’s work together</p>
