@@ -17,7 +17,7 @@ function fail(msg) {
   process.exit(1);
 }
 
-// "brand-strategy" -> "Brand Strategy"; skips IDs like uuids or "logo-19"
+// "brand-strategy" -> "Brand Strategy"; returns null for IDs like uuids or "logo-19"
 function titleFromSlug(slug) {
   if (!/^[a-z]+(-[a-z]+)*$/i.test(slug)) return null;
   return slug
@@ -28,7 +28,7 @@ function titleFromSlug(slug) {
 
 function buildHtml(template, loc, pathname) {
   let html = template
-    // remove any real canonical tag (HTML comments mentioning the word are untouched)
+    // remove any real canonical tag (HTML comments that mention the word are untouched)
     .replace(/<link[^>]*rel=["']canonical["'][^>]*>\s*/gi, "")
     // remove existing og:url so we can set our own
     .replace(/<meta[^>]*property=["']og:url["'][^>]*>\s*/gi, "");
@@ -40,12 +40,14 @@ function buildHtml(template, loc, pathname) {
   }
 
   if (!/<\/head>/i.test(html)) throw new Error("Template has no </head>");
+
   const tags =
     `<link rel="canonical" href="${esc(loc)}" />\n` +
     `    <meta property="og:url" content="${esc(loc)}" />\n  `;
   return html.replace(/<\/head>/i, `${tags}</head>`);
 }
 
+// /industries/startups-smes -> dist/industries/startups-smes/index.html
 function outputFile(pathname) {
   if (pathname === "/" || pathname === "") return TEMPLATE;
   const segments = pathname
@@ -53,7 +55,7 @@ function outputFile(pathname) {
     .filter(Boolean)
     .map((s) => decodeURIComponent(s));
   if (segments.some((s) => s === ".." || s === "." || /[\\:*?"<>|]/.test(s))) return null;
-  return join(DIST, ...segments.slice(0, -1), `${segments[segments.length - 1]}.html`);
+  return join(DIST, ...segments, "index.html");
 }
 
 function main() {
@@ -66,6 +68,7 @@ function main() {
   const locs = [...xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/g)].map((m) => unxml(m[1]));
   if (locs.length === 0) fail("No <loc> entries found in sitemap.xml.");
 
+  // Read the template once; every page is built from this untouched copy
   const template = readFileSync(TEMPLATE, "utf8");
   let written = 0;
   let skipped = 0;
@@ -87,7 +90,9 @@ function main() {
     }
   }
 
-  console.log(`[prerender] Wrote ${written} pages with self-canonical tags (${skipped} skipped) from ${sitemapPath}`);
+  console.log(
+    `[prerender] Wrote ${written} pages with self-canonical tags (${skipped} skipped) from ${sitemapPath}`
+  );
   if (written === 0) fail("Nothing was written.");
 }
 
