@@ -56,18 +56,34 @@
   />
   <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
   <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+
+  <!--
+    ===================== FONTS =====================
+    These MUST match tailwind.config.ts:
+      font-display -> Oswald
+      font-body    -> Source Serif 4
+    display=swap shows the real font as soon as it loads (display=optional skips it on slow phones).
+  -->
   <link
     rel="preload"
     as="style"
-    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=optional"
+    href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
     onload="this.onload=null;this.rel='stylesheet'"
   />
   <noscript>
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=optional"
+      href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
     />
   </noscript>
+
+  <!-- Stop phones from auto-inflating text sizes -->
+  <style>
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+  </style>
 
   <!-- ===================== PRIMARY SEO (home-page defaults) ===================== -->
   <title>Software Engineer &amp; Website Developer Nairobi | Samuel Emoni</title>

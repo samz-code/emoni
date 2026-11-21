@@ -1191,14 +1191,14 @@ const Index = () => {
 
       {/* CTA */}
       {settingsLoading ? (
-        <section className="relative bg-white dark:bg-[#0F0F0C] py-16 sm:py-20 md:py-28 overflow-hidden">
+        <section className="relative bg-[#F7F4ED] dark:bg-[#0F0F0C] py-16 sm:py-20 md:py-28 overflow-hidden">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
             <Skel className="h-12 w-full max-w-xl" />
             <Skel className="h-5 w-full max-w-lg" />
           </div>
         </section>
       ) : s?.cta_heading ? (
-        <section className="relative bg-white dark:bg-[#0F0F0C] py-16 sm:py-20 md:py-28 overflow-hidden">
+        <section className="relative bg-[#F7F4ED] dark:bg-[#0F0F0C] py-16 sm:py-20 md:py-28 overflow-hidden">
           <BoxGridBackdrop className="opacity-40" />
           <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="font-display text-[30px] sm:text-[42px] md:text-[54px] text-forest dark:text-olive leading-tight">

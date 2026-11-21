@@ -225,9 +225,12 @@ function PriceTag({
 }) {
   const hasPrice = price !== null && price !== undefined;
   return (
-    <div className="relative inline-block" aria-label={hasPrice ? `From ${formatKes(price as number)}` : text || "Custom quote"}>
-      <div className="bg-ember py-3 pl-9 pr-6 text-white [clip-path:polygon(20px_0,100%_0,100%_100%,20px_100%,0_50%)]">
-        <span className="block font-body text-[11px] font-bold uppercase leading-none tracking-[0.18em] text-white/85">
+    <div
+      className="relative inline-block max-w-full"
+      aria-label={hasPrice ? `From ${formatKes(price as number)}` : text || "Custom quote"}
+    >
+      <div className="max-w-full bg-ember py-3 pl-9 pr-5 text-white sm:pr-6 [clip-path:polygon(20px_0,100%_0,100%_100%,20px_100%,0_50%)]">
+        <span className="block font-body text-[10px] font-bold uppercase leading-none tracking-[0.18em] text-white/85 sm:text-[11px]">
           {hasPrice ? "Starting from" : "Pricing"}
         </span>
         {original ? (
@@ -235,11 +238,11 @@ function PriceTag({
             {formatKes(original)}
           </span>
         ) : null}
-        <span className="mt-1.5 block whitespace-nowrap font-display text-3xl leading-none">
+        <span className="mt-1.5 block break-words font-display text-2xl leading-tight sm:text-3xl">
           {hasPrice ? formatKes(price as number) : text || "Custom quote"}
         </span>
         {unit && hasPrice ? (
-          <span className="mt-1.5 block font-body text-xs leading-none text-white/85">{unit}</span>
+          <span className="mt-1.5 block font-body text-xs leading-snug text-white/85">{unit}</span>
         ) : null}
       </div>
       <span className="absolute left-[9px] top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-forest" aria-hidden="true" />
@@ -555,22 +558,22 @@ const ServiceDetail = () => {
         schema={[serviceSchema, breadcrumbSchema(crumbs, path), ...(faqs.length ? [faqSchema(faqs)] : [])]}
       />
 
-      <main className="bg-paper">
+      <main className="overflow-x-hidden bg-paper">
         {/* ============ HERO ============ */}
         <section className="patterned-surface relative overflow-hidden bg-forest text-cream">
-          <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-8 sm:px-6 sm:pb-20 lg:px-8">
+          <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-4 sm:px-6 sm:pb-20 sm:pt-8 lg:px-8">
             <Breadcrumbs items={crumbs} dark />
 
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
-              className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center lg:gap-14"
+              className="mt-6 grid gap-8 sm:mt-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center lg:gap-14"
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-ember text-cream">
-                    <Icon size={24} aria-hidden="true" />
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-ember text-cream sm:h-12 sm:w-12">
+                    <Icon size={22} aria-hidden="true" />
                   </span>
                   {label && (
                     <span className="rounded bg-cream/10 px-2.5 py-1 font-body text-xs font-semibold uppercase tracking-wider text-cream">
@@ -579,17 +582,17 @@ const ServiceDetail = () => {
                   )}
                 </div>
 
-                <h1 className="mt-5 break-words font-display text-4xl leading-[1.05] sm:text-5xl lg:text-6xl">
+                <h1 className="mt-4 break-words font-display text-3xl leading-[1.1] sm:mt-5 sm:text-5xl lg:text-6xl">
                   {heroHeadline || service.name}
                 </h1>
 
                 {heroText && (
-                  <p className="mt-6 max-w-2xl whitespace-pre-line break-words font-body text-base leading-relaxed text-cream/80 sm:text-lg">
+                  <p className="mt-4 max-w-2xl whitespace-pre-line break-words font-body text-base leading-relaxed text-cream/80 sm:mt-6 sm:text-lg">
                     {truncate(heroText, 220)}
                   </p>
                 )}
 
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
                   <ServiceAction
                     to={primaryLink}
                     className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-olive px-6 py-3 font-body text-sm font-semibold text-ink transition-colors hover:bg-cream focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
@@ -608,7 +611,7 @@ const ServiceDetail = () => {
               {/* Price + booking card */}
               <aside
                 aria-label="Pricing and booking"
-                className="rounded-2xl border border-cream/15 bg-cream/5 p-6 sm:p-8"
+                className="min-w-0 rounded-2xl border border-cream/15 bg-cream/5 p-5 sm:p-8"
               >
                 <PriceTag
                   original={startQuote && startQuote.savings > 0 ? startQuote.original : null}
@@ -618,12 +621,12 @@ const ServiceDetail = () => {
                 />
 
                 {offerActive && appliedOffer && (
-                  <p className="mt-4 font-body text-sm font-semibold text-olive">{appliedOffer.title}</p>
+                  <p className="mt-4 break-words font-body text-sm font-semibold text-olive">{appliedOffer.title}</p>
                 )}
 
                 {timeline && (
                   <p className="mt-5 flex items-center gap-2 font-body text-sm text-cream/85">
-                    <Clock size={16} aria-hidden="true" className="text-olive" />
+                    <Clock size={16} aria-hidden="true" className="shrink-0 text-olive" />
                     <span className="sr-only">Typical timeline: </span>
                     {timeline}
                   </p>
@@ -640,11 +643,11 @@ const ServiceDetail = () => {
 
                 <Link
                   to="/contract"
-                  className="mt-4 inline-flex items-center gap-2 font-body text-sm font-semibold text-cream underline-offset-4 hover:text-olive hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+                  className="mt-4 inline-flex items-start gap-2 font-body text-sm font-semibold text-cream underline-offset-4 hover:text-olive hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
                 >
-                  <FileSignature size={16} aria-hidden="true" />
-                  Ready? Sign the service agreement
-                  <ArrowRight size={14} aria-hidden="true" />
+                  <FileSignature size={16} aria-hidden="true" className="mt-0.5 shrink-0" />
+                  <span>Ready? Sign the service agreement</span>
+                  <ArrowRight size={14} aria-hidden="true" className="mt-1 shrink-0" />
                 </Link>
               </aside>
             </motion.div>
@@ -682,11 +685,11 @@ const ServiceDetail = () => {
         {offerActive && appliedOffer && (
           <aside aria-label="Current service offer" className="bg-ember text-white">
             <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-              <div>
-                <p className="font-display text-lg">{appliedOffer.title}</p>
-                {appliedOffer.description && <p className="mt-1 font-body text-sm text-white/85">{appliedOffer.description}</p>}
+              <div className="min-w-0">
+                <p className="break-words font-display text-lg">{appliedOffer.title}</p>
+                {appliedOffer.description && <p className="mt-1 break-words font-body text-sm text-white/85">{appliedOffer.description}</p>}
               </div>
-              <p className="shrink-0 rounded-full bg-white/15 px-4 py-2 font-body text-sm font-bold">
+              <p className="shrink-0 self-start rounded-full bg-white/15 px-4 py-2 font-body text-sm font-bold sm:self-auto">
                 {appliedOffer.discount_type === "percentage"
                   ? `${appliedOffer.discount_value}% off`
                   : `${formatKes(Number(appliedOffer.discount_value))} off`}
@@ -696,7 +699,7 @@ const ServiceDetail = () => {
         )}
 
         {/* ============ BODY ============ */}
-        <div className="mx-auto max-w-6xl space-y-16 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-12 px-4 py-10 sm:space-y-16 sm:px-6 sm:py-20 lg:px-8">
           {/* About: text beside image on desktop */}
           {(hasText(longDescription) || banner) && (
             <section
@@ -731,7 +734,7 @@ const ServiceDetail = () => {
                 The problem and how it is solved
               </h2>
               {problem && (
-                <article className="rounded-2xl border border-border bg-snow p-6 sm:p-8">
+                <article className="min-w-0 rounded-2xl border border-border bg-snow p-5 sm:p-8">
                   <p className="flex items-center gap-2 font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">
                     <AlertTriangle size={16} aria-hidden="true" /> The problem
                   </p>
@@ -741,7 +744,7 @@ const ServiceDetail = () => {
                 </article>
               )}
               {solution && (
-                <article className="rounded-2xl border border-border bg-snow p-6 sm:p-8">
+                <article className="min-w-0 rounded-2xl border border-border bg-snow p-5 sm:p-8">
                   <p className="flex items-center gap-2 font-body text-xs font-semibold uppercase tracking-[0.16em] text-forest">
                     <Lightbulb size={16} aria-hidden="true" /> How it is solved
                   </p>
@@ -782,7 +785,7 @@ const ServiceDetail = () => {
                 {section.title}
               </h2>
               {section.description && (
-                <p className="mt-4 max-w-3xl whitespace-pre-line font-body text-base leading-relaxed text-ink/75">
+                <p className="mt-4 max-w-3xl whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/75">
                   {section.description}
                 </p>
               )}
@@ -791,7 +794,7 @@ const ServiceDetail = () => {
                   {section.items.map((item, itemIndex) => (
                     <li key={`${item}-${itemIndex}`} className="flex gap-3 rounded-xl border border-border bg-snow p-4 font-body text-sm text-ink/85 sm:text-base">
                       <CheckCircle2 size={19} aria-hidden="true" className="mt-0.5 shrink-0 text-ember" />
-                      <span>{item}</span>
+                      <span className="min-w-0 break-words">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -803,7 +806,7 @@ const ServiceDetail = () => {
           {(tools.length > 0 || idealFor) && (
             <section className={tools.length > 0 && idealFor ? "grid gap-6 md:grid-cols-2" : ""}>
               {tools.length > 0 && (
-                <div aria-labelledby="service-tools" className="rounded-2xl border border-border bg-snow p-6 sm:p-8">
+                <div aria-labelledby="service-tools" className="min-w-0 rounded-2xl border border-border bg-snow p-5 sm:p-8">
                   <h2 id="service-tools" className="flex items-center gap-2 font-display text-xl text-ink">
                     <Wrench size={20} aria-hidden="true" className="text-ember" /> Tools &amp; technologies
                   </h2>
@@ -820,7 +823,7 @@ const ServiceDetail = () => {
                 </div>
               )}
               {idealFor && (
-                <div aria-labelledby="service-ideal" className="rounded-2xl border-2 border-ink p-6 sm:p-8">
+                <div aria-labelledby="service-ideal" className="min-w-0 rounded-2xl border-2 border-ink p-5 sm:p-8">
                   <h2 id="service-ideal" className="flex items-center gap-2 font-display text-xl text-ink">
                     <Users size={22} aria-hidden="true" className="text-ember" /> Ideal for
                   </h2>
@@ -840,23 +843,23 @@ const ServiceDetail = () => {
                 We confirm the exact scope and price in writing before work begins.
                 {offerActive ? " The current offer is reflected in the prices below." : ""}
               </p>
-              <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {pricingPackages.map((item, index) => {
                   const quote = item.price === null ? null : quotePrice(item.price, appliedOffer);
                   return (
-                    <article key={`${item.name}-${index}`} className={`relative flex flex-col rounded-2xl border bg-snow p-6 ${item.featured ? "border-ember ring-1 ring-ember" : "border-border"}`}>
+                    <article key={`${item.name}-${index}`} className={`relative flex min-w-0 flex-col rounded-2xl border bg-snow p-5 sm:p-6 ${item.featured ? "border-ember ring-1 ring-ember" : "border-border"}`}>
                       {item.featured && <span className="absolute -top-3 left-5 rounded-full bg-ember px-3 py-1 font-body text-xs font-bold text-white">Popular</span>}
-                      <h3 className="font-display text-xl text-ink">{item.name}</h3>
-                      {item.description && <p className="mt-2 min-h-10 font-body text-sm leading-relaxed text-ink/65">{item.description}</p>}
+                      <h3 className="break-words font-display text-xl text-ink">{item.name}</h3>
+                      {item.description && <p className="mt-2 min-h-10 break-words font-body text-sm leading-relaxed text-ink/65">{item.description}</p>}
                       <div className="mt-5">
                         {quote ? (
                           <>
                             {quote.savings > 0 && <p className="font-body text-sm text-ink/45 line-through">{formatKes(quote.original)}</p>}
-                            <p className="font-display text-3xl text-ink">{formatKes(quote.discounted)}</p>
-                            {item.price_label && <p className="mt-1 font-body text-sm text-ink/55">{item.price_label}</p>}
+                            <p className="break-words font-display text-2xl text-ink sm:text-3xl">{formatKes(quote.discounted)}</p>
+                            {item.price_label && <p className="mt-1 break-words font-body text-sm text-ink/55">{item.price_label}</p>}
                           </>
                         ) : (
-                          <p className="font-display text-2xl text-ink">{item.price_label || "Quotation based"}</p>
+                          <p className="break-words font-display text-2xl text-ink">{item.price_label || "Quotation based"}</p>
                         )}
                       </div>
                       {item.includes.length > 0 && (
@@ -865,7 +868,8 @@ const ServiceDetail = () => {
                           <ul className="mt-2 space-y-2">
                             {item.includes.map((feature, featureIndex) => (
                               <li key={`${feature}-${featureIndex}`} className="flex gap-2 font-body text-sm text-ink/80">
-                                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-ember" aria-hidden="true" />{feature}
+                                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-ember" aria-hidden="true" />
+                                <span className="min-w-0 break-words">{feature}</span>
                               </li>
                             ))}
                           </ul>
@@ -876,12 +880,12 @@ const ServiceDetail = () => {
                           <p className="font-body text-xs font-bold uppercase tracking-wider text-ink/60">Not included</p>
                           <ul className="mt-2 space-y-2">
                             {item.excludes.map((feature, featureIndex) => (
-                              <li key={`${feature}-${featureIndex}`} className="font-body text-sm text-ink/60">{feature}</li>
+                              <li key={`${feature}-${featureIndex}`} className="break-words font-body text-sm text-ink/60">{feature}</li>
                             ))}
                           </ul>
                         </div>
                       )}
-                      <Link to={contactHref} className="mt-auto inline-flex min-h-11 items-center justify-center rounded-xl bg-forest px-4 py-2.5 font-body text-sm font-semibold text-cream transition-colors hover:bg-ember">
+                      <Link to={contactHref} className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-forest px-4 py-2.5 font-body text-sm font-semibold text-cream transition-colors hover:bg-ember">
                         Request this package
                       </Link>
                     </article>
@@ -890,7 +894,7 @@ const ServiceDetail = () => {
               </div>
 
               {pricingAddons.length > 0 && (
-                <div className="mt-10 rounded-2xl border border-border bg-snow p-5 sm:p-8">
+                <div className="mt-10 rounded-2xl border border-border bg-snow p-4 sm:p-8">
                   <h3 className="font-display text-xl text-ink sm:text-2xl">Price estimator</h3>
                   <p className="mt-2 font-body text-sm text-ink/65">Choose a package and add any extras to see an indicative estimate.</p>
                   <div className="mt-6">
@@ -902,10 +906,10 @@ const ServiceDetail = () => {
                           type="button"
                           aria-pressed={selectedPackageIndex === index}
                           onClick={() => setSelectedPackageIndex(index)}
-                          className={`rounded-xl border p-4 text-left transition-colors ${selectedPackageIndex === index ? "border-forest bg-forest/5 ring-1 ring-forest" : "border-border hover:border-forest/50"}`}
+                          className={`min-w-0 rounded-xl border p-4 text-left transition-colors ${selectedPackageIndex === index ? "border-forest bg-forest/5 ring-1 ring-forest" : "border-border hover:border-forest/50"}`}
                         >
-                          <span className="block font-body text-sm font-semibold text-ink">{item.name}</span>
-                          <span className="mt-1 block font-body text-sm text-ink/65">{item.price === null ? "Quotation based" : formatKes(quotePrice(item.price, appliedOffer).discounted)}</span>
+                          <span className="block break-words font-body text-sm font-semibold text-ink">{item.name}</span>
+                          <span className="mt-1 block break-words font-body text-sm text-ink/65">{item.price === null ? "Quotation based" : formatKes(quotePrice(item.price, appliedOffer).discounted)}</span>
                         </button>
                       ))}
                     </div>
@@ -917,19 +921,19 @@ const ServiceDetail = () => {
                         const checked = selectedAddonIndexes.includes(index);
                         const addonQuote = quotePrice(addon.price, appliedOffer);
                         return (
-                          <li key={`${addon.name}-${index}`}>
-                            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-4">
+                          <li key={`${addon.name}-${index}`} className="min-w-0">
+                            <label className="flex cursor-pointer flex-wrap items-start gap-3 rounded-xl border border-border p-4 sm:flex-nowrap">
                               <input
                                 type="checkbox"
                                 checked={checked}
                                 onChange={() => setSelectedAddonIndexes((current) => checked ? current.filter((value) => value !== index) : [...current, index])}
-                                className="mt-1 h-4 w-4 accent-forest"
+                                className="mt-1 h-4 w-4 shrink-0 accent-forest"
                               />
-                              <span className="min-w-0 flex-1">
-                                <span className="block font-body text-sm font-semibold text-ink">{addon.name}</span>
-                                {addon.description && <span className="mt-1 block font-body text-xs text-ink/60">{addon.description}</span>}
+                              <span className="min-w-0 flex-1 basis-[calc(100%-2rem)] sm:basis-auto">
+                                <span className="block break-words font-body text-sm font-semibold text-ink">{addon.name}</span>
+                                {addon.description && <span className="mt-1 block break-words font-body text-xs text-ink/60">{addon.description}</span>}
                               </span>
-                              <span className="shrink-0 font-body text-sm font-semibold text-ink">
+                              <span className="ml-7 shrink-0 font-body text-sm font-semibold text-ink sm:ml-0">
                                 {addonQuote.savings > 0 && <span className="mr-1 text-xs text-ink/45 line-through">{formatKes(addon.price)}</span>}
                                 {formatKes(addonQuote.discounted)}
                               </span>
@@ -940,15 +944,15 @@ const ServiceDetail = () => {
                     </ul>
                   </div>
                   <div className="mt-6 flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                    <div className="min-w-0">
                       <p className="font-body text-xs font-semibold uppercase tracking-wider text-ink/55">Indicative estimate</p>
                       {estimate ? (
                         <>
-                          {estimate.savings > 0 && <p className="mt-1 font-body text-sm text-ink/45 line-through">{formatKes(estimate.original)}</p>}
-                          <p className="font-display text-2xl text-ink">{formatKes(estimate.discounted)}</p>
+                          {estimate.savings > 0 && <p className="mt-1 break-words font-body text-sm text-ink/45 line-through">{formatKes(estimate.original)}</p>}
+                          <p className="break-words font-display text-2xl text-ink">{formatKes(estimate.discounted)}</p>
                         </>
                       ) : (
-                        <p className="mt-1 font-display text-xl text-ink">Quotation required</p>
+                        <p className="mt-1 break-words font-display text-xl text-ink">Quotation required</p>
                       )}
                       <p className="mt-1 max-w-lg font-body text-xs leading-relaxed text-ink/55">
                         Estimate only. Final pricing depends on agreed scope, content and timelines.
@@ -958,7 +962,7 @@ const ServiceDetail = () => {
                       href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hi, please quote my ${service.name} project${estimate ? ` (indicative estimate ${formatKes(estimate.discounted)})` : ""}.`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-2.5 font-body text-sm font-bold text-white hover:bg-[#1FB855]"
+                      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-2.5 font-body text-sm font-bold text-white hover:bg-[#1FB855] sm:w-auto"
                     >
                       Send this estimate <ArrowUpRight size={16} aria-hidden="true" />
                     </a>
@@ -985,8 +989,8 @@ const ServiceDetail = () => {
               )}
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 {testimonials.map((item, index) => (
-                  <figure key={`${item.author}-${index}`} className="rounded-2xl border border-border bg-snow p-6">
-                    <blockquote className="font-body text-base leading-relaxed text-ink/80">“{item.quote}”</blockquote>
+                  <figure key={`${item.author}-${index}`} className="min-w-0 rounded-2xl border border-border bg-snow p-5 sm:p-6">
+                    <blockquote className="break-words font-body text-base leading-relaxed text-ink/80">“{item.quote}”</blockquote>
                     <figcaption className="mt-4 font-body text-sm font-semibold text-ink">{item.author}</figcaption>
                   </figure>
                 ))}
@@ -994,7 +998,7 @@ const ServiceDetail = () => {
               {googleReviewUrl && (
                 <ServiceAction
                   to={googleReviewUrl}
-                  className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-forest px-5 font-body text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-cream"
+                  className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-forest px-5 text-center font-body text-sm font-semibold text-forest transition-colors hover:bg-forest hover:text-cream"
                 >
                   Worked with us? Leave a Google review
                 </ServiceAction>
@@ -1019,14 +1023,14 @@ const ServiceDetail = () => {
                           </div>
                         )}
                         <div className="p-4">
-                          <h3 className="font-display text-lg text-ink">{item.name}</h3>
+                          <h3 className="break-words font-display text-lg text-ink">{item.name}</h3>
                           {item.category && <p className="mt-1 font-body text-sm text-ink/60">{item.category}</p>}
                         </div>
                       </article>
                     );
                     const liveUrl = safePageLink(item.live_url, "");
                     return (
-                      <li key={`${item.name}-${index}`}>
+                      <li key={`${item.name}-${index}`} className="min-w-0">
                         {/^https?:\/\//i.test(liveUrl)
                           ? <a href={liveUrl} target="_blank" rel="noopener noreferrer" aria-label={`Visit ${item.name} website`}>{content}</a>
                           : content}
@@ -1049,15 +1053,15 @@ const ServiceDetail = () => {
 
         {/* ============ PROCESS ============ */}
         {processSteps.length > 0 && (
-          <section aria-labelledby="service-process" className="patterned-surface bg-forest py-16 sm:py-24">
+          <section aria-labelledby="service-process" className="patterned-surface bg-forest py-12 sm:py-24">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-              <h2 id="service-process" className="font-display text-3xl leading-tight text-cream sm:text-5xl">
+              <h2 id="service-process" className="break-words font-display text-3xl leading-tight text-cream sm:text-5xl">
                 {processHeading}
               </h2>
               <p className="mt-4 max-w-xl font-body text-base text-cream/70 sm:text-lg">
                 A structured approach to every engagement, from first call to final delivery.
               </p>
-              <div className="mt-12 grid grid-cols-1 gap-x-16 md:grid-cols-2">
+              <div className="mt-10 grid grid-cols-1 gap-x-16 sm:mt-12 md:grid-cols-2">
                 {processSteps.map((step, index) => (
                   <ProcessStep
                     key={step.id ?? step.step_number ?? index}
@@ -1071,7 +1075,7 @@ const ServiceDetail = () => {
           </section>
         )}
 
-        <div className="mx-auto max-w-6xl space-y-16 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-12 px-4 py-10 sm:space-y-16 sm:px-6 sm:py-20 lg:px-8">
           <FaqAccordion items={faqs} />
 
           {related.length > 0 && (
@@ -1083,15 +1087,15 @@ const ServiceDetail = () => {
                 {related.map((item) => {
                   const RelatedIcon = resolveIcon(item.icon);
                   return (
-                    <li key={item.id}>
+                    <li key={item.id} className="min-w-0">
                       <Link
                         to={`/what-i-do/${item.id}`}
-                        className="group flex h-full flex-col rounded-2xl border border-border bg-snow p-6 transition-colors hover:border-ember focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                        className="group flex h-full flex-col rounded-2xl border border-border bg-snow p-5 transition-colors hover:border-ember focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember sm:p-6"
                       >
                         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-forest text-cream">
                           <RelatedIcon size={20} aria-hidden="true" />
                         </span>
-                        <h3 className="mt-4 font-display text-lg text-ink transition-colors group-hover:text-ember">
+                        <h3 className="mt-4 break-words font-display text-lg text-ink transition-colors group-hover:text-ember">
                           {item.name}
                         </h3>
                         {item.outcome && (
@@ -1116,13 +1120,13 @@ const ServiceDetail = () => {
           {/* Final CTA */}
           <section
             aria-labelledby="service-cta"
-            className="flex flex-col items-start justify-between gap-6 rounded-2xl bg-forest px-6 py-10 text-cream sm:flex-row sm:items-center sm:px-10 sm:py-12"
+            className="flex flex-col items-start justify-between gap-6 rounded-2xl bg-forest px-5 py-8 text-cream sm:flex-row sm:items-center sm:px-10 sm:py-12"
           >
-            <div className="max-w-2xl">
+            <div className="min-w-0 max-w-2xl">
               <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-cream/70">
                 Let&rsquo;s work together
               </p>
-              <h2 id="service-cta" className="mt-2 font-display text-2xl leading-tight sm:text-3xl">
+              <h2 id="service-cta" className="mt-2 break-words font-display text-2xl leading-tight sm:text-3xl">
                 Need {service.name}?
               </h2>
               <p className="mt-3 font-body text-sm leading-relaxed text-cream/80">

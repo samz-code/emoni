@@ -19,9 +19,10 @@ export default {
       },
     },
     extend: {
+      // These names must match the Google Fonts link in index.html
       fontFamily: {
-        display: ['"Oswald"', "sans-serif"],
-        body: ['"Source Serif 4"', "Georgia", "serif"],
+        display: ['"Oswald"', '"Arial Narrow"', "Impact", "sans-serif"],
+        body: ['"Source Serif 4"', "Georgia", '"Times New Roman"', "serif"],
       },
       colors: {
         // Direct Fintech Hex Helpers

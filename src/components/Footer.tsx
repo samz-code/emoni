@@ -126,12 +126,7 @@ const Footer = () => {
               </p>
               <h2
                 id="footer-cta"
-                className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[0.95] tracking-tight"
-                style={{
-                  color: "transparent",
-                  WebkitTextFillColor: "transparent",
-                  WebkitTextStroke: "1px #ffffff",
-                }}
+                className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[0.95] tracking-tight text-forest"
               >
                 Have a project
                 <br />
@@ -149,7 +144,7 @@ const Footer = () => {
           </div>
         </div>
       </section>
-
+      
       {/* ── Footer proper ── */}
       <div className="patterned-surface relative bg-forest text-cream overflow-hidden">
 
