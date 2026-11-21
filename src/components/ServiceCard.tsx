@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { FaWhatsapp } from "react-icons/fa";
-import { formatKes, quotePrice, type Offer } from "@/lib/servicePricing";
+import { ArrowRight, Check, Clock, FileSignature } from "lucide-react";
+import { quotePrice, type Offer } from "@/lib/servicePricing";
 
 export interface Service {
   id: string;
@@ -27,12 +28,15 @@ export interface Service {
 }
 
 const WHATSAPP_NUMBER = "254727492545";
-const MAX_DELIVERABLES = 5;
+const MAX_DELIVERABLES = 4;
 
 const buildWhatsAppLink = (serviceName: string) => {
   const message = `Hi Samuel, I'd like to book the ${serviceName} service.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 };
+
+const kes = (n: number) =>
+  `KSh ${new Intl.NumberFormat("en-KE", { maximumFractionDigits: 0 }).format(n)}`;
 
 const initialsOf = (name: string) =>
   name
@@ -55,34 +59,74 @@ const BannerFallback = ({ name }: { name: string }) => (
   </div>
 );
 
+/** Luggage-tag shaped price badge. Always visible in the white space beside the title. */
+const PriceTag = ({
+  original,
+  price,
+  text,
+  unit,
+  hasOffer,
+}: {
+  original?: number | null;
+  price?: number | null;
+  text?: string | null;
+  unit?: string | null;
+  hasOffer: boolean;
+}) => (
+  <div
+    className="relative shrink-0 origin-left transition-transform duration-300 group-hover:-rotate-2 motion-reduce:transition-none motion-reduce:group-hover:rotate-0"
+    aria-label={price !== null && price !== undefined ? `From ${kes(price)}` : text || "Custom quote"}
+  >
+    <div className="bg-ember py-2 pl-7 pr-4 text-white shadow-sm [clip-path:polygon(16px_0,100%_0,100%_100%,16px_100%,0_50%)]">
+      <span className="block font-body text-[10px] font-bold uppercase leading-none tracking-[0.18em] text-white/85">
+        {price !== null && price !== undefined ? "From" : "Pricing"}
+      </span>
+      {hasOffer && original ? (
+        <span className="mt-1 block font-body text-[11px] leading-none text-white/75 line-through">
+          {kes(original)}
+        </span>
+      ) : null}
+      <span className="mt-1 block whitespace-nowrap font-display text-xl leading-none">
+        {price !== null && price !== undefined ? kes(price) : text || "Custom quote"}
+      </span>
+      {unit && price !== null && price !== undefined ? (
+        <span className="mt-1 block font-body text-[10px] leading-none text-white/85">{unit}</span>
+      ) : null}
+    </div>
+    {/* tag hole */}
+    <span className="absolute left-[7px] top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-snow" aria-hidden="true" />
+  </div>
+);
+
 const ServiceCard = ({ service, offer }: { service: Service; offer?: Offer | null }) => {
   const deliverablesList = Array.isArray(service.deliverables) ? service.deliverables : [];
   const visibleDeliverables = deliverablesList.slice(0, MAX_DELIVERABLES);
   const extraCount = deliverablesList.length - visibleDeliverables.length;
   const summary = service.short_description || service.solution || service.problem;
-  const startingPrice = service.starting_price === null || service.starting_price === undefined
-    ? null
-    : Number(service.starting_price);
-  const priceQuote = startingPrice !== null && Number.isFinite(startingPrice)
-    ? quotePrice(startingPrice, offer)
-    : null;
+
+  const startingPrice =
+    service.starting_price === null || service.starting_price === undefined || service.starting_price === ""
+      ? null
+      : Number(service.starting_price);
+  const priceQuote =
+    startingPrice !== null && Number.isFinite(startingPrice) ? quotePrice(startingPrice, offer) : null;
+  const hasOffer = !!priceQuote && priceQuote.savings > 0;
 
   return (
     <article
       id={service.id}
-      className="group bg-snow border border-border rounded-2xl overflow-hidden scroll-mt-24 w-full max-w-[736px] mx-auto h-full flex flex-col lg:min-h-[900px] transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
+      className="group bg-snow border border-border rounded-2xl overflow-hidden scroll-mt-24 w-full max-w-[736px] mx-auto h-full flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0"
     >
       {/* Banner: 736 x 420 */}
       <Link
         to={`/what-i-do/${service.id}`}
-        tabIndex={-1}
-        aria-hidden="true"
-        className="relative block aspect-[736/420] overflow-hidden bg-forest"
+        aria-label={`View details for ${service.name}`}
+        className="relative block aspect-[736/420] overflow-hidden bg-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ember"
       >
         {service.banner_url ? (
           <img
             src={service.banner_url}
-            alt=""
+            alt={`${service.name} service in Nairobi, Kenya`}
             loading="lazy"
             decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
@@ -90,49 +134,82 @@ const ServiceCard = ({ service, offer }: { service: Service; offer?: Offer | nul
         ) : (
           <BannerFallback name={service.name} />
         )}
-        {service.outcome && (
-          <span className="absolute left-4 bottom-4 max-w-[calc(100%-2rem)] bg-snow/95 text-ink text-xs font-semibold rounded-full px-3 py-1 font-body leading-tight">
-            {service.outcome}
+        {service.category && (
+          <span className="absolute left-4 top-4 rounded-full bg-snow/95 px-3 py-1 font-body text-[11px] font-bold uppercase tracking-widest text-ink">
+            {service.category}
+          </span>
+        )}
+        {hasOffer && (
+          <span className="absolute right-4 top-4 rounded-full bg-ember px-3 py-1 font-body text-[11px] font-bold uppercase tracking-widest text-white">
+            Offer
           </span>
         )}
       </Link>
 
       {/* Body */}
-      <div className="flex flex-col flex-1 p-6 sm:p-8">
-        <h3 className="font-display text-[24px] sm:text-[28px] text-ink leading-snug">{service.name}</h3>
+      <div className="flex flex-1 flex-col p-6 sm:p-8">
+        {/* Title + price tag in the white space */}
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="font-display text-[24px] sm:text-[28px] text-ink leading-snug">{service.name}</h3>
+          <PriceTag
+            original={priceQuote?.original ?? null}
+            price={priceQuote ? priceQuote.discounted : null}
+            text={service.starting_from}
+            unit={service.price_unit}
+            hasOffer={hasOffer}
+          />
+        </div>
 
-        {summary && (
-          <p className="font-body text-base text-[#4A4A4A] leading-relaxed mt-3 line-clamp-4">
-            {summary}
+        {service.timeline && (
+          <p className="mt-2 inline-flex items-center gap-1.5 font-body text-sm text-[#6B6B6B]">
+            <Clock size={14} aria-hidden="true" /> {service.timeline}
           </p>
         )}
 
+        {summary && (
+          <p className="mt-3 line-clamp-3 font-body text-base leading-relaxed text-[#4A4A4A]">{summary}</p>
+        )}
+
         {visibleDeliverables.length > 0 && (
-          <ul className="mt-5 space-y-2 flex-1">
+          <ul className="mt-5 flex-1 space-y-2">
             {visibleDeliverables.map((d, index) => (
               <li key={index} className="flex items-start gap-3 font-body text-[15px] text-ink">
-                <span className="mt-[9px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-ember" aria-hidden="true" />
-                <span className="line-clamp-2">{d}</span>
+                <span
+                  className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-forest/10 text-forest"
+                  aria-hidden="true"
+                >
+                  <Check size={12} strokeWidth={3} />
+                </span>
+                <span className="line-clamp-1">{d}</span>
               </li>
             ))}
             {extraCount > 0 && (
-              <li className="font-body text-sm text-[#9A9A9A] pl-[18px]">+{extraCount} more included</li>
+              <li className="pl-8 font-body text-sm text-[#9A9A9A]">+{extraCount} more included</li>
             )}
           </ul>
         )}
 
-        {(service.timeline || service.starting_from || priceQuote) && (
-          <p className="mt-5 font-body text-sm text-[#6B6B6B]">
-            {[service.timeline, priceQuote
-              ? `From ${priceQuote.savings > 0 ? `${formatKes(priceQuote.original)} to ` : ""}${formatKes(priceQuote.discounted)}${service.price_unit ? ` ${service.price_unit}` : ""}`
-              : service.starting_from && `From ${service.starting_from}`]
-              .filter(Boolean)
-              .join("  ·  ")}
-          </p>
+        {/* Outcome: one calm line, not an overlay */}
+        {service.outcome && (
+          <div className="mt-5 flex items-start gap-2.5 rounded-xl bg-cream/60 px-4 py-3">
+            <ArrowRight size={16} className="mt-0.5 shrink-0 text-ember" aria-hidden="true" />
+            <p className="line-clamp-2 font-body text-sm leading-snug text-ink">
+              <span className="font-bold">You get: </span>
+              {service.outcome}
+            </p>
+          </div>
         )}
+      </div>
 
-        {/* Actions: always one row */}
-        <div className="mt-5 pt-5 border-t border-border flex items-stretch gap-3">
+      {/* Ticket perforation */}
+      <div className="relative h-0 border-t-2 border-dashed border-border" aria-hidden="true">
+        <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full border border-border bg-paper" />
+        <span className="absolute -right-3 -top-3 h-6 w-6 rounded-full border border-border bg-paper" />
+      </div>
+
+      {/* Actions */}
+      <div className="p-6 pt-5 sm:px-8 sm:pb-7">
+        <div className="flex items-stretch gap-3">
           <Link
             to={`/what-i-do/${service.id}`}
             aria-label={`View details for ${service.name}`}
@@ -152,6 +229,16 @@ const ServiceCard = ({ service, offer }: { service: Service; offer?: Offer | nul
             <span>Book now</span>
           </a>
         </div>
+
+        <Link
+          to="/contract"
+          aria-label={`Sign the service agreement for ${service.name}`}
+          className="mt-4 inline-flex items-center gap-2 font-body text-sm font-semibold text-forest underline-offset-4 hover:text-ember hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+        >
+          <FileSignature size={16} aria-hidden="true" />
+          Ready to start? Sign the service agreement
+          <ArrowRight size={14} aria-hidden="true" />
+        </Link>
       </div>
     </article>
   );

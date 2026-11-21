@@ -240,11 +240,19 @@ async function loadLogo() {
 /* ───────── document ───────── */
 export async function buildContractDocx(c: ServiceContract): Promise<Blob> {
   const { parties, project, fees } = contractRows(c);
-  const [clientSig, logo] = await Promise.all([clientSignaturePng(c.signature_data), loadLogo()]);
+
+  // Agreements prepared by the admin have no client signature yet.
+  const hasClientSig = Boolean(c.signature_data);
+  const [clientSig, logo] = await Promise.all([
+    hasClientSig ? clientSignaturePng(c.signature_data) : Promise.resolve(null),
+    loadLogo(),
+  ]);
   const providerSig = providerSignaturePng(OWNER.rep);
 
   const sigH = 640080;
-  const clientImg = IMG("rId2", 1, "Client signature", Math.min(2600000, Math.round((sigH * clientSig.w) / clientSig.h)), sigH);
+  const clientImg = clientSig
+    ? IMG("rId2", 1, "Client signature", Math.min(2600000, Math.round((sigH * clientSig.w) / clientSig.h)), sigH)
+    : R("\u00A0", { s: 56 }); // blank line to sign on
   const providerImg = IMG("rId3", 2, "Provider signature", Math.round((sigH * providerSig.w) / providerSig.h), sigH);
 
   let logoXml = "";
@@ -260,7 +268,11 @@ export async function buildContractDocx(c: ServiceContract): Promise<Blob> {
 
   const fee = Number(c.fee_kes);
   const deposit = Math.round(fee * c.deposit_percent) / 100;
-  const status = c.status === "countersigned" ? "Countersigned" : c.status === "cancelled" ? "Cancelled" : "Signed";
+  const status =
+    c.status === "countersigned" ? "Countersigned"
+    : c.status === "cancelled" ? "Cancelled"
+    : c.status === "prepared" ? "Awaiting signature"
+    : "Signed";
   const providerDate = fmtDate((c.countersigned_at || c.signed_at) as string);
 
   /* banner */
@@ -315,21 +327,27 @@ export async function buildContractDocx(c: ServiceContract): Promise<Blob> {
 
   /* signatures */
   const box = bdr("w:tcBorders", { top: [6, C.line], left: [6, C.line], bottom: [6, C.line], right: [6, C.line] });
-  const sigCell = (label: string, img: string, name: string, role: string, date: string) =>
+  const sigCell = (label: string, img: string, name: string, role: string, dateLine: string) =>
     TC(
       P(R(label, { b: true, c: C.teal, s: 16, sp: 30 }), { after: 80 }) +
         P(img, { after: 40, bottom: [6, C.muted] }) +
         P(R(name, { b: true, c: C.ink, s: 22 }), { before: 80, after: 0 }) +
         P(R(role, { c: C.muted, s: 19 }), { after: 0 }) +
-        P(R(`Signed ${date}`, { c: C.teal, s: 18 }), { before: 20, after: 0 }),
+        P(R(dateLine, { c: C.teal, s: 18 }), { before: 20, after: 0 }),
       { w: 4700, borders: box },
     );
   const signatures = TBL(
     [
       TR([
-        sigCell("FOR THE PROVIDER", providerImg, OWNER.rep, OWNER.company, providerDate),
+        sigCell("FOR THE PROVIDER", providerImg, OWNER.rep, OWNER.company, `Signed ${providerDate}`),
         TC("<w:p/>", { w: 238 }),
-        sigCell("CLIENT", clientImg, c.signed_name, c.company_name || "Client", fmtDate(c.signed_at)),
+        sigCell(
+          "CLIENT",
+          clientImg,
+          c.signed_name || c.client_name,
+          c.company_name || "Client",
+          hasClientSig ? `Signed ${fmtDate(c.signed_at)}` : "Date: ____________________",
+        ),
       ]),
     ],
     [4700, 238, 4700],
@@ -357,7 +375,9 @@ export async function buildContractDocx(c: ServiceContract): Promise<Blob> {
     signatures +
     P(
       R(
-        `Electronically signed on ${new Date(c.signed_at).toLocaleString("en-GB")}. Agreement no. ${c.reference}. Signed electronically under the laws of Kenya.`,
+        hasClientSig
+          ? `Electronically signed on ${new Date(c.signed_at).toLocaleString("en-GB")}. Agreement no. ${c.reference}. Signed electronically under the laws of Kenya.`
+          : `Prepared on ${fmtDate(c.created_at)}. Agreement no. ${c.reference}. Not binding until signed by both parties.`,
         { c: C.muted, s: 17 },
       ),
       { before: 200, align: "center" },
@@ -398,7 +418,7 @@ export async function buildContractDocx(c: ServiceContract): Promise<Blob> {
     "word/_rels/document.xml.rels",
     hd +
       `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">` +
-      `<Relationship Id="rId2" Type="${REL}/image" Target="media/sig.png"/>` +
+      (clientSig ? `<Relationship Id="rId2" Type="${REL}/image" Target="media/sig.png"/>` : "") +
       `<Relationship Id="rId3" Type="${REL}/image" Target="media/provider-sig.png"/>` +
       (logo ? `<Relationship Id="rId4" Type="${REL}/image" Target="media/logo.png"/>` : "") +
       `<Relationship Id="rId5" Type="${REL}/footer" Target="footer1.xml"/>` +
@@ -411,7 +431,7 @@ export async function buildContractDocx(c: ServiceContract): Promise<Blob> {
       `<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1300" w:left="1134" w:header="708" w:footer="600" w:gutter="0"/></w:sectPr></w:body></w:document>`,
   );
   z.file("word/footer1.xml", hd + footer);
-  z.file("word/media/sig.png", clientSig.base64, { base64: true });
+  if (clientSig) z.file("word/media/sig.png", clientSig.base64, { base64: true });
   z.file("word/media/provider-sig.png", providerSig.base64, { base64: true });
   if (logo) z.file("word/media/logo.png", logo.data);
 

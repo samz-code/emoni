@@ -51,8 +51,10 @@ const ManageClientWork = lazy(() => import("./pages/admin/ManageClientWork"));
 const ManageOffers = lazy(() => import("./pages/admin/ManageOffers"));
 const ManageIndustries = lazy(() => import("./pages/admin/ManageIndustries"));
 const ManageContracts = lazy(() => import("./pages/admin/ManageContracts"));
+const ManageMarkets = lazy(() => import("./pages/admin/ManageMarkets"));
 const Industries = lazy(() => import("./pages/Industries"));
 const IndustryDetail = lazy(() => import("./pages/IndustryDetail"));
+const MarketLanding = lazy(() => import("./pages/MarketLanding"));
 const ContractForm = lazy(() => import("./pages/ContractForm"));
 const ContractView = lazy(() => import("./pages/ContractView"));
 const ClientProposalPage = lazy(() =>
@@ -240,6 +242,7 @@ const App = () => (
                   <Route path="services" element={<ManageServices />} />
                   <Route path="offers" element={<ManageOffers />} />
                   <Route path="industries" element={<ManageIndustries />} />
+                  <Route path="markets" element={<ManageMarkets />} />
                   <Route path="services/new" element={<EditService />} />
                   <Route path="services/edit/:id" element={<EditService />} />
                   <Route path="courses" element={<ManageCourses />} />
@@ -319,6 +322,7 @@ const App = () => (
                       <Route path="/projects" element={<Projects />} />
                       <Route path="/industries/:slug" element={<IndustryDetail />} />
                       <Route path="/industries" element={<Industries />} />
+                      <Route path="/markets/:market" element={<MarketLanding />} />
                       <Route path="/partners" element={<Partners />} />
                       <Route path="/insights" element={<Insights />} />
                       <Route path="/insights/:slug" element={<InsightDetail />} />

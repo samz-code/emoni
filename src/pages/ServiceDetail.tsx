@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { FaWhatsapp } from "react-icons/fa";
 import {
-  AlertTriangle, ArrowRight, ArrowUpRight, CheckCircle2, Clock, Loader2,
-  Star, Tag, Target, Users, Wand2, Wrench,
+  AlertTriangle, ArrowRight, ArrowUpRight, CheckCircle2, Clock, FileSignature, Lightbulb, Loader2,
+  Star, Target, Users, Wrench,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import SEO, { SITE_URL } from "@/components/SEO";
@@ -12,7 +13,13 @@ import ProcessStep from "@/components/ProcessStep";
 import Breadcrumbs, { breadcrumbSchema, type Crumb } from "@/components/detail/Breadcrumbs";
 import FaqAccordion, { faqSchema, type FaqItem } from "@/components/detail/FaqAccordion";
 import { asList, resolveIcon, truncate } from "@/lib/detail";
-import { applicableOffer, formatKes, isOfferActive, quotePrice, useOffers } from "@/lib/servicePricing";
+import { applicableOffer, isOfferActive, quotePrice, useOffers } from "@/lib/servicePricing";
+
+/** Whole-shilling formatting (no ".00"). */
+const formatKes = (n: number) =>
+  `KSh ${new Intl.NumberFormat("en-KE", { maximumFractionDigits: 0 }).format(n)}`;
+
+const WHATSAPP_NUMBER = "254727492545";
 
 interface ServiceRow {
   id: string;
@@ -202,6 +209,42 @@ function ServiceAction({ to, className, children }: { to: string; className: str
     return <a href={to} className={className}>{children}</a>;
   }
   return <Link to={to} className={className}>{children}</Link>;
+}
+
+/** Luggage-tag shaped price badge. */
+function PriceTag({
+  original,
+  price,
+  text,
+  unit,
+}: {
+  original?: number | null;
+  price?: number | null;
+  text?: string | null;
+  unit?: string | null;
+}) {
+  const hasPrice = price !== null && price !== undefined;
+  return (
+    <div className="relative inline-block" aria-label={hasPrice ? `From ${formatKes(price as number)}` : text || "Custom quote"}>
+      <div className="bg-ember py-3 pl-9 pr-6 text-white [clip-path:polygon(20px_0,100%_0,100%_100%,20px_100%,0_50%)]">
+        <span className="block font-body text-[11px] font-bold uppercase leading-none tracking-[0.18em] text-white/85">
+          {hasPrice ? "Starting from" : "Pricing"}
+        </span>
+        {original ? (
+          <span className="mt-1.5 block font-body text-sm leading-none text-white/75 line-through">
+            {formatKes(original)}
+          </span>
+        ) : null}
+        <span className="mt-1.5 block whitespace-nowrap font-display text-3xl leading-none">
+          {hasPrice ? formatKes(price as number) : text || "Custom quote"}
+        </span>
+        {unit && hasPrice ? (
+          <span className="mt-1.5 block font-body text-xs leading-none text-white/85">{unit}</span>
+        ) : null}
+      </div>
+      <span className="absolute left-[9px] top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-forest" aria-hidden="true" />
+    </div>
+  );
 }
 
 const readPortfolioItems = (value: unknown): PortfolioItem[] =>
@@ -430,6 +473,8 @@ const ServiceDetail = () => {
     ? quotePrice(startingPrice, appliedOffer)
     : null;
 
+  const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hi Samuel, I'd like to book the ${service.name} service.`)}`;
+
   const crumbs: Crumb[] = [
     { label: "Home", to: "/" },
     { label: "Services", to: "/what-i-do" },
@@ -513,10 +558,6 @@ const ServiceDetail = () => {
       <main className="bg-paper">
         {/* ============ HERO ============ */}
         <section className="patterned-surface relative overflow-hidden bg-forest text-cream">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-ember/20 blur-3xl"
-          />
           <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-8 sm:px-6 sm:pb-20 lg:px-8">
             <Breadcrumbs items={crumbs} dark />
 
@@ -548,36 +589,6 @@ const ServiceDetail = () => {
                   </p>
                 )}
 
-                {(timeline || startingFrom || startQuote) && (
-                  <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 font-body text-sm">
-                    {timeline && (
-                      <div className="flex items-center gap-2">
-                        <Clock size={16} aria-hidden="true" className="text-olive" />
-                        <dt className="sr-only">Typical timeline</dt>
-                        <dd className="font-semibold">{timeline}</dd>
-                      </div>
-                    )}
-                    {(startQuote || startingFrom) && (
-                      <div className="flex items-center gap-2">
-                        <Tag size={16} aria-hidden="true" className="text-olive" />
-                        <dt className="sr-only">Starting from</dt>
-                        <dd className="font-semibold">
-                          From{" "}
-                          {startQuote ? (
-                            <>
-                              {startQuote.savings > 0 && (
-                                <span className="mr-2 text-cream/55 line-through">{formatKes(startQuote.original)}</span>
-                              )}
-                              {formatKes(startQuote.discounted)}
-                              {priceUnit ? ` ${priceUnit}` : ""}
-                            </>
-                          ) : startingFrom}
-                        </dd>
-                      </div>
-                    )}
-                  </dl>
-                )}
-
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <ServiceAction
                     to={primaryLink}
@@ -594,20 +605,66 @@ const ServiceDetail = () => {
                 </div>
               </div>
 
-              {outcome && (
-                <aside
-                  aria-label="Expected outcome"
-                  className="rounded-2xl border border-cream/15 bg-cream/5 p-6 backdrop-blur-sm sm:p-8"
-                >
-                  <p className="flex items-center gap-2 font-body text-xs font-semibold uppercase tracking-[0.16em] text-olive">
-                    <Target size={16} aria-hidden="true" /> The outcome
+              {/* Price + booking card */}
+              <aside
+                aria-label="Pricing and booking"
+                className="rounded-2xl border border-cream/15 bg-cream/5 p-6 sm:p-8"
+              >
+                <PriceTag
+                  original={startQuote && startQuote.savings > 0 ? startQuote.original : null}
+                  price={startQuote ? startQuote.discounted : null}
+                  text={startingFrom}
+                  unit={priceUnit}
+                />
+
+                {offerActive && appliedOffer && (
+                  <p className="mt-4 font-body text-sm font-semibold text-olive">{appliedOffer.title}</p>
+                )}
+
+                {timeline && (
+                  <p className="mt-5 flex items-center gap-2 font-body text-sm text-cream/85">
+                    <Clock size={16} aria-hidden="true" className="text-olive" />
+                    <span className="sr-only">Typical timeline: </span>
+                    {timeline}
                   </p>
-                  <p className="mt-4 break-words font-display text-2xl leading-snug sm:text-3xl">{outcome}</p>
-                </aside>
-              )}
+                )}
+
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 font-body text-sm font-bold text-white transition-colors hover:bg-[#1FB855] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+                >
+                  <FaWhatsapp size={18} aria-hidden="true" /> Book on WhatsApp
+                </a>
+
+                <Link
+                  to="/contract"
+                  className="mt-4 inline-flex items-center gap-2 font-body text-sm font-semibold text-cream underline-offset-4 hover:text-olive hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+                >
+                  <FileSignature size={16} aria-hidden="true" />
+                  Ready? Sign the service agreement
+                  <ArrowRight size={14} aria-hidden="true" />
+                </Link>
+              </aside>
             </motion.div>
           </div>
         </section>
+
+        {/* Outcome strip: calm, one place */}
+        {outcome && (
+          <section aria-label="Expected outcome" className="border-b border-border bg-snow">
+            <div className="mx-auto flex max-w-6xl items-start gap-4 px-4 py-6 sm:px-6 lg:px-8">
+              <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ember/10 text-ember">
+                <Target size={18} aria-hidden="true" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">The outcome</p>
+                <p className="mt-1 break-words font-body text-base leading-relaxed text-ink sm:text-lg">{outcome}</p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {trustMetrics.length > 0 && (
           <section aria-label="Service highlights" className="border-b border-border bg-snow">
@@ -640,52 +697,33 @@ const ServiceDetail = () => {
 
         {/* ============ BODY ============ */}
         <div className="mx-auto max-w-6xl space-y-16 px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
-          {banner && (
-            <img
-              src={banner}
-              alt={service.name}
-              loading="lazy"
-              className="aspect-[16/9] w-full rounded-2xl border border-border object-cover"
-            />
-          )}
-
-          {hasText(longDescription) && (
-            <section aria-labelledby="service-about">
-              <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">About this service</p>
-              <h2 id="service-about" className="mt-2 font-display text-2xl text-ink sm:text-3xl">
-                What is involved
-              </h2>
-              <div className="mt-6 max-w-3xl space-y-5">
-                <RichParagraphs text={longDescription} />
-              </div>
-            </section>
-          )}
-
-          {pageSections.map((section, index) => (
-            <section key={`${section.title}-${index}`} aria-labelledby={`service-section-${index}`}>
-              {section.eyebrow && (
-                <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">{section.eyebrow}</p>
+          {/* About: text beside image on desktop */}
+          {(hasText(longDescription) || banner) && (
+            <section
+              aria-labelledby="service-about"
+              className={banner && hasText(longDescription) ? "grid gap-10 lg:grid-cols-2 lg:items-start" : ""}
+            >
+              {hasText(longDescription) && (
+                <div className="min-w-0">
+                  <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">About this service</p>
+                  <h2 id="service-about" className="mt-2 font-display text-2xl text-ink sm:text-3xl">
+                    What is involved
+                  </h2>
+                  <div className="mt-6 max-w-3xl space-y-5">
+                    <RichParagraphs text={longDescription} />
+                  </div>
+                </div>
               )}
-              <h2 id={`service-section-${index}`} className="mt-2 font-display text-2xl text-ink sm:text-3xl">
-                {section.title}
-              </h2>
-              {section.description && (
-                <p className="mt-4 max-w-3xl whitespace-pre-line font-body text-base leading-relaxed text-ink/75">
-                  {section.description}
-                </p>
-              )}
-              {section.items.length > 0 && (
-                <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                  {section.items.map((item, itemIndex) => (
-                    <li key={`${item}-${itemIndex}`} className="flex gap-3 rounded-xl border border-border bg-snow p-4 font-body text-sm text-ink/85 sm:text-base">
-                      <CheckCircle2 size={19} aria-hidden="true" className="mt-0.5 shrink-0 text-ember" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+              {banner && (
+                <img
+                  src={banner}
+                  alt={service.name}
+                  loading="lazy"
+                  className="aspect-[16/10] w-full rounded-2xl border border-border object-cover lg:sticky lg:top-24"
+                />
               )}
             </section>
-          ))}
+          )}
 
           {(problem || solution) && (
             <section aria-labelledby="service-story" className="grid gap-6 md:grid-cols-2">
@@ -705,7 +743,7 @@ const ServiceDetail = () => {
               {solution && (
                 <article className="rounded-2xl border border-border bg-snow p-6 sm:p-8">
                   <p className="flex items-center gap-2 font-body text-xs font-semibold uppercase tracking-[0.16em] text-forest">
-                    <Wand2 size={16} aria-hidden="true" /> How it is solved
+                    <Lightbulb size={16} aria-hidden="true" /> How it is solved
                   </p>
                   <p className="mt-4 whitespace-pre-line break-words font-body text-base leading-relaxed text-ink/85">
                     {solution}
@@ -735,33 +773,60 @@ const ServiceDetail = () => {
             </section>
           )}
 
-          {tools.length > 0 && (
-            <section aria-labelledby="service-tools" className="rounded-2xl border border-border bg-snow p-6 sm:p-8">
-              <h2 id="service-tools" className="flex items-center gap-2 font-display text-xl text-ink">
-                <Wrench size={20} aria-hidden="true" className="text-ember" /> Tools &amp; technologies
+          {pageSections.map((section, index) => (
+            <section key={`${section.title}-${index}`} aria-labelledby={`service-section-${index}`}>
+              {section.eyebrow && (
+                <p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-ember">{section.eyebrow}</p>
+              )}
+              <h2 id={`service-section-${index}`} className="mt-2 font-display text-2xl text-ink sm:text-3xl">
+                {section.title}
               </h2>
-              <ul className="mt-5 flex flex-wrap gap-2">
-                {tools.map((tool, index) => (
-                  <li
-                    key={`${tool}-${index}`}
-                    className="rounded-full border border-border bg-paper px-3.5 py-1.5 font-body text-sm text-ink"
-                  >
-                    {tool}
-                  </li>
-                ))}
-              </ul>
+              {section.description && (
+                <p className="mt-4 max-w-3xl whitespace-pre-line font-body text-base leading-relaxed text-ink/75">
+                  {section.description}
+                </p>
+              )}
+              {section.items.length > 0 && (
+                <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {section.items.map((item, itemIndex) => (
+                    <li key={`${item}-${itemIndex}`} className="flex gap-3 rounded-xl border border-border bg-snow p-4 font-body text-sm text-ink/85 sm:text-base">
+                      <CheckCircle2 size={19} aria-hidden="true" className="mt-0.5 shrink-0 text-ember" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
-          )}
+          ))}
 
-          {idealFor && (
-            <section
-              aria-labelledby="service-ideal"
-              className="flex flex-col gap-4 rounded-2xl border-2 border-ink p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-8"
-            >
-              <h2 id="service-ideal" className="flex shrink-0 items-center gap-2 font-display text-xl text-ink">
-                <Users size={22} aria-hidden="true" className="text-ember" /> Ideal for
-              </h2>
-              <p className="break-words font-body text-base font-semibold leading-relaxed text-ink">{idealFor}</p>
+          {/* Tools + Ideal for, side by side */}
+          {(tools.length > 0 || idealFor) && (
+            <section className={tools.length > 0 && idealFor ? "grid gap-6 md:grid-cols-2" : ""}>
+              {tools.length > 0 && (
+                <div aria-labelledby="service-tools" className="rounded-2xl border border-border bg-snow p-6 sm:p-8">
+                  <h2 id="service-tools" className="flex items-center gap-2 font-display text-xl text-ink">
+                    <Wrench size={20} aria-hidden="true" className="text-ember" /> Tools &amp; technologies
+                  </h2>
+                  <ul className="mt-5 flex flex-wrap gap-2">
+                    {tools.map((tool, index) => (
+                      <li
+                        key={`${tool}-${index}`}
+                        className="rounded-full border border-border bg-paper px-3.5 py-1.5 font-body text-sm text-ink"
+                      >
+                        {tool}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {idealFor && (
+                <div aria-labelledby="service-ideal" className="rounded-2xl border-2 border-ink p-6 sm:p-8">
+                  <h2 id="service-ideal" className="flex items-center gap-2 font-display text-xl text-ink">
+                    <Users size={22} aria-hidden="true" className="text-ember" /> Ideal for
+                  </h2>
+                  <p className="mt-5 break-words font-body text-base font-semibold leading-relaxed text-ink">{idealFor}</p>
+                </div>
+              )}
             </section>
           )}
 
@@ -890,7 +955,7 @@ const ServiceDetail = () => {
                       </p>
                     </div>
                     <a
-                      href={`https://wa.me/254727492545?text=${encodeURIComponent(`Hi, please quote my ${service.name} project${estimate ? ` (indicative estimate ${formatKes(estimate.discounted)})` : ""}.`)}`}
+                      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hi, please quote my ${service.name} project${estimate ? ` (indicative estimate ${formatKes(estimate.discounted)})` : ""}.`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-2.5 font-body text-sm font-bold text-white hover:bg-[#1FB855]"
@@ -1064,12 +1129,20 @@ const ServiceDetail = () => {
                 Tell me what you want to achieve and I will recommend the right approach, timeline and budget.
               </p>
             </div>
-            <Link
-              to={contactHref}
-              className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-olive px-6 py-3 font-body text-sm font-semibold text-ink transition-colors hover:bg-cream hover:text-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
-            >
-              Start a project <ArrowUpRight size={16} aria-hidden="true" />
-            </Link>
+            <div className="flex w-full flex-col gap-3 sm:w-auto">
+              <Link
+                to={contactHref}
+                className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-olive px-6 py-3 font-body text-sm font-semibold text-ink transition-colors hover:bg-cream hover:text-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+              >
+                Start a project <ArrowUpRight size={16} aria-hidden="true" />
+              </Link>
+              <Link
+                to="/contract"
+                className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-cream/40 px-6 py-3 font-body text-sm font-semibold text-cream transition-colors hover:bg-cream/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cream"
+              >
+                <FileSignature size={16} aria-hidden="true" /> Sign the agreement
+              </Link>
+            </div>
           </section>
         </div>
       </main>

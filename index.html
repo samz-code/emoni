@@ -18,12 +18,14 @@
   <meta name="rating" content="general" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
 
-  <!-- ===================== CANONICAL / LANGUAGE / GEO ===================== -->
-  <link rel="canonical" href="https://www.emonisamuel.co.ke/" />
-  <link rel="alternate" hreflang="en-ke" href="https://www.emonisamuel.co.ke/" />
-  <link rel="alternate" hreflang="en" href="https://www.emonisamuel.co.ke/" />
-  <link rel="alternate" hreflang="x-default" href="https://www.emonisamuel.co.ke/" />
+  <!--
+    NOTE: there is deliberately NO canonical or hreflang tag here.
+    This file is the shell for every page on the site, so a canonical pointing to the
+    home page would tell Google that every page is a duplicate of the home page.
+    Each page sets its own canonical through the <SEO /> component.
+  -->
 
+  <!-- ===================== GEO ===================== -->
   <meta name="geo.region" content="KE-30" />
   <meta name="geo.placename" content="Nairobi, Kenya" />
   <meta name="geo.position" content="-1.2921;36.8219" />
@@ -67,8 +69,8 @@
     />
   </noscript>
 
-  <!-- ===================== PRIMARY SEO ===================== -->
-  <title>Software Engineer &amp; Website Developer in Nairobi, Kenya | Samuel Emoni</title>
+  <!-- ===================== PRIMARY SEO (home-page defaults) ===================== -->
+  <title>Software Engineer &amp; Website Developer Nairobi | Samuel Emoni</title>
 
   <meta
     name="description"
@@ -80,16 +82,15 @@
     content="software engineer Nairobi, software engineer Kenya, software developer Nairobi, software developer Kenya, website developer Nairobi, website developer Kenya, web developer Kenya, website development Kenya, web design Nairobi, full stack developer Kenya, React developer Kenya, TypeScript developer Kenya, Node.js developer Kenya, custom software development Kenya, web application development Kenya, SaaS developer Kenya, e-commerce website Kenya, M-Pesa integration developer, Daraja API developer Kenya, payment integration Kenya, business automation Kenya, API development Kenya, hire software engineer Kenya, hire web developer Nairobi, graphic designer Nairobi, logo design Kenya, brand identity design Kenya, UI UX designer Kenya, Emoni Digital Solutions, Emoni Samuel, Samuel Emoni"
   />
 
-  <!-- ===================== OPEN GRAPH ===================== -->
+  <!-- ===================== OPEN GRAPH (defaults for link previews) ===================== -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Emoni Digital Solutions" />
   <meta property="og:locale" content="en_KE" />
-  <meta property="og:title" content="Software Engineer &amp; Website Developer in Nairobi, Kenya | Samuel Emoni" />
+  <meta property="og:title" content="Software Engineer &amp; Website Developer Nairobi | Samuel Emoni" />
   <meta
     property="og:description"
     content="Web apps, websites, SaaS, e-commerce and M-Pesa-enabled systems for businesses in Kenya and across Africa. Graphic design and branding also offered."
   />
-  <meta property="og:url" content="https://www.emonisamuel.co.ke/" />
   <meta property="og:image" content="https://www.emonisamuel.co.ke/og-image.jpg" />
   <meta property="og:image:secure_url" content="https://www.emonisamuel.co.ke/og-image.jpg" />
   <meta property="og:image:type" content="image/jpeg" />
@@ -102,7 +103,9 @@
 
   <!-- ===================== TWITTER / X ===================== -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Software Engineer &amp; Website Developer in Nairobi, Kenya | Samuel Emoni" />
+  <meta name="twitter:site" content="@samuelemoni18" />
+  <meta name="twitter:creator" content="@samuelemoni18" />
+  <meta name="twitter:title" content="Software Engineer &amp; Website Developer Nairobi | Samuel Emoni" />
   <meta
     name="twitter:description"
     content="Software engineering, website development and M-Pesa integrations for businesses in Kenya and Africa. Graphic design also offered."
@@ -113,7 +116,11 @@
     content="Samuel Emoni - software engineer and website developer in Nairobi, Kenya"
   />
 
-  <!-- ===================== STRUCTURED DATA (SEO + AEO + GEO) ===================== -->
+  <!--
+    ===================== STRUCTURED DATA (site-wide) =====================
+    Only entities that are true on EVERY page live here: the organization, business, person and website.
+    Page-specific schema (WebPage, BreadcrumbList, FAQPage, Service...) is added per page by <SEO />.
+  -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -132,9 +139,11 @@
         "founder": { "@id": "https://www.emonisamuel.co.ke/#person" },
         "sameAs": [
           "https://www.linkedin.com/in/samuelemoni",
-          "https://github.com/Samz-Code",
           "https://www.instagram.com/emoni_sam",
-          "https://web.facebook.com/sam.ke.991357/"
+          "https://www.facebook.com/sam.ke.991357/",
+          "https://x.com/samuelemoni18",
+          "https://www.reddit.com/user/sam-emoni/",
+          "https://www.behance.net/samturkidemoni"
         ]
       },
       {
@@ -145,6 +154,7 @@
         "url": "https://www.emonisamuel.co.ke/",
         "image": "https://www.emonisamuel.co.ke/og-image.jpg",
         "logo": "https://www.emonisamuel.co.ke/logo.png",
+        "telephone": "+254727492545",
         "priceRange": "$$",
         "currenciesAccepted": "KES, USD",
         "paymentAccepted": "M-Pesa, Bank Transfer, Card",
@@ -173,6 +183,11 @@
           { "@type": "Country", "name": "Nigeria" },
           { "@type": "Country", "name": "Ghana" },
           { "@type": "Country", "name": "South Africa" },
+          { "@type": "Country", "name": "United States" },
+          { "@type": "Country", "name": "Canada" },
+          { "@type": "Country", "name": "United Kingdom" },
+          { "@type": "Country", "name": "Australia" },
+          { "@type": "Country", "name": "United Arab Emirates" },
           { "@type": "Continent", "name": "Africa" }
         ],
         "knowsLanguage": ["en", "sw"],
@@ -180,9 +195,11 @@
         "founder": { "@id": "https://www.emonisamuel.co.ke/#person" },
         "sameAs": [
           "https://www.linkedin.com/in/samuelemoni",
-          "https://github.com/Samz-Code",
           "https://www.instagram.com/emoni_sam",
-          "https://web.facebook.com/sam.ke.991357/"
+          "https://www.facebook.com/sam.ke.991357/",
+          "https://x.com/samuelemoni18",
+          "https://www.reddit.com/user/sam-emoni/",
+          "https://www.behance.net/samturkidemoni"
         ],
         "hasOfferCatalog": {
           "@type": "OfferCatalog",
@@ -300,9 +317,11 @@
         "nationality": { "@type": "Country", "name": "Kenya" },
         "sameAs": [
           "https://www.linkedin.com/in/samuelemoni",
-          "https://github.com/Samz-Code",
           "https://www.instagram.com/emoni_sam",
-          "https://web.facebook.com/sam.ke.991357/"
+          "https://www.facebook.com/sam.ke.991357/",
+          "https://x.com/samuelemoni18",
+          "https://www.reddit.com/user/sam-emoni/",
+          "https://www.behance.net/samturkidemoni"
         ]
       },
       {
@@ -313,98 +332,6 @@
         "url": "https://www.emonisamuel.co.ke/",
         "inLanguage": "en-KE",
         "publisher": { "@id": "https://www.emonisamuel.co.ke/#organization" }
-      },
-      {
-        "@type": "WebPage",
-        "@id": "https://www.emonisamuel.co.ke/#webpage",
-        "url": "https://www.emonisamuel.co.ke/",
-        "name": "Software Engineer & Website Developer in Nairobi, Kenya | Samuel Emoni",
-        "description": "Software engineer and website developer in Nairobi, Kenya, serving clients across Africa. Graphic design also offered.",
-        "isPartOf": { "@id": "https://www.emonisamuel.co.ke/#website" },
-        "about": { "@id": "https://www.emonisamuel.co.ke/#person" },
-        "primaryImageOfPage": {
-          "@type": "ImageObject",
-          "url": "https://www.emonisamuel.co.ke/og-image.jpg"
-        },
-        "inLanguage": "en-KE",
-        "speakable": {
-          "@type": "SpeakableSpecification",
-          "cssSelector": ["h1", ".speakable", "#seo-summary"]
-        }
-      },
-      {
-        "@type": "BreadcrumbList",
-        "@id": "https://www.emonisamuel.co.ke/#breadcrumb",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "https://www.emonisamuel.co.ke/"
-          }
-        ]
-      },
-      {
-        "@type": "FAQPage",
-        "@id": "https://www.emonisamuel.co.ke/#faq",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "Who is a good software engineer in Kenya?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Samuel Emoni is a software engineer in Nairobi, Kenya, who builds scalable web platforms, SaaS systems, dashboards, APIs and business automation tools using React, TypeScript and Node.js."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Where can I hire a website developer in Nairobi?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "You can hire Samuel Emoni, a full-stack website and software developer in Nairobi, through Emoni Digital Solutions at emonisamuel.co.ke for business websites, e-commerce stores, web apps, custom software and M-Pesa-integrated systems."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can you integrate M-Pesa into my website or app?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Emoni Digital Solutions integrates M-Pesa (Daraja API), card and bank payments into websites, e-commerce stores, web apps and business systems."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What services does Emoni Digital Solutions offer?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Emoni Digital Solutions offers software engineering, website and web application development, e-commerce platforms, payment integrations, business automation and digital consultancy. Graphic design, brand identity and UI/UX design are also available."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Do you also offer graphic design?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Alongside software and website development, Samuel Emoni designs logos, brand identities, brochures, social media creatives and print materials for businesses across Kenya and Africa."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Do you work with clients outside Nairobi and Kenya?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. Emoni Digital Solutions is based in Nairobi and works remotely with clients across Kenya, East Africa and the rest of Africa, including Uganda, Tanzania, Rwanda, Ethiopia, Nigeria, Ghana and South Africa."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How do I contact Samuel Emoni?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Visit https://www.emonisamuel.co.ke/ to start a project, or reach Samuel Emoni through LinkedIn, Instagram, GitHub or Facebook links listed on the website."
-            }
-          }
-        ]
       }
     ]
   }
@@ -452,9 +379,8 @@
   <div id="root"></div>
 
   <!--
-    Crawler/AI-readable fallback content. Search engines and AI answer engines
-    that do not execute JavaScript read this block. Keep it in sync with the
-    visible React content (FAQ answers must match the FAQPage schema above).
+    Crawler/AI-readable fallback content for readers that do not execute JavaScript.
+    Keep it in sync with the visible React content.
   -->
   <noscript>
     <main id="seo-summary">
@@ -479,7 +405,8 @@
       <h2>Areas Served</h2>
       <p>
         Nairobi, Mombasa, Kisumu, Nakuru, Eldoret and all of Kenya; Uganda, Tanzania, Rwanda, Ethiopia,
-        Nigeria, Ghana, South Africa and the rest of Africa.
+        Nigeria, Ghana, South Africa and the rest of Africa; and remote clients in the United States,
+        Canada, the United Kingdom, Australia and the United Arab Emirates.
       </p>
 
       <h2>Frequently Asked Questions</h2>
@@ -518,8 +445,9 @@
 
       <h3>Do you work with clients outside Nairobi and Kenya?</h3>
       <p>
-        Yes. Emoni Digital Solutions is based in Nairobi and works remotely with clients across Kenya, East Africa
-        and the rest of Africa, including Uganda, Tanzania, Rwanda, Ethiopia, Nigeria, Ghana and South Africa.
+        Yes. Emoni Digital Solutions is based in Nairobi and works remotely with clients across Kenya, East Africa,
+        the rest of Africa and internationally, including Uganda, Tanzania, Rwanda, Ethiopia, Nigeria, Ghana,
+        South Africa, the United States, Canada, the United Kingdom, Australia and the United Arab Emirates.
       </p>
 
       <h3>How do I contact Samuel Emoni?</h3>
@@ -528,8 +456,10 @@
         Emoni on
         <a href="https://www.linkedin.com/in/samuelemoni">LinkedIn</a>,
         <a href="https://www.instagram.com/emoni_sam">Instagram</a>,
-        <a href="https://github.com/Samz-Code">GitHub</a> or
-        <a href="https://web.facebook.com/sam.ke.991357/">Facebook</a>.
+        <a href="https://www.facebook.com/sam.ke.991357/">Facebook</a>,
+        <a href="https://x.com/samuelemoni18">X</a>,
+        <a href="https://www.reddit.com/user/sam-emoni/">Reddit</a> or
+        <a href="https://www.behance.net/samturkidemoni">Behance</a>.
       </p>
     </main>
   </noscript>

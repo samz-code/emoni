@@ -23,6 +23,7 @@ import {
   Users,
   User,
   X,
+  Globe,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -277,6 +278,7 @@ export default function AdminLayout() {
     { to: "/admin/offers", label: "SERVICE OFFERS", icon: Percent },
     { to: "/admin/courses", label: "MANAGE COURSES", icon: GraduationCap },
     { to: "/admin/insights", label: "MANAGE INSIGHTS", icon: Newspaper },
+    { to: "/admin/markets", label: "MANAGE MARKETS", icon: Globe },
     { to: "/admin/process-steps", label: "HOW I WORK", icon: ListOrdered },
     { to: "/admin/ideal-for", label: "IDEAL FOR", icon: Users },
     { to: "/admin/projects", label: "PROJECTS & CASE STUDIES", icon: FolderKanban },

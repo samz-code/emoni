@@ -76,6 +76,45 @@ const splitParagraphs = (text: string) =>
     .map((p) => p.trim())
     .filter(Boolean);
 
+/** Luggage-tag shaped price badge (takes pre-formatted strings, so it works with USD). */
+function PriceTag({
+  original,
+  price,
+  text,
+  label = "Course fee",
+}: {
+  original?: string | null;
+  price?: string | null;
+  text?: string;
+  label?: string;
+}) {
+  const hasPrice = Boolean(price);
+  return (
+    <div
+      className="relative inline-block"
+      aria-label={hasPrice ? `${label}: ${price}` : text || "Price on request"}
+    >
+      <div className="bg-ember py-3 pl-9 pr-6 text-white [clip-path:polygon(20px_0,100%_0,100%_100%,20px_100%,0_50%)]">
+        <span className="block font-body text-[11px] font-bold uppercase leading-none tracking-[0.18em] text-white/85">
+          {hasPrice ? label : "Pricing"}
+        </span>
+        {original ? (
+          <span className="mt-1.5 block font-body text-sm leading-none text-white/75 line-through">
+            {original}
+          </span>
+        ) : null}
+        <span className="mt-1.5 block whitespace-nowrap font-display text-3xl leading-none">
+          {hasPrice ? price : text || "On request"}
+        </span>
+      </div>
+      <span
+        className="absolute left-[9px] top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-forest"
+        aria-hidden="true"
+      />
+    </div>
+  );
+}
+
 /**
  * Renders a long description:
  * - "Week 1: Title." style openings are bolded
@@ -294,7 +333,7 @@ const CourseDetail = () => {
   const projectCount = toNumber(course.project_count);
   const description = (course.description || "").trim();
   const longDescription = (course.long_description || "").trim();
-    const banner = (course.banner_url || "").trim();
+  const banner = (course.banner_url || "").trim();
   const path = `/courses/${course.id}`;
   const url = `${SITE_URL}${path}`;
   const contactHref = `/contact?course=${encodeURIComponent(course.id)}`;
@@ -418,10 +457,6 @@ const CourseDetail = () => {
       <main className="bg-paper">
         {/* ============ HERO ============ */}
         <section className="patterned-surface relative overflow-hidden bg-forest text-cream">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-ember/20 blur-3xl"
-          />
           <div className="relative mx-auto max-w-6xl px-4 pb-14 pt-8 sm:px-6 sm:pb-20 lg:px-8">
             <Breadcrumbs items={crumbs} dark />
 
@@ -482,23 +517,18 @@ const CourseDetail = () => {
                   <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-ember text-cream">
                     <Icon size={26} aria-hidden="true" />
                   </span>
-                  <div>
-                    <p className="font-body text-xs uppercase tracking-widest text-cream/60">Course fee</p>
-                    {priceQuote?.savings ? (
-                      <p className="mt-1 font-body text-sm text-cream/50 line-through">
-                        {formatPrice(priceQuote.original, "USD")}
-                      </p>
-                    ) : null}
-                    <p className="font-display text-3xl leading-tight">
-                      {priceLabel ?? "On request"}
-                    </p>
-                    {priceQuote?.savings ? (
-                      <p className="mt-1 font-body text-xs font-semibold text-olive">
-                        {appliedOffer?.title || `${appliedOffer?.discount_value}% offer`}
-                      </p>
-                    ) : null}
-                  </div>
+                  <PriceTag
+                    original={priceQuote?.savings ? formatPrice(priceQuote.original, "USD") : null}
+                    price={priceLabel}
+                    text="On request"
+                  />
                 </div>
+
+                {priceQuote?.savings ? (
+                  <p className="mt-4 font-body text-sm font-semibold text-olive">
+                    {appliedOffer?.title || `${appliedOffer?.discount_value}% offer`}
+                  </p>
+                ) : null}
 
                 {facts.length > 0 && (
                   <dl className="mt-6 space-y-4 border-t border-cream/15 pt-6">

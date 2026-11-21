@@ -2,7 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import {
-  Layers, FolderKanban, ListOrdered, Users, GraduationCap, Newspaper, ArrowRight, Eye, EyeOff, FileText,
+  Layers, FolderKanban, ListOrdered, Users, GraduationCap, Newspaper, ArrowRight, Eye, EyeOff, FileText, Globe,
 } from "lucide-react";
 
 type CardStat = {
@@ -103,6 +103,8 @@ export default function AdminDashboard() {
   const { data: totalInsights } = useCount("insights");
   const { data: publishedInsights } = useCount("insights", { published: true });
   const { data: siteContentCount } = useCount("site_content");
+  const { data: totalMarkets } = useCount("markets");
+  const { data: publishedMarkets } = useCount("markets", { published: true });
 
   const draftServices =
     totalServices !== undefined && publishedServices !== undefined
@@ -117,6 +119,11 @@ export default function AdminDashboard() {
   const draftInsights =
     totalInsights !== undefined && publishedInsights !== undefined
       ? totalInsights - publishedInsights
+      : null;
+
+  const draftMarkets =
+    totalMarkets !== undefined && publishedMarkets !== undefined
+      ? totalMarkets - publishedMarkets
       : null;
 
   return (
@@ -154,6 +161,18 @@ export default function AdminDashboard() {
           stats={[
             { label: "Published", value: publishedServices ?? null },
             { label: "Draft", value: draftServices },
+          ]}
+        />
+
+        <ManagementCard
+          icon={Globe}
+          title="Markets"
+          description="Manage country landing pages, their SEO content, flags and FAQs."
+          to="/admin/markets"
+          ctaLabel="Manage Markets"
+          stats={[
+            { label: "Published", value: publishedMarkets ?? null },
+            { label: "Draft", value: draftMarkets },
           ]}
         />
 
@@ -222,6 +241,20 @@ export default function AdminDashboard() {
             <EyeOff className="w-4 h-4 text-amber-600" />
             <span>
               <strong className="text-[#2A2424]">{draftServices}</strong> service{draftServices === 1 ? "" : "s"} in draft
+            </span>
+          </div>
+        )}
+        <div className="flex items-center gap-2 text-sm text-[#524646]/70">
+          <Eye className="w-4 h-4 text-green-600" />
+          <span>
+            <strong className="text-[#2A2424]">{publishedMarkets ?? "—"}</strong> markets live on site
+          </span>
+        </div>
+        {draftMarkets !== null && draftMarkets > 0 && (
+          <div className="flex items-center gap-2 text-sm text-[#524646]/70">
+            <EyeOff className="w-4 h-4 text-amber-600" />
+            <span>
+              <strong className="text-[#2A2424]">{draftMarkets}</strong> market{draftMarkets === 1 ? "" : "s"} in draft
             </span>
           </div>
         )}

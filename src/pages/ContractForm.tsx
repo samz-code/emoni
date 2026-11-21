@@ -1,29 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Download, Eraser, FileSignature, Loader2, MessageCircle, PenLine, Type, Upload } from "lucide-react";
+import { ArrowLeft, Check, Download, Eraser, FileSignature, Loader2, MessageCircle, PenLine, Type, Upload } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { downloadContractDocx } from "@/lib/contractDocx";
-import {
-  CONTRACT_ADDONS,
-  CONTRACT_SERVICES,
-  CONTRACT_TERMS,
-  OWNER,
-  PAYMENT_METHODS,
-  TERMS_VERSION,
-  kes,
-  ownerMessage,
-  waLink,
-  type ServiceContract,
-} from "@/lib/contracts";
+import { DEPOSIT_OPTIONS, MIN_DEPOSIT_PERCENT, OWNER, kes, ownerMessage, useContractSettings, waLink, type ServiceContract } from "@/lib/contracts";
+import { Field, Section, errMsg, inp, num } from "@/components/contracts/ui";
 
 /* ───────── helpers ───────── */
-const inp =
-  "w-full rounded-lg border border-[#E8E2D6] bg-white px-3.5 py-2.5 text-sm text-[#1A1A16] placeholder:text-[#524646]/40 focus:border-[#007979] focus:outline-none focus:ring-2 focus:ring-[#007979]/30";
-
-const num = (s: string) => Number(s.replace(/[^\d.]/g, "")) || 0;
-const errMsg = (e: unknown) =>
-  (e as { message?: string })?.message || (typeof e === "string" ? e : "Something went wrong. Try again.");
-
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((ok, bad) => {
     const i = new Image();
@@ -59,30 +42,6 @@ function typedSignature(name: string) {
   x.textBaseline = "middle";
   x.fillText(name, 350, 100, 660);
   return c.toDataURL("image/png");
-}
-
-/* ───────── small UI ───────── */
-function Field({ label, required, children, hint }: { label: string; required?: boolean; children: React.ReactNode; hint?: string }) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-[#1A1A16]">
-        {label}
-        {required && <span className="text-[#EC5B38]"> *</span>}
-      </span>
-      {children}
-      {hint && <span className="mt-1 block text-xs text-[#524646]/60">{hint}</span>}
-    </label>
-  );
-}
-
-function Section({ id, title, intro, children }: { id: string; title: string; intro?: string; children: React.ReactNode }) {
-  return (
-    <section id={id} className="scroll-mt-24 rounded-2xl border border-[#E8E2D6] bg-white p-5 shadow-sm sm:p-8">
-      <h2 className="font-display text-xl font-bold text-[#1A1A16]">{title}</h2>
-      {intro && <p className="mt-1 text-sm text-[#524646]/80">{intro}</p>}
-      <div className="mt-6 space-y-5">{children}</div>
-    </section>
-  );
 }
 
 function SignaturePad({ onChange }: { onChange: (d: string | null) => void }) {
@@ -166,7 +125,6 @@ const emptyForm = {
   company_name: "",
   client_email: "",
   client_phone: "",
-  kra_pin: "",
   location: "",
   project_name: "",
   overview: "",
@@ -177,7 +135,7 @@ const emptyForm = {
   refs: "",
   budget: "",
   fee: "",
-  payment_method: PAYMENT_METHODS[0],
+  payment_method: "",
   deposit_percent: 50,
   start_date: "",
   delivery_weeks: "4",
@@ -186,6 +144,8 @@ const emptyForm = {
 type SigKind = "draw" | "type" | "upload";
 
 export default function ContractForm() {
+  const { data: cfg } = useContractSettings();
+  const settings = cfg!; // placeholder defaults are always available
   const [f, setF] = useState(emptyForm);
   const [services, setServices] = useState<string[]>([]);
   const [addons, setAddons] = useState<string[]>([]);
@@ -202,6 +162,8 @@ export default function ContractForm() {
   const toggle = (list: string[], setList: (v: string[]) => void, v: string) =>
     setList(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
+  const methods = settings.payment_methods;
+  const paymentMethod = methods.includes(f.payment_method) ? f.payment_method : methods[0];
   const fee = num(f.fee);
   const deposit = Math.round(fee * f.deposit_percent) / 100;
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
@@ -236,6 +198,7 @@ export default function ContractForm() {
     if (f.overview.trim().length < 10) return "Add a project overview (at least 10 characters).";
     if (num(f.budget) <= 0) return "Enter your budget.";
     if (fee <= 0) return "Enter the agreed project fee.";
+    if (f.deposit_percent < MIN_DEPOSIT_PERCENT) return `Deposit must be at least ${MIN_DEPOSIT_PERCENT}%.`;
     if (!f.start_date) return "Choose a start date.";
     const w = Number(f.delivery_weeks);
     if (!Number.isInteger(w) || w < 1 || w > 104) return "Delivery must be between 1 and 104 weeks.";
@@ -252,13 +215,12 @@ export default function ContractForm() {
     setBusy(true);
     setError(null);
     try {
-      const picked = CONTRACT_SERVICES.filter((s) => services.includes(s.name));
+      const picked = settings.services.filter((s) => services.includes(s.name));
       const payload = {
         client_name: f.client_name.trim(),
         company_name: f.company_name.trim(),
         client_email: f.client_email.trim(),
         client_phone: f.client_phone.trim(),
-        kra_pin: f.kra_pin.trim(),
         location: f.location.trim(),
         project_name: f.project_name.trim(),
         overview: f.overview.trim(),
@@ -272,14 +234,14 @@ export default function ContractForm() {
         budget_kes: num(f.budget),
         fee_kes: fee,
         deposit_percent: f.deposit_percent,
-        payment_method: f.payment_method,
+        payment_method: paymentMethod,
         start_date: f.start_date,
         delivery_weeks: Number(f.delivery_weeks),
         signature_data: signature as string,
         signature_kind: sigKind,
         signed_name: sigKind === "type" ? typedName.trim() : f.client_name.trim(),
-        terms_version: TERMS_VERSION,
-        terms_snapshot: CONTRACT_TERMS,
+        terms_version: settings.terms_version,
+        terms_snapshot: settings.terms,
       };
 
       const { data, error: rpcError } = await supabase.rpc("submit_service_contract", { p_data: payload });
@@ -295,7 +257,7 @@ export default function ContractForm() {
         company_name: payload.company_name || null,
         client_email: payload.client_email,
         client_phone: payload.client_phone,
-        kra_pin: payload.kra_pin || null,
+        kra_pin: null,
         location: payload.location,
         project_name: payload.project_name,
         overview: payload.overview,
@@ -315,8 +277,8 @@ export default function ContractForm() {
         signature_data: payload.signature_data,
         signature_kind: sigKind,
         signed_name: payload.signed_name,
-        terms_version: TERMS_VERSION,
-        terms_snapshot: CONTRACT_TERMS,
+        terms_version: settings.terms_version,
+        terms_snapshot: settings.terms,
         signed_at: new Date().toISOString(),
         countersigned_at: null,
         created_at: new Date().toISOString(),
@@ -368,6 +330,12 @@ export default function ContractForm() {
             >
               <FileSignature size={18} /> Save as PDF
             </a>
+            <Link
+              to="/"
+              className="flex items-center justify-center gap-2 rounded-lg border border-[#E8E2D6] px-5 py-3 text-sm font-bold text-[#524646] hover:bg-[#FBF9F5]"
+            >
+              <ArrowLeft size={18} /> Back to website
+            </Link>
           </div>
           {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
           <p className="mt-6 break-all text-xs text-[#524646]/60">
@@ -389,9 +357,22 @@ export default function ContractForm() {
 
   return (
     <main className="min-h-screen bg-[#FBF9F5] font-body text-[#524646]">
-      <header className="bg-[#007979] px-4 py-10 text-white">
-        <div className="mx-auto max-w-3xl">
-          <img src="/whitelogo.png" alt={OWNER.company} className="h-12 w-auto object-contain" />
+      <header className="relative overflow-hidden bg-[#007979] px-4 py-10 text-white">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/pattern.webp')", opacity: 0.05 }}
+        />
+        <div className="relative mx-auto max-w-3xl">
+          <div className="flex items-center justify-between gap-4">
+            <img src="/whitelogo.png" alt={OWNER.company} className="h-12 w-auto object-contain" />
+            <Link
+              to="/"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/40 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+            >
+              <ArrowLeft size={15} /> Back to website
+            </Link>
+          </div>
           <h1 className="mt-6 font-display text-3xl font-bold sm:text-4xl">Client service agreement</h1>
           <p className="mt-2 max-w-xl text-sm text-[#FFE2AF]">
             Review the scope, confirm the terms and sign online. Your signed copy is ready to save as a PDF the moment you finish.
@@ -426,9 +407,6 @@ export default function ContractForm() {
             <Field label="Phone / WhatsApp" required>
               <input type="tel" className={inp} value={f.client_phone} onChange={(e) => set("client_phone", e.target.value)} placeholder="0712 345 678" autoComplete="tel" />
             </Field>
-            <Field label="KRA PIN or ID number">
-              <input className={inp} value={f.kra_pin} onChange={(e) => set("kra_pin", e.target.value)} />
-            </Field>
             <Field label="Country and town" required>
               <input className={inp} value={f.location} onChange={(e) => set("location", e.target.value)} placeholder="Kenya, Nairobi" />
             </Field>
@@ -437,7 +415,7 @@ export default function ContractForm() {
 
         <Section id="s2" title="Services you're engaging us for" intro="Select every service that applies. The scope under each one becomes part of the agreement.">
           <div className="grid gap-3 sm:grid-cols-2">
-            {CONTRACT_SERVICES.map((s) => {
+            {settings.services.map((s) => {
               const on = services.includes(s.name);
               return (
                 <button
@@ -483,27 +461,29 @@ export default function ContractForm() {
             <textarea rows={3} className={inp} value={f.refs} onChange={(e) => set("refs", e.target.value)} />
           </Field>
 
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium text-[#1A1A16]">Optional add-ons</legend>
-            <div className="flex flex-wrap gap-2">
-              {CONTRACT_ADDONS.map((a) => {
-                const on = addons.includes(a);
-                return (
-                  <button
-                    type="button"
-                    key={a}
-                    onClick={() => toggle(addons, setAddons, a)}
-                    aria-pressed={on}
-                    className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
-                      on ? "border-[#007979] bg-[#007979] text-white" : "border-[#E8E2D6] text-[#524646] hover:border-[#007979]/50"
-                    }`}
-                  >
-                    {a}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
+          {settings.addons.length > 0 && (
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium text-[#1A1A16]">Optional add-ons</legend>
+              <div className="flex flex-wrap gap-2">
+                {settings.addons.map((a) => {
+                  const on = addons.includes(a);
+                  return (
+                    <button
+                      type="button"
+                      key={a}
+                      onClick={() => toggle(addons, setAddons, a)}
+                      aria-pressed={on}
+                      className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                        on ? "border-[#007979] bg-[#007979] text-white" : "border-[#E8E2D6] text-[#524646] hover:border-[#007979]/50"
+                      }`}
+                    >
+                      {a}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+          )}
         </Section>
 
         <Section id="s3" title="Fees and timeline" intro="Enter the amounts exactly as quoted in your proposal.">
@@ -515,15 +495,15 @@ export default function ContractForm() {
               <input inputMode="numeric" className={inp} value={f.fee} onChange={(e) => set("fee", e.target.value)} placeholder="120,000" />
             </Field>
             <Field label="Preferred payment method">
-              <select className={inp} value={f.payment_method} onChange={(e) => set("payment_method", e.target.value)}>
-                {PAYMENT_METHODS.map((m) => (
+              <select className={inp} value={paymentMethod} onChange={(e) => set("payment_method", e.target.value)}>
+                {methods.map((m) => (
                   <option key={m}>{m}</option>
                 ))}
               </select>
             </Field>
             <Field label="Deposit due on signing">
               <select className={inp} value={f.deposit_percent} onChange={(e) => set("deposit_percent", Number(e.target.value))}>
-                {[20, 30, 40, 50, 60, 70].map((p) => (
+                {DEPOSIT_OPTIONS.map((p) => (
                   <option key={p} value={p}>
                     {p}%
                   </option>
@@ -546,8 +526,8 @@ export default function ContractForm() {
 
         <Section id="s4" title="Terms and conditions" intro="Please read in full. Scroll within the box.">
           <div className="max-h-80 space-y-3 overflow-y-auto rounded-lg border border-[#E8E2D6] bg-[#FBF9F5] p-4 text-sm leading-6 text-[#1A1A16]">
-            {CONTRACT_TERMS.map((t, i) => (
-              <p key={t.title}>
+            {settings.terms.map((t, i) => (
+              <p key={`${t.title}-${i}`}>
                 <strong>
                   {i + 1}. {t.title}.{" "}
                 </strong>

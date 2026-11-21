@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
 import SEO from "@/components/SEO";
 import ServiceCard from "@/components/ServiceCard";
 import ProcessStep from "@/components/ProcessStep";
@@ -20,6 +21,9 @@ const fadeLeft = {
   hidden: { opacity: 0, x: -32 },
   show: { opacity: 1, x: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } },
 };
+
+// One shared container so every section starts on the same left edge.
+const CONTAINER = "mx-auto w-full max-w-[1560px] px-4 sm:px-6 lg:px-8";
 
 const WhatIDo = () => {
   const { hash } = useLocation();
@@ -66,15 +70,15 @@ const WhatIDo = () => {
     if (offersQuery.error) console.error("Could not load service offers:", offersQuery.error);
   }, [offersQuery.error]);
 
-  const pageTitle = "Software Engineering, Web Development & Branding Services | Samuel A. Emoni";
+  const pageTitle = "Web Developer & Brand Strategist in Nairobi, Kenya | Emoni Samuel";
   const pageDescription =
-    "Explore custom software engineering, full-stack web development, digital systems, and brand strategy services tailored for businesses and organizations in Kenya and beyond.";
+    "Custom web development, API integration, process automation, branding, digital marketing and SEO for businesses in Nairobi and across East Africa.";
 
-  // Generate dynamic Schema JSON-LD based on fetched services
+  // Dynamic Schema JSON-LD based on fetched services
   const servicesSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Services Offered by Samuel A. Emoni",
+    name: "Services Offered by Emoni Samuel",
     description: pageDescription,
     itemListElement: services.map((service, index) => ({
       "@type": "ListItem",
@@ -86,9 +90,10 @@ const WhatIDo = () => {
         description:
           service.short_description || service.solution || service.problem || service.outcome,
         image: service.banner_url || undefined,
+        areaServed: ["Nairobi", "Kenya", "East Africa"],
         provider: {
           "@type": "Person",
-          name: "Samuel A. Emoni",
+          name: "Emoni Samuel",
           url: "https://www.emonisamuel.co.ke",
         },
       },
@@ -105,20 +110,35 @@ const WhatIDo = () => {
         title={pageTitle}
         description={pageDescription}
         canonical="/what-i-do"
-        keywords="software engineering services Kenya, web development Nairobi, branding Kenya, UI UX design Africa, business automation Kenya"
+        keywords="web development Nairobi, web developer Kenya, brand strategy Kenya, software engineering services Kenya, API integration Nairobi, process automation Kenya, digital marketing and SEO East Africa"
         schema={servicesSchema}
       />
 
       <main>
-        {/* Hero */}
+        {/* Hero: heading left, intro right, same container as the cards below */}
         <section className="bg-paper pt-24 pb-4">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div variants={fadeLeft} initial="hidden" animate="show">
-              <h1 className="font-display text-[40px] sm:text-[52px] text-ink leading-tight">What I Do</h1>
-              <p className="font-body text-lg sm:text-xl text-[#4A4A4A] max-w-2xl mt-4">
-                I work across two worlds most people keep separate, the technical and the creative.
-                Below is exactly how I think through a problem, whether it's a system that's broken
-                or a brand nobody recognizes yet.
+          <div className={CONTAINER}>
+            <motion.div
+              variants={fadeLeft}
+              initial="hidden"
+              animate="show"
+              className="grid items-start gap-6 lg:grid-cols-[5fr_7fr] lg:gap-16"
+            >
+              <div>
+                <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                  What I do
+                </p>
+                <h1 className="mt-3 font-display text-[36px] sm:text-[48px] text-ink leading-[1.1]">
+                  Web Development &amp; Brand Strategy in Nairobi, Kenya
+                </h1>
+              </div>
+
+              <p className="font-body text-lg sm:text-xl leading-relaxed text-[#4A4A4A] max-w-2xl lg:pt-8">
+                I help businesses in Nairobi, across Kenya and throughout East Africa with two things
+                most people keep separate: technical web development and creative brand strategy.
+                Whether you need custom software, API integration or process automation, or a brand
+                that needs design, digital marketing and SEO, here is exactly how I think through the
+                problem.
               </p>
             </motion.div>
           </div>
@@ -126,7 +146,7 @@ const WhatIDo = () => {
 
         {/* Services by Category: 2 per row on desktop */}
         <section className="bg-paper py-16">
-          <div className="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={CONTAINER}>
             {categories.map((cat, catIndex) => {
               const catServices = services.filter((s) => s.category === cat.id);
               if (catServices.length === 0) return null;
@@ -139,12 +159,10 @@ const WhatIDo = () => {
                     whileInView="show"
                     viewport={{ once: true, amount: 0.3 }}
                   >
-                    <span className="inline-block border border-ink/20 text-ink/60 text-xs uppercase tracking-widest px-3 py-1 rounded-[4px] font-body">
+                    <h2 className="inline-block border border-ink/20 text-ink/60 text-xs uppercase tracking-widest px-3 py-1 rounded-[4px] font-body font-normal">
                       {String(catIndex + 1).padStart(2, "0")}. {cat.label}
-                    </span>
-                    <p className="font-body text-lg text-[#4A4A4A] max-w-2xl mt-3">
-                      {cat.blurb}
-                    </p>
+                    </h2>
+                    <p className="font-body text-lg text-[#4A4A4A] max-w-2xl mt-3">{cat.blurb}</p>
                   </motion.div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
@@ -177,56 +195,99 @@ const WhatIDo = () => {
 
         {/* Ideal For */}
         {idealFor.length > 0 && (
-          <section className="bg-paper border-t border-ink/10 py-24">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-              <motion.div
+          <section
+            id="ideal-for"
+            aria-labelledby="ideal-for-heading"
+            className="border-t border-ink/10 bg-paper py-20 sm:py-28"
+          >
+            <div
+              className={`${CONTAINER} grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20`}
+            >
+              {/* Left: sticky intro */}
+              <motion.header
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.3 }}
+                className="lg:sticky lg:top-28 lg:self-start"
               >
-                <span className="inline-block border border-ink/20 text-ink/60 text-xs uppercase tracking-widest px-3 py-1 rounded-[4px] font-body">
-                  Ideal For
-                </span>
-                <h2 className="font-display text-[34px] sm:text-[42px] text-ink mt-4 leading-tight">
+                <p className="font-body text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                  Ideal for
+                </p>
+                <h2
+                  id="ideal-for-heading"
+                  className="mt-3 font-display text-[34px] leading-[1.1] text-ink sm:text-[44px]"
+                >
                   Who I work with best
                 </h2>
-                <p className="font-body text-lg text-[#4A4A4A] max-w-2xl mt-3">
-                  I'm most effective when there's a real problem to solve and someone ready to move decisively.
+                <p className="mt-5 max-w-md font-body text-lg leading-relaxed text-ink/70">
+                  I'm most effective when there's a real problem to solve and someone ready to move
+                  decisively. If one of these sounds like you, let's talk.
                 </p>
-              </motion.div>
+                <Link
+                  to="/contact"
+                  className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl bg-forest px-6 py-3 font-body text-sm font-semibold text-cream transition-colors hover:bg-ember focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember"
+                >
+                  Start a project <ArrowUpRight size={16} aria-hidden="true" />
+                </Link>
+              </motion.header>
 
-              <div className="mt-12 flex flex-wrap gap-4">
+              {/* Right: one calm list */}
+              <ol className="divide-y divide-ink/15 border-y border-ink/15">
                 {idealFor.map((item, i) => (
-                  <motion.div
-                    key={i}
+                  <motion.li
+                    key={`${item}-${i}`}
                     variants={fadeUp}
                     initial="hidden"
                     whileInView="show"
                     viewport={{ once: true, amount: 0.2 }}
-                    custom={i}
-                    whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-                    className="border-2 border-ink text-ink font-body font-bold text-base px-6 py-4 rounded-[4px] bg-transparent cursor-default"
+                    custom={i % 4}
+                    className="flex items-baseline gap-5 px-1 py-5 transition-colors hover:bg-ink/[0.03] sm:gap-6 sm:py-6"
                   >
-                    {item}
-                  </motion.div>
+                    <span
+                      aria-hidden="true"
+                      className="w-7 shrink-0 font-body text-xs font-semibold tabular-nums tracking-widest text-ember"
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="font-body text-base leading-snug text-ink sm:text-lg">{item}</span>
+                  </motion.li>
                 ))}
-              </div>
+              </ol>
             </div>
+
+            {/* Structured data: lets search engines read the list as an ItemList */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "ItemList",
+                  name: "Who I work with best",
+                  itemListElement: idealFor.map((name, i) => ({
+                    "@type": "ListItem",
+                    position: i + 1,
+                    name,
+                  })),
+                }).replace(/</g, "\\u003c"),
+              }}
+            />
           </section>
         )}
 
         {/* Process */}
         {processSteps.length > 0 && (
           <section className="patterned-surface bg-forest py-24">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className={CONTAINER}>
               <motion.div
                 variants={fadeLeft}
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.3 }}
               >
-                <h2 className="font-display text-[38px] sm:text-[48px] text-cream leading-tight">How I Work</h2>
+                <h2 className="font-display text-[38px] sm:text-[48px] text-cream leading-tight">
+                  How I Work
+                </h2>
                 <p className="font-body text-lg text-cream/70 max-w-xl mt-4">
                   A structured approach to every engagement, from first call to final delivery.
                 </p>
@@ -242,7 +303,11 @@ const WhatIDo = () => {
                     viewport={{ once: true, amount: 0.2 }}
                     custom={i}
                   >
-                    <ProcessStep number={step.step_number} title={step.title} description={step.description} />
+                    <ProcessStep
+                      number={step.step_number}
+                      title={step.title}
+                      description={step.description}
+                    />
                   </motion.div>
                 ))}
               </div>

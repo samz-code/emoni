@@ -9,6 +9,8 @@ import {
   FaPinterest,
   FaBehance,
 } from "react-icons/fa6";
+import { MARKETS } from "@/lib/seoMarkets";
+import { MarketFlags } from "@/components/Flag";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -34,6 +36,14 @@ const explore = [
   { label: "Contact",             href: "/contact" },
 ];
 
+// Market pages: /markets/:slug (each carries its flag codes)
+const markets = MARKETS.map((m) => ({
+  label: m.slug === "expanding-to-kenya" ? "Companies entering Kenya" : m.country,
+  href: `/markets/${m.slug}`,
+  flags: m.flags,
+}));
+
+// These URLs match the sameAs links in index.html, so Google connects the profiles to the site.
 const socials: {
   Icon: React.ElementType;
   href: string;
@@ -41,13 +51,13 @@ const socials: {
   color: string;
   isOfficialProfile: boolean;
 }[] = [
-  { Icon: FaLinkedin,  href: "https://www.linkedin.com/in/samuelemoni?utm_source=share_via&utm_content=profile&utm_medium=member_android", label: "LinkedIn",    color: "#0A66C2", isOfficialProfile: true },
-  { Icon: FaInstagram, href: "https://www.instagram.com/emoni_sam?igsh=OGQ5ZDc2ODk2ZA==", label: "Instagram", color: "#E1306C", isOfficialProfile: true },
-  { Icon: FaFacebook,  href: "https://www.facebook.com/share/14bqxEBvppA/", label: "Facebook",  color: "#1877F2", isOfficialProfile: true },
-  { Icon: FaXTwitter,  href: "https://x.com/samuelemoni18",             label: "X (Twitter)", color: "#ffffff", isOfficialProfile: true },
-  { Icon: FaReddit,    href: "https://www.reddit.com/u/sam-emoni/s/PTQvc1bUu9", label: "Reddit",   color: "#FF4500", isOfficialProfile: true },
-  { Icon: FaPinterest, href: "https://pin.it/qZWHrli7q",                label: "Pinterest",  color: "#E60023", isOfficialProfile: true },
-  { Icon: FaBehance,   href: "https://www.behance.net/samturkidemoni",  label: "Behance",    color: "#1769FF", isOfficialProfile: true },
+  { Icon: FaLinkedin,  href: "https://www.linkedin.com/in/samuelemoni",      label: "LinkedIn",    color: "#0A66C2", isOfficialProfile: true },
+  { Icon: FaInstagram, href: "https://www.instagram.com/emoni_sam",          label: "Instagram",   color: "#E1306C", isOfficialProfile: true },
+  { Icon: FaFacebook,  href: "https://www.facebook.com/sam.ke.991357/",      label: "Facebook",    color: "#1877F2", isOfficialProfile: true },
+  { Icon: FaXTwitter,  href: "https://x.com/samuelemoni18",                  label: "X (Twitter)", color: "#ffffff", isOfficialProfile: true },
+  { Icon: FaReddit,    href: "https://www.reddit.com/user/sam-emoni/",       label: "Reddit",      color: "#FF4500", isOfficialProfile: true },
+  { Icon: FaPinterest, href: "https://pin.it/qZWHrli7q",                     label: "Pinterest",   color: "#E60023", isOfficialProfile: true },
+  { Icon: FaBehance,   href: "https://www.behance.net/samturkidemoni",       label: "Behance",     color: "#1769FF", isOfficialProfile: true },
 ];
 
 // ─── Static Logo ─────────────────────────────────────────────────────────────
@@ -101,144 +111,184 @@ const Footer = () => {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="patterned-surface relative bg-forest text-cream overflow-hidden">
+    <footer>
 
-      {/* Top accent rule */}
-      <div className="h-px w-full bg-ember" />
+      {/* ── CTA band: its own gold section, separate from the footer ── */}
+      <section
+        aria-labelledby="footer-cta"
+        className="bg-[#C8A96A] text-ink"
+      >
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12 lg:py-16">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 lg:gap-8">
+            <div>
+              <p className="font-body text-[11px] font-semibold uppercase tracking-[0.24em] text-forest mb-3 lg:mb-4">
+                Let's build something
+              </p>
+              <h2
+                id="footer-cta"
+                className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[0.95] tracking-tight"
+                style={{
+                  color: "transparent",
+                  WebkitTextFillColor: "transparent",
+                  WebkitTextStroke: "1px #ffffff",
+                }}
+              >
+                Have a project
+                <br />
+                in mind?
+              </h2>
+            </div>
 
-      {/* ── CTA strip ── */}
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pt-12 lg:pt-20 pb-10 lg:pb-14">
-        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 lg:gap-8 border-b border-cream/10 pb-10 lg:pb-14">
-          <div>
-            <p className="font-body text-[11px] font-semibold uppercase tracking-[0.24em] text-ember mb-3 lg:mb-4">
-              Let's build something
-            </p>
-            <h2 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold leading-[0.95] tracking-tight text-cream">
-              Have a project
-              <br />
-              <span className="text-cream/40">in mind?</span>
-            </h2>
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-3 self-start rounded-full bg-forest px-6 py-3 lg:px-8 lg:py-4 font-body text-[14px] lg:text-[15px] font-bold text-cream transition-colors hover:bg-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"
+            >
+              Start a conversation
+              <ArrowUpRight size={18} />
+            </Link>
           </div>
-
-          <Link
-            to="/contact"
-            className="inline-flex items-center gap-3 self-start rounded-full bg-ember px-6 py-3 lg:px-8 lg:py-4 font-body text-[14px] lg:text-[15px] font-bold text-black hover:bg-cream"
-          >
-            Start a conversation
-            <ArrowUpRight size={18} />
-          </Link>
         </div>
-      </div>
+      </section>
 
-      {/* ── Main grid (2 columns on mobile, 12 on desktop) ── */}
-      <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pb-12 lg:pb-20">
-        <div className="grid grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-10 lg:gap-10">
+      {/* ── Footer proper ── */}
+      <div className="patterned-surface relative bg-forest text-cream overflow-hidden">
 
-          {/* ── Brand column (full width on mobile) ── */}
-          <div className="col-span-2 lg:col-span-4 flex flex-col gap-5 lg:gap-7">
-            <SparkLogo />
+        {/* Top accent rule */}
+        <div className="h-px w-full bg-ember" />
 
-            <p className="font-body text-[14px] lg:text-[15px] text-cream/45 leading-relaxed max-w-xs">
-              Full-stack development and design, built for clarity and scale.
-            </p>
+        {/* ── Main grid (2 columns on mobile, 12 on desktop) ── */}
+        <div className="relative max-w-7xl mx-auto px-6 lg:px-12 pt-12 lg:pt-20 pb-12 lg:pb-16">
+          <div className="grid grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-10 lg:gap-10">
 
-            <div className="flex flex-col gap-3 lg:gap-3.5">
-              <a
-                href="mailto:emonisamuel54@gmail.com"
-                className="flex items-center gap-3.5 font-body text-[14px] lg:text-[15px] text-cream/55 hover:text-ember group min-w-0"
-              >
-                <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center group-hover:border-ember/40 flex-shrink-0">
-                  <Mail size={15} className="text-ember" />
-                </span>
-                <span className="min-w-0 break-all">emonisamuel54@gmail.com</span>
-              </a>
+            {/* ── Brand column (full width on mobile) ── */}
+            <div className="col-span-2 lg:col-span-4 flex flex-col gap-5 lg:gap-7">
+              <SparkLogo />
 
-              <a
-                href="tel:+254727492545"
-                className="flex items-center gap-3.5 font-body text-[14px] lg:text-[15px] text-cream/55 hover:text-ember group"
-              >
-                <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center group-hover:border-ember/40 flex-shrink-0">
-                  <Phone size={15} className="text-ember" />
-                </span>
-                +254 727 492 545
-              </a>
+              <p className="font-body text-[14px] lg:text-[15px] text-cream/45 leading-relaxed max-w-xs">
+                Full-stack development and design, built for clarity and scale.
+              </p>
 
-              <div className="flex items-center gap-3.5 font-body text-[14px] lg:text-[15px] text-cream/55">
-                <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center flex-shrink-0">
-                  <MapPin size={15} className="text-ember" />
-                </span>
-                Nairobi, Kenya · EAT (UTC+3)
+              <div className="flex flex-col gap-3 lg:gap-3.5">
+                <a
+                  href="mailto:emonisamuel54@gmail.com"
+                  className="flex items-center gap-3.5 font-body text-[14px] lg:text-[15px] text-cream/55 hover:text-ember group min-w-0"
+                >
+                  <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center group-hover:border-ember/40 flex-shrink-0">
+                    <Mail size={15} className="text-ember" />
+                  </span>
+                  <span className="min-w-0 break-all">emonisamuel54@gmail.com</span>
+                </a>
+
+                <a
+                  href="tel:+254727492545"
+                  className="flex items-center gap-3.5 font-body text-[14px] lg:text-[15px] text-cream/55 hover:text-ember group"
+                >
+                  <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center group-hover:border-ember/40 flex-shrink-0">
+                    <Phone size={15} className="text-ember" />
+                  </span>
+                  +254 727 492 545
+                </a>
+
+                <div className="flex items-center gap-3.5 font-body text-[14px] lg:text-[15px] text-cream/55">
+                  <span className="w-9 h-9 rounded-lg border border-cream/10 flex items-center justify-center flex-shrink-0">
+                    <MapPin size={15} className="text-ember" />
+                  </span>
+                  Nairobi, Kenya · EAT (UTC+3)
+                </div>
               </div>
             </div>
+
+            {/* ── Explore (half width on mobile) ── */}
+            <div className="col-span-1 lg:col-span-2">
+              <SectionLabel>Explore</SectionLabel>
+              <LinkList items={explore} />
+            </div>
+
+            {/* ── Services (half width on mobile) ── */}
+            <div className="col-span-1 lg:col-span-3">
+              <SectionLabel>Services</SectionLabel>
+              <LinkList items={services} />
+            </div>
+
+            {/* ── Connect (full width on mobile, socials are 2-col inside) ── */}
+            <div className="col-span-2 lg:col-span-3">
+              <SectionLabel>Connect</SectionLabel>
+
+              {/* 2-column social grid */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {socials.map(({ Icon, href, label, color, isOfficialProfile }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel={isOfficialProfile ? "me noopener noreferrer" : "noopener noreferrer"}
+                    aria-label={`Samuel A. Emoni on ${label}`}
+                    title={`Samuel A. Emoni on ${label}`}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-cream/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-cream/20 group"
+                  >
+                    <Icon
+                      size={18}
+                      style={{ color }}
+                      className="flex-shrink-0"
+                    />
+                    <span className="font-body text-[13px] font-medium text-cream/55 group-hover:text-cream/90 leading-tight truncate">
+                      {label}
+                    </span>
+                  </a>
+                ))}
+              </div>
+
+              {/* Working hours */}
+              <div className="mt-6 lg:mt-8 pl-4 border-l-2 border-ember/60">
+                <SectionLabel>Working Hours</SectionLabel>
+                <p className="font-body text-[14px] lg:text-[15px] text-cream/70">Mon – Fri · 09:00 – 18:00</p>
+                <p className="font-body text-[13px] text-cream/45 mt-1">Sat · 10:00 – 14:00 · EAT</p>
+              </div>
+            </div>
+
           </div>
+        </div>
 
-          {/* ── Explore (half width on mobile) ── */}
-          <div className="col-span-1 lg:col-span-2">
-            <SectionLabel>Explore</SectionLabel>
-            <LinkList items={explore} />
-          </div>
-
-          {/* ── Services (half width on mobile) ── */}
-          <div className="col-span-1 lg:col-span-3">
-            <SectionLabel>Services</SectionLabel>
-            <LinkList items={services} />
-          </div>
-
-          {/* ── Connect (full width on mobile, socials are 2-col inside) ── */}
-          <div className="col-span-2 lg:col-span-3">
-            <SectionLabel>Connect</SectionLabel>
-
-            {/* 2-column social grid */}
-            <div className="grid grid-cols-2 gap-2.5">
-              {socials.map(({ Icon, href, label, color, isOfficialProfile }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel={isOfficialProfile ? "me noopener noreferrer" : "noopener noreferrer"}
-                  aria-label={`Samuel A. Emoni on ${label}`}
-                  title={`Samuel A. Emoni on ${label}`}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-cream/10 bg-white/[0.03] hover:bg-white/[0.07] hover:border-cream/20 group"
-                >
-                  <Icon
-                    size={18}
-                    style={{ color }}
-                    className="flex-shrink-0"
-                  />
-                  <span className="font-body text-[13px] font-medium text-cream/55 group-hover:text-cream/90 leading-tight truncate">
-                    {label}
-                  </span>
-                </a>
+        {/* ── Serving: links to the market landing pages, with flags ── */}
+        <nav
+          aria-label="Regions served"
+          className="relative max-w-7xl mx-auto px-6 lg:px-12 pb-12 lg:pb-16"
+        >
+          <div className="border-t border-cream/10 pt-6 lg:pt-8">
+            <SectionLabel>Serving</SectionLabel>
+            <ul className="flex flex-wrap gap-x-8 gap-y-4 lg:gap-x-10">
+              {markets.map((m) => (
+                <li key={m.href}>
+                  <Link
+                    to={m.href}
+                    className="inline-flex items-center gap-3 font-body text-[14px] lg:text-[15px] text-cream/65 hover:text-ember"
+                  >
+                    <MarketFlags codes={m.flags} size={32} />
+                    <span>{m.label}</span>
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
+          </div>
+        </nav>
 
-            {/* Working hours */}
-            <div className="mt-6 lg:mt-8 pl-4 border-l-2 border-ember/60">
-              <SectionLabel>Working Hours</SectionLabel>
-              <p className="font-body text-[14px] lg:text-[15px] text-cream/70">Mon – Fri · 09:00 – 18:00</p>
-              <p className="font-body text-[13px] text-cream/45 mt-1">Sat · 10:00 – 14:00 · EAT</p>
+        {/* ── Bottom bar ── */}
+        <div style={{ backgroundColor: "#C8A96A" }} className="relative">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p className="font-body text-[13px] font-bold text-black text-center">
+              © {year} Samuel A. Emoni. All rights reserved.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 font-body text-[13px] font-bold text-black">
+              <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
+              <span className="text-black/35">·</span>
+              <Link to="/terms" className="hover:text-white">Terms & Conditions</Link>
+              <span className="text-black/35">·</span>
+              <Link to="/cookies" className="hover:text-white">Cookies</Link>
             </div>
           </div>
-
         </div>
-      </div>
 
-      {/* ── Bottom bar ── */}
-      <div style={{ backgroundColor: "#C8A96A" }} className="relative">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="font-body text-[13px] font-bold text-black text-center">
-            © {year} Samuel A. Emoni. All rights reserved.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 font-body text-[13px] font-bold text-black">
-            <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
-            <span className="text-black/35">·</span>
-            <Link to="/terms" className="hover:text-white">Terms & Conditions</Link>
-            <span className="text-black/35">·</span>
-            <Link to="/cookies" className="hover:text-white">Cookies</Link>
-          </div>
-        </div>
       </div>
-
     </footer>
   );
 };

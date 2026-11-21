@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
-export const OWNER = {
+const OWNER_DEFAULTS = {
   company: "Emoni Digital Solutions",
   rep: "Samuel A. Emoni",
   email: "emonisamuel54@gmail.com",
@@ -10,6 +11,10 @@ export const OWNER = {
   site: "www.emonisamuel.co.ke",
   location: "Nairobi, Kenya",
 };
+
+/** Live business details. Updated in place when saved settings load, so every importer sees them. */
+export const OWNER = { ...OWNER_DEFAULTS };
+export type Owner = typeof OWNER_DEFAULTS;
 
 export const TERMS_VERSION = "2026-11";
 
@@ -43,8 +48,12 @@ export const CONTRACT_ADDONS = [
 
 export const PAYMENT_METHODS = ["M-Pesa", "Bank transfer", "Card"];
 
+/** Deposit due on signing: never less than 50%. */
+export const DEPOSIT_OPTIONS = [50, 60];
+export const MIN_DEPOSIT_PERCENT = 50;
+
 export const CONTRACT_TERMS = [
-  { title: "Definitions", body: `“Provider” means ${OWNER.company}, represented by ${OWNER.rep}. “Client” means the person or organisation named in this agreement. “Services” means the services selected by the Client, as described in the Scope. “Deliverables” means the work product resulting from the Services.` },
+  { title: "Definitions", body: `“Provider” means ${OWNER_DEFAULTS.company}, represented by ${OWNER_DEFAULTS.rep}. “Client” means the person or organisation named in this agreement. “Services” means the services selected by the Client, as described in the Scope. “Deliverables” means the work product resulting from the Services.` },
   { title: "Scope of services", body: "The Provider will deliver only the Services and Deliverables selected in this agreement. Anything outside that scope is a change request under Clause 4. Where the Client’s brief is silent, the Provider will apply reasonable professional standards." },
   { title: "Client responsibilities", body: "The Client will supply content, brand assets, credentials and feedback promptly, and will nominate one contact person who can approve work. Delays in providing these items extend the delivery timeline day for day and do not entitle the Client to a refund." },
   { title: "Change requests", body: "Requests outside the agreed scope will be quoted in writing and begin only after the Client approves the quote. Two (2) consolidated rounds of revisions are included per deliverable; further revisions are billed at the Provider’s prevailing hourly rate." },
@@ -64,7 +73,8 @@ export const CONTRACT_TERMS = [
   { title: "Electronic signature and entire agreement", body: "The parties agree that electronic signatures are valid and binding under Kenyan law. This agreement is the entire understanding between the parties and replaces earlier discussions. It may be amended only in writing signed by both parties. If any clause is unenforceable, the rest remains in force." },
 ];
 
-export type ContractStatus = "signed" | "countersigned" | "cancelled";
+/** "prepared" = created by the admin and awaiting the client's signature. */
+export type ContractStatus = "prepared" | "signed" | "countersigned" | "cancelled";
 
 export interface ServiceContract {
   id?: string;
@@ -78,7 +88,8 @@ export interface ServiceContract {
   company_name: string | null;
   client_email: string;
   client_phone: string;
-  kra_pin: string | null;
+  /** Legacy: no longer collected or shown. */
+  kra_pin?: string | null;
   location: string;
   project_name: string;
   overview: string;
@@ -121,7 +132,6 @@ export function contractRows(c: ServiceContract) {
     ["Contact", `${c.client_email} · ${c.client_phone}`],
     ["Location", c.location],
   ];
-  if (c.kra_pin) parties.push(["KRA PIN / ID", c.kra_pin]);
 
   const project: Row[] = [["Project", c.project_name], ["Overview", c.overview]];
   const optional: Row[] = [
@@ -189,4 +199,60 @@ export function useUnreadContracts() {
     return () => { active = false; void supabase.removeChannel(channel); };
   }, []);
   return count;
+}
+
+/* ───────── editable content (Admin → Contracts → Content) ───────── */
+export interface ContractSettings {
+  owner: Owner;
+  services: { name: string; scope: string }[];
+  addons: string[];
+  payment_methods: string[];
+  terms: { title: string; body: string }[];
+  terms_version: string;
+}
+
+export const DEFAULT_CONTRACT_SETTINGS: ContractSettings = {
+  owner: OWNER_DEFAULTS,
+  services: CONTRACT_SERVICES,
+  addons: CONTRACT_ADDONS,
+  payment_methods: PAYMENT_METHODS,
+  terms: CONTRACT_TERMS,
+  terms_version: TERMS_VERSION,
+};
+
+const list = <T,>(v: unknown, fallback: T[]): T[] => (Array.isArray(v) && v.length > 0 ? (v as T[]) : fallback);
+
+export async function fetchContractSettings(): Promise<ContractSettings> {
+  const d = DEFAULT_CONTRACT_SETTINGS;
+  const { data, error } = await supabase.from("contract_settings").select("*").eq("id", 1).maybeSingle();
+  const s: ContractSettings =
+    error || !data
+      ? d
+      : {
+          owner: { ...d.owner, ...(data.owner ?? {}) },
+          services: list(data.services, d.services),
+          addons: Array.isArray(data.addons) ? data.addons : d.addons,
+          payment_methods: list(data.payment_methods, d.payment_methods),
+          terms: list(data.terms, d.terms),
+          terms_version: data.terms_version || d.terms_version,
+        };
+  Object.assign(OWNER, s.owner);
+  return s;
+}
+
+export function useContractSettings() {
+  return useQuery({
+    queryKey: ["contract-settings"],
+    queryFn: fetchContractSettings,
+    staleTime: 60_000,
+    placeholderData: DEFAULT_CONTRACT_SETTINGS,
+  });
+}
+
+export async function saveContractSettings(s: ContractSettings) {
+  const { error } = await supabase
+    .from("contract_settings")
+    .upsert({ id: 1, ...s, updated_at: new Date().toISOString() });
+  if (error) throw error;
+  Object.assign(OWNER, s.owner);
 }
